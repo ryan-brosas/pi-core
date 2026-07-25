@@ -19,7 +19,7 @@ Agent({
 ```
 
 - Concurrency 1: omit `run_in_background`, consume the foreground result, then continue.
-- Concurrency >1 or dynamic: issue all independent calls together with `run_in_background: true`; let smart join return the group. Do not poll.
+- A concurrent wave contains at most three independent calls. Issue those together with `run_in_background: true`; let smart join return the group. Process additional work in sequential shards and do not poll.
 - Do not start a dependent phase until upstream results are available.
 - Omit `model` and `thinking`; scoped agent definitions own those settings.
 - The parent resolves placeholders before dispatch, synthesizes results, inspects child changes, and runs verification itself.
@@ -68,7 +68,7 @@ Update `.pi/QUALITY.md` with current grades.
 
 ## Phase 4: Open Cleanup PRs (Optional)
 
-For each independent P0 or P1 finding, issue one call together in the same turn:
+Partition independent P0/P1 findings into ordered, non-overlapping waves of at most three. Issue only the current wave together:
 
 ```typescript
 Agent({
@@ -80,7 +80,7 @@ Agent({
 });
 ```
 
-Keep dependent or same-file findings foreground and sequential. Each child applies and verifies exactly one fix in its isolated worktree and reports the branch/commit. The parent inspects each result, reruns verification, and decides whether to integrate or open a PR. Children must not switch the shared workspace branch or open PRs concurrently.
+Keep dependent or same-file findings foreground and sequential. After each joined wave, the parent inspects every result, reruns verification, and integrates accepted fixes before continuing later sequential shards. Each child applies and verifies exactly one fix in its isolated worktree and reports the branch/commit. Children must not switch the shared workspace branch or open PRs concurrently.
 
 ## Phase 5: Report
 

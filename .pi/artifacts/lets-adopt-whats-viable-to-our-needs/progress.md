@@ -527,3 +527,10 @@ Split the fan-out regression into independently named surface tests. The suite r
 - Audit discovery remains single-agent; occurrence review runs in sequential shards of at most three.
 - Batch implementation and matching review use at most three isolated results per shard before parent integration.
 - Verification: 3 focused surface tests passed.
+
+## Task I — garbage-collection caps
+
+- P0/P1 findings are preserved but executed in ordered non-overlapping waves of at most three.
+- Same-file/dependent work remains foreground; parent inspection and verification occur before later sequential shards.
+- Verification: 2 focused surface tests passed.
+- Deviation: used the actual test labels `gc prompt|garbage-collection`; the plan's spaced `garbage collection` filter matched no test name.
