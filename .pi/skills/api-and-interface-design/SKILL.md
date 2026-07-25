@@ -29,6 +29,16 @@ tools: []
 
 Never let a request body reach the implementation as `any` or `unknown`. Decode first.
 
+## Boundary Validation
+
+For every producer/consumer boundary:
+
+1. Parse unknown input into the declared schema before business logic.
+2. Validate success outputs and typed error shapes against the contract.
+3. Check backward compatibility and version/deprecation obligations.
+4. Exercise producer and consumer contract tests, including malformed input and failures.
+5. Record the commands and observed evidence; do not accept a boundary on prose review alone.
+
 ## Versioning Strategy
 
 | Strategy | When |

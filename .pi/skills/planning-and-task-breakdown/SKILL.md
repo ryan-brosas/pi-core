@@ -26,6 +26,10 @@ tools: [TaskCreate, TaskUpdate, memory, grep, find, read]
 
 **Lead with what is most-likely to change** (data model, type interfaces, UX). Mechanical refactor last. Stable parts of the plan go at the bottom; volatile parts at the top. If a section of the plan survives contact with implementation, it should be at the bottom.
 
+## Blast-Radius Gate
+
+Before slicing, map the change evidence: entry points, direct and transitive dependents, existing tests, public contracts, state or artifact effects, and rollback scope. Record exact files/symbols and uncertainty. If a material dependency or contract cannot be inspected, stop planning that slice rather than guessing its blast radius.
+
 ## Workflow
 
 1. **Spec interview** — ask the questions the spec leaves open (data model, edge cases, non-goals, success criteria). One question at a time for non-obvious decisions.

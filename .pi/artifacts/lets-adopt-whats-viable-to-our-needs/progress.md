@@ -495,3 +495,10 @@ test at .pi/tests/skill-system.test.ts:127:1
 - Added the nine previously unlisted local skills plus `organize-workspace` and `define-language` to Tier 2.
 - Pinned Bigpowers source and MIT attribution recorded.
 - PRD task 2 status: passed.
+
+## Task E — impact and boundary gates
+
+- Added a pre-slice blast-radius evidence gate covering entry points, dependents, tests, public contracts, state/artifact effects, and rollback scope.
+- Added producer/consumer boundary validation for parsed inputs, outputs/errors, compatibility, contract tests, and command evidence.
+- Verification: 1 focused test passed.
+- Deviation: split one combined policy test into independent Task E and Task F assertions so each task's named verification exercises real behavior instead of matching zero tests.

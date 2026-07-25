@@ -80,10 +80,12 @@ test("adopted skills do not import the Bigpowers cockpit", () => {
   assert.doesNotMatch(text, /specs\/state\.yaml|release-plan\.yaml|execution-status\.yaml|\.bigpowers\//i);
 });
 
-test("selected patterns are wired into existing local skills", () => {
+test("blast radius and boundary patterns are wired into existing local skills", () => {
   assert.match(read(".pi/skills/planning-and-task-breakdown/SKILL.md"), /blast[- ]radius/i);
   assert.match(read(".pi/skills/api-and-interface-design/SKILL.md"), /boundary validation/i);
+});
 
+test("delegation and handoff patterns are wired into existing local skills", () => {
   const delegation = read(".pi/skills/subagent-driven-development/SKILL.md");
   assert.match(delegation, /direct-first/i);
   assert.match(delegation, /task_brief/);
