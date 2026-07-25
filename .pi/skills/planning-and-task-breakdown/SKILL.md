@@ -40,14 +40,23 @@ Before slicing, map the change evidence: entry points, direct and transitive dep
 
 ## Pi Subagent Inputs
 
-Planning remains the parent's synthesis task. When evidence is missing, gather bounded inputs with the installed pi-subagents `Agent` tool:
+Direct parent planning is the default. Workers provide bounded advisory inputs; they do not own final synthesis or lifecycle state.
+
+Route only the evidence or judgment that is genuinely missing:
+
+- Use `Plan` for material ambiguity, architectural trade-offs, or cross-subsystem sequencing when an independent blueprint materially reduces risk.
+- Use `Explore` for local evidence such as codebase patterns, file structure, references, and tests.
+- Use `scout` for external evidence such as versioned documentation, upstream source, and ecosystem constraints.
 
 ```typescript
+Agent({ subagent_type: "Plan", description: "Advise on one planning decision", prompt: "[resolved self-contained advisory envelope]" });
 Agent({ subagent_type: "Explore", description: "Map local patterns", prompt: "[self-contained local question; require file:line evidence]" });
 Agent({ subagent_type: "scout", description: "Research external constraints", prompt: "[self-contained external question; require authoritative citations]" });
 ```
 
-Use foreground calls when planning depends on the answer. If local and external questions are independent, issue both together with `run_in_background: true` and let smart join return them. The parent resolves conflicts and writes the plan; do not delegate final synthesis.
+Use a foreground call when the answer blocks parent synthesis. If local and external questions are genuinely independent, issue both together with `run_in_background: true` and let smart join return them.
+
+The parent verifies worker evidence and resolves conflicts. The parent alone writes canonical `plan.md` and `tasks.json`. The parent owns lifecycle state. Never delegate final synthesis.
 
 ## Slice Quality
 
@@ -94,7 +103,7 @@ Use foreground calls when planning depends on the answer. If local and external 
   <skill>planning-and-task-breakdown</skill>
   <status>success|partial|blocked|failure</status>
   <evidence>Spec gaps filled, slices defined and ordered, verification commands named</evidence>
-  <artifacts>Plan document or section</artifacts>
+  <artifacts>Advisory planning input or parent-written plan section</artifacts>
   <risks>Unresolved open questions, unverified slices, or none</risks>
 </skill_result>
 ```
