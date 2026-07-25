@@ -567,8 +567,11 @@ test("ship primary worker call resolves workerType and dispatches one foreground
   assert.match(call, /prompt:\s*shipWorkerEnvelope/, "primary call must use the shipWorkerEnvelope");
   assert.doesNotMatch(call, /\b(?:model|thinking|run_in_background)\s*:/, "primary call must omit invocation-level model/thinking/background overrides");
 
-  const callIndex = section.indexOf(call);
-  const beforeCall = section.slice(0, callIndex);
-  assert.match(beforeCall, /workerType/i, "workerType must be resolved before the primary call");
-  assert.match(beforeCall, /general\|build|general or build/i, "workerType must close to the set general|build before the primary call");
+  const callIndex = block.indexOf(call);
+  const beforeCall = block.slice(0, callIndex);
+  assert.match(
+    beforeCall,
+    /const\s+workerType\s*:\s*"general"\s*\|\s*"build"\s*=\s*resolvedWorkerType\s*;/,
+    "workerType must be an executable general|build union before the primary call",
+  );
 });
