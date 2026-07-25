@@ -95,6 +95,7 @@ Agent({
 Verify:
 
 - `.pi/artifacts/$(cat .pi/artifacts/.active)/spec.md` exists (if not, tell user to run `/create` first)
+- The authoritative `tasks.json` exists and passes `node --experimental-strip-types .pi/scripts/task-graph.ts validate <tasks.json>` before planning.
 - If `.pi/artifacts/$(cat .pi/artifacts/.active)/plan.md` already exists, ask user: overwrite or skip?
 
 ## Phase 2: Discovery Assessment
@@ -242,7 +243,9 @@ Assess size to determine plan structure:
 | M (3-8 files) | 5-8 tasks | 2-3 phases                               |
 | L (8+ files)  | 9+ tasks  | Split into separate plans for each subsystem |
 
-## Phase 6: Dependency Graph & Wave Assignment
+## Phase 6: Refine the Authoritative Task Graph
+
+`tasks.json` is the only authoritative persisted work graph. Preserve its task IDs. When planning splits, merges, or changes a node, update `tasks.json` first, re-run task-graph validation, and only then regenerate the explanatory dependency section below. If plan task IDs and canonical task IDs diverge, stop rather than guessing.
 
 **For each task, record:**
 
@@ -262,7 +265,7 @@ Wave 2: B (depends on A)
 Wave 3: C (depends on B)
 ```
 
-**Wave assignment enables parallel execution in `/ship`.**
+**Derived wave snapshots explain likely parallel execution, but `/ship` recomputes the live frontier from `tasks.json`.** Label every displayed wave as derived, not authoritative.
 
 **Vertical slices preferred:** Each plan covers one feature end-to-end (model + API + UI)
 **Avoid horizontal layers:** Don't create "all models" then "all APIs" then "all UI"
@@ -308,7 +311,10 @@ Write `.pi/artifacts/$(cat .pi/artifacts/.active)/plan.md`:
 | ----------- | ----- | ------- | -------------- |
 | [Component] | [API] | `fetch` | [Failure mode] |
 
-## Dependency Graph
+## Derived Dependency Graph
+
+> Wave labels are a derived snapshot of the current authoritative `tasks.json`.
+
 ```
 
 Task A: needs nothing, creates src/models/X.ts

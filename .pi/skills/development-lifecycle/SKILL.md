@@ -16,9 +16,9 @@ tools: [read, write, edit, grep, bash]
 | File | Purpose | Maintained by |
 |---|---|---|
 | `spec.md` | Requirements, scope, and success criteria | `/create` |
-| `plan.md` | Dependency waves and executable task details | `/plan` when needed |
-| `tasks.json` | Machine-readable task status for sequential fallback | `/ship` when no plan exists |
-| `progress.md` | Execution, review, verification, and blocker log | `/research`, `/ship`, `/verify` |
+| `plan.md` | Explanatory task details and derived wave snapshots | `/plan` when needed |
+| `tasks.json` | Authoritative persisted work graph and task status | `/create`, `/plan`, `/ship`, `/verify` |
+| `progress.md` | Attempt-scoped execution, review, verification, and blocker evidence | `/research`, `/ship`, `/verify` |
 
 Durable cross-feature knowledge belongs in `.pi/artifacts/MEMORY.md`, outside the active slug.
 
@@ -39,7 +39,7 @@ Durable cross-feature knowledge belongs in `.pi/artifacts/MEMORY.md`, outside th
    .active      waves       progress.md  progress.md
 ```
 
-**`/research` is sideways** — it feeds `/plan` or `/create`, not the linear path.
+**`/research` is sideways** — it feeds `/plan` or `/create`, not the linear path. These four canonical active-work files remain the complete lifecycle contract: `tasks.json` is authoritative, `plan.md` explains derived views, and `progress.md` stores evidence.
 
 ## When to Use Each Phase
 
@@ -72,9 +72,10 @@ At a pause, session boundary, or child integration point, append a compact hando
 ## Lifecycle Rules
 1. **No silent skipping** — if you skip a phase, name it in the response ("skipped /plan: single-file fix with clear spec"). This becomes the audit trail.
 2. **Resolve `.active` first** — all feature-specific reads and writes use `.pi/artifacts/$(cat .pi/artifacts/.active)/`.
-3. **`progress.md` is the execution log** — attempts, failures, reviews, and verification evidence go there.
-4. **Durable decisions go to `MEMORY.md`** — only cross-feature learnings belong outside the active slug.
-5. **`/verify` is non-negotiable** — every "done" claim cites evidence.
+3. **`tasks.json` is the authoritative work graph** — `/create` emits version 2, `/plan` refines the same IDs, and displayed waves are derived snapshots only.
+4. **`progress.md` is the evidence log** — attempts, failures, reviews, and current-attempt verification evidence go there.
+5. **Durable decisions go to `MEMORY.md`** — only cross-feature learnings belong outside the active slug.
+6. **`/verify` is non-negotiable** — every "done" claim cites evidence.
 
 ## Red Flags
 

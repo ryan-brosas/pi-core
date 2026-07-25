@@ -247,9 +247,15 @@ Additionally offer a "Create worktree" option:
 read(".pi/skills/using-git-worktrees/SKILL.md");
 ```
 
-## Phase 10: Convert PRD to Tasks
+## Phase 10: Convert PRD to the Canonical Task Graph
 
-Convert the PRD markdown into `.pi/artifacts/$(cat .pi/artifacts/.active)/tasks.json`, matching the task schema consumed by `/ship`.
+Convert the PRD markdown into the authoritative `.pi/artifacts/$(cat .pi/artifacts/.active)/tasks.json`. New graphs use top-level version 2 (`"version": 2`); every task preserves its stable ID, dependencies, conflicts, files, status, and verification commands and initializes:
+
+```json
+{ "status": "pending", "passes": false, "attempt": 0, "evidence_refs": [] }
+```
+
+After writing, run `node --experimental-strip-types .pi/scripts/task-graph.ts validate ".pi/artifacts/$(cat .pi/artifacts/.active)/tasks.json"`. If task-graph validation fails, stop and report its machine-readable issues without changing execution state.
 
 ## Phase 11: Report
 
