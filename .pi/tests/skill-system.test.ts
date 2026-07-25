@@ -107,6 +107,48 @@ test("adapted material preserves the pinned MIT notice", () => {
   assert.match(notice, /THE SOFTWARE IS PROVIDED "AS IS"/);
 });
 
+test("graph producers use one canonical task graph", () => {
+  const create = readRequired(".pi/prompts/create.md");
+  const plan = readRequired(".pi/prompts/plan.md");
+  const lifecycle = readRequired(".pi/skills/development-lifecycle/SKILL.md");
+  assert.match(create, /version 2[\s\S]*attempt[\s\S]*evidence_refs/i);
+  assert.match(create, /task-graph[^\n]*validate/i);
+  assert.match(plan, /tasks\.json[^\n]*authoritative/i);
+  assert.match(plan, /derived[^\n]*wave/i);
+  assert.match(plan, /(task id|task IDs)[^\n]*diverg/i);
+  assert.match(lifecycle, /tasks\.json[^\n]*authoritative/i);
+  assert.match(lifecycle, /four canonical/i);
+});
+
+test("ship executes a validated dynamic frontier", () => {
+  const ship = readRequired(".pi/prompts/ship.md");
+  const batch = readRequired(".pi/workflows/batch-implement.md");
+  const delegation = readRequired(".pi/skills/subagent-driven-development/SKILL.md");
+  assert.match(ship, /task-graph[^\n]*validate/i);
+  assert.match(ship, /task-graph[^\n]*frontier/i);
+  assert.match(ship, /recompute[^\n]*frontier/i);
+  assert.match(ship, /conflict-free[^\n]*shard/i);
+  assert.match(ship, /transient[^\n]*(neighborhood|code\/test)/i);
+  assert.match(ship, /explicit[^\n]*slug/i);
+  assert.match(batch, /parent-selected[^\n]*ready[^\n]*shard/i);
+  assert.match(batch, /rerun[^\n]*(validate|frontier)/i);
+  assert.match(delegation, /validated[^\n]*ready[^\n]*shard/i);
+  assert.match(delegation, /(?:must not|forbid)[^\n]*(schedule|\.active)/i);
+});
+
+test("graph state is evidence-linked and selectively invalidated", () => {
+  const ship = readRequired(".pi/prompts/ship.md");
+  const verify = readRequired(".pi/prompts/verify.md");
+  const combined = `${ship}\n${verify}`;
+  assert.match(combined, /increment[^\n]*attempt/i);
+  assert.match(combined, /current-attempt[^\n]*evidence|evidence[^\n]*current attempt/i);
+  assert.match(combined, /descendants/i);
+  assert.match(combined, /pending[^\n]*blocked/i);
+  assert.match(combined, /passed[^\n]*(stale|invalid)/i);
+  assert.match(combined, /ancestors?[^\n]*(remain|unchanged|never reopen)/i);
+  assert.match(combined, /revalidate[^\n]*(recompute|frontier)/i);
+});
+
 function fanoutLabel(path: string): string {
   const parts = path.split("/");
   const name = parts.at(-1)?.replace(/\.md$/, "") ?? path;
