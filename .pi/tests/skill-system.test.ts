@@ -97,6 +97,15 @@ test("delegation and handoff patterns are wired into existing local skills", () 
   assert.match(lifecycle, /progress\.md|worker-context\.md/);
 });
 
+test("research prompt always persists a research artifact", () => {
+  const research = readRequired(".pi/prompts/research.md");
+  assert.match(research, /always persist/i);
+  assert.match(research, /active slug[^\n]*(demonstrably related|matches)[^\n]*progress\.md/i);
+  assert.match(research, /(missing|invalid|unrelated)[\s\S]*derive[^\n]*slug[\s\S]*research\.md/i);
+  assert.match(research, /do not (change|overwrite)[^\n]*\.active/i);
+  assert.doesNotMatch(research, /otherwise return the report directly without writing an artifact/i);
+});
+
 test("graph producers use one canonical task graph", () => {
   const create = readRequired(".pi/prompts/create.md");
   const plan = readRequired(".pi/prompts/plan.md");

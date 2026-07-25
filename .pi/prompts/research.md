@@ -48,6 +48,16 @@ Before starting, analyze the research topic complexity:
    - Simple → Execute directly (see "Direct Execution" below)
    - Complex → Invoke `deep-research` workflow (see "Workflow Execution" below)
 
+## Artifact Destination
+
+Always persist completed research before the final response:
+
+1. Inspect `.pi/artifacts/.active` without assuming it is relevant.
+2. If the active slug is valid and demonstrably related to the research topic, append a dated `## Research: [topic]` section to `.pi/artifacts/<active-slug>/progress.md`.
+3. If `.active` is missing, invalid, or unrelated, derive a stable kebab-case slug from the topic, create `.pi/artifacts/<research-slug>/`, and write the report to `.pi/artifacts/<research-slug>/research.md`. If that file already contains research for the same topic, append a dated section instead of overwriting it. Do not change or overwrite `.pi/artifacts/.active`.
+4. When relevance is uncertain, use the standalone `research.md` path. Never attach research to an unrelated active feature.
+5. Cite the artifact path in the final response.
+
 ## Workflow Execution (Complex Research)
 
 If complexity is detected as complex:
@@ -61,7 +71,7 @@ If complexity is detected as complex:
    - `{question}` → the research topic from $ARGUMENTS
    - `{phase_N_output}` → actual output from completed phases
 4. **Aggregate results** between phases
-5. **Persist conditionally:** if `.pi/artifacts/.active` resolves to an existing slug, append under a dated `## Research: [topic]` section in its `progress.md`; otherwise return the report directly without writing an artifact
+5. **Persist the final synthesis** using the Artifact Destination policy above
 
 **Announce:** "This is complex research requiring multi-angle analysis. Invoking deep-research workflow."
 
@@ -85,7 +95,7 @@ Default depth: ~30 tool calls for moderate exploration.
 - **Don't over-research**: Stop when you have enough to proceed
 - **Use source priority**: Codebase → Docs → Source → GitHub → Web
 - **Verify confidence**: Medium+ confidence required before stopping
-- **Document findings**: Append to the active `progress.md` or report directly when no active slug exists
+- **Document findings**: Persist every completed report using the Artifact Destination policy above
 
 ### Available Tools
 
@@ -99,7 +109,7 @@ Default depth: ~30 tool calls for moderate exploration.
 
 ### Phase 1: Load Context
 
-Read `.pi/artifacts/$(cat .pi/artifacts/.active)/spec.md` if it exists and extract questions that need answering.
+If `.pi/artifacts/.active` resolves to a valid, related slug, read its `spec.md` and extract questions that need answering. Ignore unrelated active work.
 
 #### Context Search (Required)
 
@@ -142,7 +152,7 @@ rg -n "topic" .pi/artifacts/MEMORY.md
 
 ### Phase 4: Document
 
-Append findings under `## Research: [topic]` in `.pi/artifacts/$(cat .pi/artifacts/.active)/progress.md` when an active slug exists; otherwise report directly:
+Persist the report using the Artifact Destination policy above. Include:
 
 - Questions asked → answered/partial/unanswered with confidence
 - Key findings with sources (file paths, docs)

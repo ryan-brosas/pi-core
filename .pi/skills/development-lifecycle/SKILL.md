@@ -22,13 +22,15 @@ tools: [read, write, edit, grep, bash]
 
 Durable cross-feature knowledge belongs in `.pi/artifacts/MEMORY.md`, outside the active slug.
 
+When `/research` has no demonstrably related active slug, it writes `.pi/artifacts/<research-slug>/research.md` without changing `.active`. This is a standalone report, not a fifth active-work artifact.
+
 ## Slash Commands (Lifecycle Hooks)
 
 - `/create <idea>` — create the active slug and write `spec.md`. Loaded from `brainstorming` + `spec-driven-development`.
 - `/plan` — create or refine the active `plan.md`. Loaded from `planning-and-task-breakdown`.
 - `/ship` — execute the authoritative `tasks.json`, consult `plan.md` only as an explanatory view, and record `progress.md`; stop if plan and graph task IDs diverge. Loaded from `shipping-and-launch`.
 - `/verify` — run the evidence gate and append results to `progress.md`. Loaded from `verification-before-completion`.
-- `/research` — write active research findings and progress that feed `/create` or `/plan`.
+- `/research` — persist findings in related active `progress.md`, or create a standalone `research.md` when active work is missing or unrelated; feed the result into `/create` or `/plan`.
 
 ## Workflow
 
@@ -71,7 +73,7 @@ At a pause, session boundary, or child integration point, append a compact hando
 
 ## Lifecycle Rules
 1. **No silent skipping** — if you skip a phase, name it in the response ("skipped /plan: single-file fix with clear spec"). This becomes the audit trail.
-2. **Resolve `.active` first** — all feature-specific reads and writes use `.pi/artifacts/$(cat .pi/artifacts/.active)/`.
+2. **Resolve `.active` first** — all feature-specific reads and writes use `.pi/artifacts/$(cat .pi/artifacts/.active)/`. `/research` must verify topic relevance before using it and otherwise write a standalone report without changing `.active`.
 3. **`tasks.json` is the authoritative work graph** — `/create` emits version 2, `/plan` refines the same IDs, and displayed waves are derived snapshots only.
 4. **`progress.md` is the evidence log** — attempts, failures, reviews, and current-attempt verification evidence go there.
 5. **Durable decisions go to `MEMORY.md`** — only cross-feature learnings belong outside the active slug.
@@ -79,7 +81,8 @@ At a pause, session boundary, or child integration point, append a compact hando
 
 ## Red Flags
 
-- `.active` is missing or points to a nonexistent slug.
+- An active-feature command finds `.active` missing or pointing to a nonexistent slug; standalone `/research` is the exception.
+- `/research` attaches findings to an active slug without establishing topic relevance.
 - Commands read root-level `TODO.md`/`PLAN.md` while the active slug uses lowercase artifacts.
 - `progress.md` is empty after implementation or investigation.
 - "Done" claim without `/verify` evidence.
@@ -91,7 +94,7 @@ At a pause, session boundary, or child integration point, append a compact hando
   <skill>development-lifecycle</skill>
   <status>success|partial|blocked|failure</status>
   <evidence>Phase(s) used named, artifact files updated, /verify evidence cited</evidence>
-  <artifacts>Active spec.md / plan.md / tasks.json / progress.md paths touched</artifacts>
+  <artifacts>Active spec.md / plan.md / tasks.json / progress.md paths, or standalone research.md, touched</artifacts>
   <risks>Skipped phases, stale entries, or none</risks>
 </skill_result>
 ```

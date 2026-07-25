@@ -1,0 +1,89 @@
+{
+  "version": 1,
+  "slug": "conversation-aware-create-handoff",
+  "title": "Conversation-Aware Create Handoff",
+  "status": "ready",
+  "execution": {
+    "mode": "dependency-waves",
+    "max_concurrent_agents": 2,
+    "reason": "Tests establish only the missing contracts first; the create prompt and research/lifecycle hardening surfaces can then be implemented independently before full-suite verification."
+  },
+  "tasks": [
+    {
+      "id": "task-1",
+      "category": "test",
+      "title": "Establish missing handoff policy tests",
+      "description": "The implemented research-routing baseline stays green while deterministic RED tests capture only missing `/create` handoff, collision/normalization/privacy, and standalone-lifecycle behavior.",
+      "status": "pending",
+      "passes": false,
+      "depends_on": [],
+      "parallel": false,
+      "conflicts_with": ["task-2", "task-3"],
+      "files": [".pi/tests/skill-system.test.ts"],
+      "acceptance_criteria": [
+        "The existing `research prompt always persists a research artifact` test remains green.",
+        "A new test requires bare `/create` to derive a structured handoff and confirm before artifact mutation.",
+        "The create contract asserts precedence, provenance, visible matching-research selection, freshness handling, and explicit subagent handoff.",
+        "New research tests require occupied-slug conflict handling, normalized handoff fields, sensitive-content controls, and standalone validity without `progress.md`.",
+        "No production prompt or skill file is modified in this task."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test --test-name-pattern=\"research prompt always persists a research artifact\" .pi/tests/skill-system.test.ts",
+        "node --experimental-strip-types --test --test-name-pattern=\"create prompt uses a confirmed conversation handoff|research handoff is collision-safe and normalized|standalone research is valid without active progress\" .pi/tests/skill-system.test.ts"
+      ],
+      "expected_verification_state": "The baseline routing test exits zero; the second command exits non-zero only for the named unimplemented contracts."
+    },
+    {
+      "id": "task-2",
+      "category": "prompt",
+      "title": "Implement the create context handoff",
+      "description": "`/create` derives and confirms a precedence-aware, provenance-preserving conversation handoff, visibly selects fresh matching research, and passes the accepted brief to any subagent before safely initializing a feature.",
+      "status": "pending",
+      "passes": false,
+      "depends_on": ["task-1"],
+      "parallel": true,
+      "conflicts_with": [],
+      "files": [".pi/prompts/create.md"],
+      "acceptance_criteria": [
+        "Bare `/create` derives a bounded handoff and requires one confirmation before changing `.active` or writing feature artifacts.",
+        "Explicit arguments, latest user decisions, confirmed research, tentative ideas, and ambient context follow the specified precedence.",
+        "Exact target-slug `research.md` is exposed with path/date/status and is not silently promoted to confirmed requirements.",
+        "Stale, ambiguous, or conflicting persisted research requires confirmation.",
+        "Every delegated prompt receives the accepted handoff and one exact unresolved question.",
+        "An unrelated active feature does not redirect an explicit new create request to `/ship`."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test --test-name-pattern=\"create prompt uses a confirmed conversation handoff\" .pi/tests/skill-system.test.ts",
+        "rg -n \"Context Handoff|provenance|research\\.md|fresh|confirmation|explicit.*argument\" .pi/prompts/create.md"
+      ]
+    },
+    {
+      "id": "task-3",
+      "category": "workflow",
+      "title": "Harden standalone research handoffs",
+      "description": "`/research` extends its green routing baseline with collision-safe destinations, normalized create-consumable output, sensitive-content controls, and lifecycle-consistent standalone state.",
+      "status": "pending",
+      "passes": false,
+      "depends_on": ["task-1"],
+      "parallel": true,
+      "conflicts_with": [],
+      "files": [
+        ".pi/prompts/research.md",
+        ".pi/skills/development-lifecycle/SKILL.md"
+      ],
+      "acceptance_criteria": [
+        "The existing topic-aware routing baseline remains green.",
+        "An occupied derived-slug directory is inspected; related research is appended and unrelated content causes deterministic unique-suffix selection without overwrite.",
+        "Every research report emits goal, confirmed findings, constraints/non-goals, assumptions, open questions, sources/confidence, provenance, date, and status.",
+        "Likely secrets, credentials, and personal data are redacted by default or require explicit approval when useful persistence remains sensitive.",
+        "Lifecycle guidance treats standalone `research.md` as valid without `progress.md` while retaining the progress requirement for active work."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test --test-name-pattern=\"research prompt always persists a research artifact|research handoff is collision-safe and normalized|standalone research is valid without active progress\" .pi/tests/skill-system.test.ts",
+        "rg -n \"unique.*slug|collision|Goal|confirmed findings|constraints|assumptions|open questions|provenance|sensitive|redact\" .pi/prompts/research.md",
+        "rg -n \"standalone.*research|active.*progress\\.md\" .pi/skills/development-lifecycle/SKILL.md",
+        "node --experimental-strip-types --test .pi/tests/*.test.ts"
+      ]
+    }
+  ]
+}
