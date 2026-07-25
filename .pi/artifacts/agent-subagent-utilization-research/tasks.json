@@ -2,7 +2,7 @@
   "version": 2,
   "slug": "agent-subagent-utilization-research",
   "title": "Agent and Subagent Utilization Contracts",
-  "status": "ready",
+  "status": "complete",
   "execution": {
     "mode": "dependency-waves",
     "max_concurrent_agents": 2,
@@ -336,10 +336,31 @@
       "category": "verification",
       "title": "Verify integrated orchestration behavior",
       "description": "The complete role-specific routing contract passes focused and retained tests, validates the canonical graph, and leaves unrelated workspace state untouched.",
-      "status": "running",
-      "passes": false,
+      "status": "passed",
+      "passes": true,
       "attempt": 5,
-      "evidence_refs": [],
+      "evidence_refs": [
+        {
+          "kind": "test",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-4-attempt-5",
+          "attempt": 5
+        },
+        {
+          "kind": "verification",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-4-attempt-5",
+          "attempt": 5
+        },
+        {
+          "kind": "review",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-4-attempt-5",
+          "attempt": 5
+        },
+        {
+          "kind": "commit",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-4-attempt-5",
+          "attempt": 5
+        }
+      ],
       "depends_on": [
         "task-2",
         "task-3"

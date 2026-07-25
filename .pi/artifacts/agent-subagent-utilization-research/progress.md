@@ -311,3 +311,12 @@
 - **Full retained suite:** 59 passed and 2 failed exclusively from user-accepted unrelated workspace changes: the intentionally deleted prompt-leverage extension still has a retained importer test, and intentional Plan frontmatter capabilities conflict with an older exact-runtime assertion. No role-routing test failed.
 - **Independent review:** no Critical or Important findings; all seven previously reproduced mutations now fail their contracts.
 - **Scope:** feature implementation commits touch only `.pi/agent-tool-description.md`, `.pi/prompts/plan.md`, `.pi/prompts/ship.md`, and `.pi/tests/skill-system.test.ts`; unrelated deletions, agent edits, runtime state, and other artifacts remain unstaged.
+
+
+## 2026-07-25 — completion
+
+- All 4 canonical tasks are passed with current-attempt evidence.
+- Final review: no Critical or Important findings.
+- Evidence commit: `b7d88608e228a8cd4173417297217e0a799c3f2f`.
+- User explicitly requested verification, closure, and commit while accepting the unrelated extension deletion and agent capability edits.
+- Retained-suite caveat remains visible: 59/61 pass; the two failures are stale expectations for those accepted unrelated changes, not failures of this feature.
