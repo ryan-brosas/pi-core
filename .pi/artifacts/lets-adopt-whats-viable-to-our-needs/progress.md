@@ -547,3 +547,9 @@ Split the fan-out regression into independently named surface tests. The suite r
 - Shipping caps implementation, matching review, and fixer shards at three.
 - Standard review now defaults to one foreground reviewer; high-risk review permits at most three bundled focuses.
 - Verification: 2 focused prompt tests passed.
+
+## Wave 7 integration
+
+- Corrected two policy wording gaps found by the full suite: explicit `at most three` wording in the subagent skill and explicit parent inspection/verification in the GC prompt.
+- Full local suite: 23 passed, 0 failed.
+- PRD task 4 status: passed.

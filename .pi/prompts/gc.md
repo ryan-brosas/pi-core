@@ -71,7 +71,7 @@ Agent({
 });
 ```
 
-Partition independent P0/P1 findings into ordered, non-overlapping waves of at most three. Issue only the current wave together, let smart join return it, then inspect each isolated branch/commit and rerun verification before continuing with later sequential shards. Same-file or dependent findings stay foreground and sequential. Children must not switch the shared workspace branch or open PRs concurrently.
+The parent partitions independent P0/P1 findings into ordered, non-overlapping waves of at most three. Issue only the current wave together, let smart join return it, then the parent inspects each isolated branch/commit and reruns verification before continuing with later sequential shards. Same-file or dependent findings stay foreground and sequential. Children must not switch the shared workspace branch or open PRs concurrently.
 
 ## Phase 5: Report
 

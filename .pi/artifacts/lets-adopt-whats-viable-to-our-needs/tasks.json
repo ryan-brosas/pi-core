@@ -112,8 +112,8 @@
       "category": "workflow",
       "title": "Enforce Pi-native 1\u20133 agent waves everywhere",
       "description": "Active prompts and workflows use direct-first orchestration, no concurrent wave exceeds three agents, and larger workloads retain completeness through sequential sharding.",
-      "status": "pending",
-      "passes": false,
+      "status": "passed",
+      "passes": true,
       "depends_on": [
         "task-3"
       ],

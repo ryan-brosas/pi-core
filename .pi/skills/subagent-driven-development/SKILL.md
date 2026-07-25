@@ -25,7 +25,7 @@ dependencies: [planning-and-task-breakdown, code-review-and-quality, shipping-an
 - **Zero agents:** surgical work the parent can implement and verify without losing context.
 - **One agent:** a bounded specialist question, behavioral trial, or isolated task with clear value.
 - **Two or three agents:** genuinely independent scopes with disjoint files or evidence angles.
-- **More work:** process additional scopes in sequential shards; never run more than three agents in one concurrent wave.
+- **More work:** process additional scopes in sequential shards; every concurrent wave has at most three agents.
 
 Delegation is a cost, not a default. The parent retains synthesis, file inspection, integration, and verification.
 
