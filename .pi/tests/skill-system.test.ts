@@ -511,3 +511,64 @@ test("planning ownership remains with the parent", () => {
   assert.match(skill, /parent[^\n]*owns lifecycle state/i);
   assert.match(skill, /worker[^\n]*advisory (?:input|output|result)/i);
 });
+
+test("agent utilization policy distinguishes Plan, general, build, and lifecycle routing", () => {
+  // Global Agent policy must keep conditional Plan, surgical general, substantial bounded build, and lifecycle-specific routing coherent.
+  const policy = readRequired(".pi/agent-tool-description.md");
+
+  assert.match(policy, /`?Plan`?[^\n]*(?:ambigu|architect|cross-subsystem)/i);
+  assert.match(policy, /`?general`?[^\n]*(?:surgical|well-bounded|bounded)[^\n]*(?:implementation|review|fix)/i);
+  assert.match(policy, /`?build`?[^\n]*(?:substantial|larger|bounded)/i, "build role must be defined as substantial/bounded work");
+  assert.match(policy, /`?build`?[^\n]*architect[^\n]*(?:resolved|after)/i, "build must be used after resolved architecture");
+  assert.match(policy, /direct[^\n]*default|default[^\n]*direct/i, "direct-first must remain the generic default");
+  assert.match(policy, /\/ship[^\n]*(?:stricter|require|worker|routing)/i, "lifecycle /ship worker routing must be explicit");
+  assert.match(policy, /without[^\n]*transfer|not[^\n]*transfer[^\n]*ownership|ownership[^\n]*(?:retain|unchanged|not transfer)/i, "lifecycle routing must not transfer parent ownership");
+});
+
+test("plan writer boundary keeps canonical plan.md and tasks.json parent-owned", () => {
+  // /plan must never hand Plan advisory output to general to render or write canonical plan.md or tasks.json.
+  const planPrompt = readRequired(".pi/prompts/plan.md");
+
+  assert.match(
+    planPrompt,
+    /never hand(?:ed)?[^\n]*`?general`?[^\n]*(?:render|write)[^\n]*(?:`?plan\.md`?[^\n]*`?tasks\.json`?|`?tasks\.json`?[^\n]*`?plan\.md`?)/i,
+    "Plan advisory output must never be handed to general to render/write canonical plan.md or tasks.json",
+  );
+
+  const calls = [...planPrompt.matchAll(/Agent\(\{[\s\S]*?\n\s*\}\);/g)].map((match) => match[0]);
+  const generalCalls = calls.filter((call) => /subagent_type:\s*"general"/.test(call));
+  assert.equal(generalCalls.length, 0, "/plan must not contain a concrete subagent_type: 'general' call");
+});
+
+test("ship primary worker call resolves workerType and dispatches one foreground Agent", () => {
+  // /ship primary dispatch must close workerType to general|build and issue one foreground Agent call carrying the ship-worker envelope.
+  const ship = readRequired(".pi/prompts/ship.md");
+  const heading = "### Primary Worker Dispatch";
+
+  const start = ship.indexOf(heading);
+  assert.notEqual(start, -1, "missing primary worker dispatch section");
+  assert.equal(ship.split(heading).length - 1, 1, "primary worker dispatch heading must be unique");
+
+  const contentStart = start + heading.length;
+  const rest = ship.slice(contentStart);
+  const nextHeading = rest.match(/\n#{1,3}\s/);
+  const section = rest.slice(0, nextHeading ? nextHeading.index : rest.length);
+
+  const tsBlocks = [...section.matchAll(/```(?:typescript|ts)\n([\s\S]*?)\n```/g)].map((match) => match[1]);
+  assert.equal(tsBlocks.length, 1, "expected exactly one fenced TypeScript block in the primary worker dispatch section");
+  const block = tsBlocks[0];
+
+  const agentCalls = [...block.matchAll(/Agent\(\{[\s\S]*?\n\s*\}\);/g)].map((match) => match[0]);
+  assert.equal(agentCalls.length, 1, "expected exactly one Agent call in the primary worker dispatch block");
+  const call = agentCalls[0];
+
+  assert.match(call, /subagent_type:\s*workerType/, "primary call must use the resolved workerType variable");
+  assert.match(call, /description:\s*(?:`[^`]+`|"[^"]+")/, "primary call must carry a concrete description");
+  assert.match(call, /prompt:\s*shipWorkerEnvelope/, "primary call must use the shipWorkerEnvelope");
+  assert.doesNotMatch(call, /\b(?:model|thinking|run_in_background)\s*:/, "primary call must omit invocation-level model/thinking/background overrides");
+
+  const callIndex = section.indexOf(call);
+  const beforeCall = section.slice(0, callIndex);
+  assert.match(beforeCall, /workerType/i, "workerType must be resolved before the primary call");
+  assert.match(beforeCall, /general\|build|general or build/i, "workerType must close to the set general|build before the primary call");
+});
