@@ -88,6 +88,7 @@ The goal is to adopt only the proven, locally useful patterns from the pinned Bi
 - `.pi/skills/planning-and-task-breakdown/SKILL.md`
 - `.pi/skills/api-and-interface-design/SKILL.md`
 - `.pi/skills/subagent-driven-development/SKILL.md`
+- `.pi/skills/source-driven-development/SKILL.md`
 - `.pi/skills/development-lifecycle/SKILL.md`
 - `.pi/prompts/audit.md`
 - `.pi/prompts/create.md`

@@ -129,6 +129,7 @@
         ".pi/workflows/development-lifecycle-workflow.md",
         ".pi/workflows/batch-implement.md",
         ".pi/skills/subagent-driven-development/SKILL.md",
+        ".pi/skills/source-driven-development/SKILL.md",
         ".pi/tests/skill-system.test.ts",
         ".pi/prompts/audit.md",
         ".pi/prompts/gc.md",

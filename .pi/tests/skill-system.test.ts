@@ -42,6 +42,7 @@ const orchestrationSurfaces = [
   ".pi/workflows/development-lifecycle-workflow.md",
   ".pi/workflows/garbage-collection.md",
   ".pi/skills/subagent-driven-development/SKILL.md",
+  ".pi/skills/source-driven-development/SKILL.md",
 ];
 
 test("manifest has exact bidirectional parity with skill directories", () => {
@@ -96,29 +97,33 @@ test("delegation and handoff patterns are wired into existing local skills", () 
   assert.match(lifecycle, /progress\.md|worker-context\.md/);
 });
 
-test("adapted material has pinned MIT attribution", () => {
+test("adapted material preserves the pinned MIT notice", () => {
   const notice = readRequired(".pi/skills/THIRD_PARTY_NOTICES.md");
   assert.match(notice, /danielvm-git\/bigpowers/);
   assert.match(notice, /d1993d31437bfbdb5bda81e84650628215365754/);
-  assert.match(notice, /MIT/);
+  assert.match(notice, /MIT License/);
+  assert.match(notice, /Copyright \(c\) 2026 Daniel VM/);
+  assert.match(notice, /Permission is hereby granted, free of charge/);
+  assert.match(notice, /THE SOFTWARE IS PROVIDED "AS IS"/);
 });
 
 function fanoutLabel(path: string): string {
-  const name = path.split("/").at(-1)?.replace(/\.md$/, "") ?? path;
+  const parts = path.split("/");
+  const name = parts.at(-1)?.replace(/\.md$/, "") ?? path;
   if (path.includes("/prompts/")) return `${name} prompt`;
   if (path.includes("/workflows/")) return `${name} workflow`;
-  return "subagent coordination skill";
+  return `${parts.at(-2) ?? name} skill`;
 }
 
 for (const path of orchestrationSurfaces) {
   test(`${fanoutLabel(path)} fan-out stays within one-to-three agents`, () => {
     const text = read(path);
     const errors: string[] = [];
-    const concurrencyLines = text.split("\n").filter((line) => /concurrenc|agents? per wave|review calls|issue .*calls?/i.test(line));
-    for (const line of concurrencyLines) {
+    const forbiddenDispatchCount = /\b(?:4|5|6|7|8|9|10|four|five|six|seven|eight|nine|ten)\b(?!\s+tool\b)(?:\s+\w+){0,2}\s+(?:agents?|calls?|reviewers?|workers?|scouts?)\b/i;
+    for (const line of text.split("\n")) {
       const maxMatch = line.match(/max(?:imum)?\s*[:=]?\s*(\d+)/i);
-      if (maxMatch && Number(maxMatch[1]) > 3) errors.push(line.trim());
-      if (/3-5 agents|five distinct review|issue one call per independent finding together|one call per task.*max 10/i.test(line)) {
+      if (maxMatch && Number(maxMatch[1]) > 3 && /agent|call|review|worker|scout|concurren/i.test(line)) errors.push(line.trim());
+      if (forbiddenDispatchCount.test(line) || /3-5 agents|five distinct review|issue one call per independent finding together|one call per task.*max 10/i.test(line)) {
         errors.push(line.trim());
       }
     }
