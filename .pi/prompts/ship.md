@@ -15,10 +15,18 @@ When this prompt says to spawn, delegate to, or use an agent, invoke the pi-suba
 - `Explore`: internal codebase discovery
 - `scout`: external documentation and research
 - `review`: correctness, security, and regression review
-- `general`: small independent implementation
+- `general`: surgical one-to-three-file implementation and review fixes
+- `build`: larger substantial bounded implementation
 - `Plan`: architecture and executable planning
 - Use a foreground call when the next step depends on the result. For independent parallel work, issue all calls together with `run_in_background: true`.
 - Omit `model` and `thinking`; agent definitions and scoped-model settings own those choices.
+
+### Implementation Worker Routing
+
+- Route a surgical task that normally declares one to three files and has no unresolved architecture, security, or migration decision to `general`.
+- Route a larger substantial but still bounded task with resolved architecture to `build`.
+- Stop for a parent decision when architecture or scope is unresolved; do not hide that decision in worker selection.
+- One selected task uses one foreground Pi `Agent` call to the resolved worker. Two or three disjoint tasks may use the parent-selected batch workflow; process overflow in sequential shards.
 
 ## Implementation Tooling
 
@@ -28,6 +36,14 @@ During `/ship`, use `fabric_exec` for code-mode implementation and batched tool 
 - Never use Fabric agents, actors, mesh, or Fabric subagents.
 - Use `fabric_exec` for every implementation phase. Native Pi tools may still handle guards, review, and verification outside implementation.
 - Review, smart join, and child lifecycle remain owned by `@tintinweb/pi-subagents`.
+
+### Ship-Worker Envelope
+
+Every implementation or fix child receives a resolved **ship-worker envelope** containing the task ID and attempt, goal, dependencies, exact files and transient neighborhood, non-goals, acceptance criteria, required `fabric_exec` use, verification commands, stop conditions, approval constraints, and expected result fields. Never send unresolved placeholders.
+
+Children must not spawn or delegate to another agent, schedule siblings, mutate `.active`, `tasks.json`, `progress.md`, or other lifecycle state, or commit, merge, integrate, or publish work. The `/ship` parent owns `tasks.json` and `progress.md` updates—graph transitions and progress recording—as normal operation; these are not child operations and are not gated by the child approval checkpoints. Mutating `.active` is an exceptional operation that requires explicit approval even for the parent.
+
+Explicit approval is required before branch or worktree creation; commit, merge, or integration; dependency installation or new file creation; `.active` or unrelated active-artifact mutation; push or deploy; and destructive operations. When required approval is absent, stop at a checkpoint and preserve the verified work.
 
 ## Load Skills
 
@@ -41,7 +57,7 @@ read(".pi/skills/verification-before-completion/SKILL.md");
 - **Don't skip gates**: Build, test, lint, typecheck are non-negotiable
 - **Run the review**: Always spawn review agent before closing
 - **Verify goals**: Tasks completing ≠ goals achieved (use goal-backward verification)
-- **Commit before close**: Per-task commits required, don't ship without git history
+- **Approval before Git actions**: Per-task commit, merge, and integration occur only after explicit approval; otherwise stop at a checkpoint
 - **Ask before closing**: Never close without user confirmation
 
 ## Available Tools
@@ -77,7 +93,7 @@ Read `.pi/artifacts/$(cat .pi/artifacts/.active)/` to check what artifacts exist
 
 ### Workspace Setup
 
-Set up the workspace: create branch, install deps if needed.
+Inspect the current workspace without mutating it. Branch or worktree creation, dependency installation, and new file creation require explicit approval; when needed but unauthorized, stop at a checkpoint.
 
 ## Phase 2: Validate the Canonical Graph
 
@@ -89,7 +105,7 @@ If `plan.md` exists, compare its task IDs with the authoritative graph. Any task
 
 1. Run `task-graph frontier` with `node --experimental-strip-types .pi/scripts/task-graph.ts frontier "$GRAPH"`.
 2. Handle no-ready states exactly: `complete` proceeds to verification; `running` reports active work; `blocked` reports unmet dependency reasons; `intervention_required` reports failed, blocked, or stale IDs; `invalid` stops.
-3. Execute only the returned conflict-free `selected` shard. One selected task runs directly with `fabric_exec`; two or three disjoint tasks may use the parent-selected batch workflow. Never exceed three.
+3. Execute only the returned conflict-free `selected` shard. One selected task is delegated through a foreground Pi `Agent` call to the resolved `general` or `build` worker; two or three disjoint tasks may use the parent-selected batch workflow after any required isolation approval. Never exceed three.
 4. Before editing each selected task, derive a bounded transient code/test neighborhood from declared files, imports and references, nearby tests, public contracts, and relevant git history. Append the discovered paths to `progress.md`. If declared files and neighborhood evidence materially disagree, stop for focused discovery; do not persist a repository graph.
 5. After every start, pass, failure, invalidation, or integration transition, revalidate and recompute the frontier. Never fall back to list order or an old plan wave.
 6. Continue with the fresh selected shard until the graph is complete or a blocker requires intervention.
@@ -98,12 +114,12 @@ The batch workflow receives only the parent-selected ready shard and returns con
 
 ### Per-Task Execution
 
-Use `fabric_exec` for every implementation or code-fix step. Read the canonical task, its verification commands, and its transient neighborhood; stay inside declared files; automate checkpoints first; verify with at most two fix attempts; commit the task; and append task state plus evidence to `progress.md`.
+Use the resolved ship-worker envelope for every implementation or code-fix step. The worker uses `fabric_exec`, stays inside declared files, automates checkpoints first, and verifies with at most two fix attempts. The parent inspects and verifies the result, then commits or integrates only with explicit approval before appending task state and evidence to `progress.md`.
 
 ### Attempt-Scoped State Transitions
 
 - **Start:** change `pending` to `running`, increment the attempt, set `passes: false`, and preserve historical evidence. Revalidate and recompute the frontier.
-- **Pass:** first append a unique `progress.md#evidence-<task-id>-attempt-<n>` section containing fresh verification, review, and commit evidence. Then add matching current-attempt evidence refs; only afterward change `running` to `passed` and `passes: true`. Revalidate and recompute the frontier.
+- **Pass:** first append a unique `progress.md#evidence-<task-id>-attempt-<n>` section containing fresh verification and review evidence, plus commit evidence only when separately authorized. Then add matching current-attempt evidence refs; only afterward change `running` to `passed` and `passes: true`. Revalidate and recompute the frontier.
 - **Fail:** append failure evidence, change `running` to `failed`, and keep `passes: false`. Run `task-graph descendants`; pending descendants become blocked, passed or running descendants become stale with `passes: false`, and already failed or stale descendants remain unchanged.
 - **Recovery:** blocked descendants return to pending only when every dependency passes. Stale nodes require explicit re-execution or verification. Ancestors remain unchanged unless recorded failure attribution names the ancestor or its produced output changed.
 - After every mutation, revalidate the graph and recompute the frontier before selecting more work.
@@ -168,7 +184,9 @@ When task specifies TDD:
 
 ### Task Commit Protocol
 
-After each task completes (verification passed):
+This protocol is an explicit-approval checkpoint. Do not stage, commit, merge, or integrate without separate approval; verified graph evidence does not imply Git authorization.
+
+After approval and task verification:
 
 1. **Check modified files:** `git status --short`
 2. **Stage individually** (NEVER `git add .`):
@@ -208,7 +226,7 @@ After each task completes (verification passed):
 Follow the [Verification Protocol](../skills/verification-before-completion/references/VERIFICATION_PROTOCOL.md):
 
 - Use **full mode** (shipping requires all gates)
-- All 4 gates must pass before proceeding to commit/push
+- All applicable gates must pass before requesting explicit approval for commit or push
 - Also run PRD `Verify:` commands
 
 If the PRD requires local web, browser, OAuth callback, webhook, or multi-service verification, use stable URLs as verification evidence.
@@ -270,7 +288,7 @@ Resolve placeholders before dispatch. The parent validates every finding and ret
 
 **Auto-fix rule:**
 
-- Critical and Important issues → dispatch `Agent({ subagent_type: "general", description: "Fix [finding]", prompt: "Use fabric_exec to fix only [exact finding, file scope]. Run [verification]." })`. Use `run_in_background: true` plus `isolation: "worktree"` only for a disjoint shard of at most three files/findings; integrate it before later sequential shards. Otherwise use foreground sequential calls.
+- Critical and Important issues → dispatch `Agent({ subagent_type: "general", description: "Fix [finding]", prompt: "Task ID and attempt: [task ID]-fix-[finding ID], attempt [current fix attempt]\nGoal: fix only the verified finding [finding]\nDependencies: parent review result for [task]\nExact files and transient neighborhood: [exact paths]\nNon-goals: no unrelated refactoring, no scope expansion, no Minor findings without parent direction\nAcceptance criteria: finding resolved and required verification passes\nRequired verification: [commands]\nImplementation tool: use fabric_exec\nStop conditions: incomplete envelope, undeclared files, scope expansion, missing approval for branch/worktree, verification fails twice\nApproval constraints: explicit approval before branch/worktree, commit/merge/integration, dependency/new file, .active/active artifact, push/deploy, or destructive actions\nExpected result: changed files, commands/results, assumptions, blockers, risks." })`. Use `run_in_background: true` plus `isolation: "worktree"` only for a disjoint shard of at most three files/findings; integrate it before later sequential shards. Otherwise use foreground sequential calls.
 - After **any** code fix → inspect changes and re-run Phase 4 verification before proceeding.
 - Minor issues → note them in the active `progress.md`; append only durable cross-feature learnings to `.pi/artifacts/MEMORY.md`
 
@@ -315,7 +333,7 @@ Repeat steps 2-8 until exit or escalation:
 | | • **Actionable** (code-level, clear fix) → proceed to fix |
 | | • **Informational** (note, no code change) → log to progress.md with `[info]` |
 | | • **Architecture/Design** → stop loop, present to user for decision |
-| **7. FIX** | Dispatch `Agent({ subagent_type: "general", description: "Fix [finding]", prompt: "Use fabric_exec to fix only [exact finding, file:line, scope]. Run [verification]." })`. Same-file/dependent fixes stay foreground and sequential; at most three disjoint fixes may run in the current shard with `run_in_background: true` and `isolation: "worktree"`, followed by later sequential shards |
+| **7. FIX** | Dispatch `Agent({ subagent_type: "general", description: "Fix [finding]", prompt: "Task ID and attempt: [task ID]-fix-[finding ID], attempt [current fix attempt]\nGoal: fix only the verified finding [finding]\nDependencies: parent review result for [task]\nExact files and transient neighborhood: [exact paths]\nNon-goals: no unrelated refactoring, no scope expansion, no Minor findings without parent direction\nAcceptance criteria: finding resolved and required verification passes\nRequired verification: [commands]\nImplementation tool: use fabric_exec\nStop conditions: incomplete envelope, undeclared files, scope expansion, missing approval for branch/worktree, verification fails twice\nApproval constraints: explicit approval before branch/worktree, commit/merge/integration, dependency/new file, .active/active artifact, push/deploy, or destructive actions\nExpected result: changed files, commands/results, assumptions, blockers, risks." })`. Same-file/dependent fixes stay foreground and sequential; at most three disjoint fixes may run in the current shard with `run_in_background: true` and `isolation: "worktree"`, followed by later sequential shards |
 | **8. VERIFY + RE-REVIEW** | Integrate accepted fixes, inspect files, re-run Phase 4 verification, update `review-state.json`, then go to step 2 |
 
 #### Loop State Updates

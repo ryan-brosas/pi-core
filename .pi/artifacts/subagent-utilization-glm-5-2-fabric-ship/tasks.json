@@ -1,0 +1,187 @@
+{
+  "version": 2,
+  "slug": "subagent-utilization-glm-5-2-fabric-ship",
+  "title": "GLM 5.2 Fabric-backed /ship workers",
+  "status": "ready",
+  "execution": {
+    "mode": "dependency-waves",
+    "max_concurrent_agents": 2,
+    "reason": "Contract tests establish the missing guarantees first; disjoint agent-definition and shipping-workflow changes can then proceed in parallel before integrated verification."
+  },
+  "tasks": [
+    {
+      "id": "task-1",
+      "category": "test",
+      "title": "Lock GLM/Fabric ship-worker contracts",
+      "description": "Deterministic RED tests capture worker model/extension/enablement, bounded roles, routing, self-contained handoffs, and project approval gates without modifying production prompts or agent definitions.",
+      "status": "passed",
+      "passes": true,
+      "attempt": 1,
+      "evidence_refs": [
+        {
+          "kind": "test",
+          "ref": ".pi/artifacts/subagent-utilization-glm-5-2-fabric-ship/progress.md#evidence-task-1-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "verification",
+          "ref": ".pi/artifacts/subagent-utilization-glm-5-2-fabric-ship/progress.md#evidence-task-1-attempt-1",
+          "attempt": 1
+        }
+      ],
+      "depends_on": [],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [
+        ".pi/tests/skill-system.test.ts"
+      ],
+      "acceptance_criteria": [
+        "Tests require both build and general to pin makora/zai-org/GLM-5.2-NVFP4 and load an extension configuration that exposes Fabric.",
+        "Tests require build to be enabled and both workers to prohibit nested delegation, graph/lifecycle ownership, scope expansion, and unapproved gated operations.",
+        "Tests require shipping surfaces to select build for substantial bounded tasks and general for surgical tasks and fixes.",
+        "Tests require every implementation/fix handoff to carry task identity, files, non-goals, acceptance criteria, fabric_exec, verification, stop conditions, and approval constraints.",
+        "Tests require branch/worktree/commit/integration/dependency/new-file and active-artifact mutations to stop for explicit approval.",
+        "No production prompt, workflow, skill, or agent definition is modified in this task."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test --test-name-pattern=\"GLM ship workers expose Fabric|GLM ship workers are bounded executors|ship routes GLM Fabric workers with self-contained contracts|ship honors project approval gates\" .pi/tests/skill-system.test.ts",
+        "git diff --check -- .pi/tests/skill-system.test.ts"
+      ],
+      "expected_verification_state": "The named contract tests fail only for the not-yet-implemented worker and shipping contracts; existing retained tests remain unaffected."
+    },
+    {
+      "id": "task-2",
+      "category": "agent",
+      "title": "Configure bounded GLM Fabric workers",
+      "description": "build and general are spawnable GLM 5.2 implementation workers with Fabric access, explicit no-nesting behavior, strict task scope, and approval-aware stop conditions.",
+      "status": "passed",
+      "passes": true,
+      "attempt": 1,
+      "evidence_refs": [
+        {
+          "kind": "test",
+          "ref": ".pi/artifacts/subagent-utilization-glm-5-2-fabric-ship/progress.md#evidence-task-2-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "verification",
+          "ref": ".pi/artifacts/subagent-utilization-glm-5-2-fabric-ship/progress.md#evidence-task-2-attempt-1",
+          "attempt": 1
+        }
+      ],
+      "depends_on": [
+        "task-1"
+      ],
+      "parallel": true,
+      "conflicts_with": [],
+      "files": [
+        ".pi/agents/build.md",
+        ".pi/agents/general.md"
+      ],
+      "acceptance_criteria": [
+        "Both workers pin makora/zai-org/GLM-5.2-NVFP4 through authoritative frontmatter and do not accept caller model/thinking overrides.",
+        "Both workers load the proven extension surface required for fabric_exec.",
+        "build is enabled and rewritten as a bounded implementation worker rather than a nested orchestrator.",
+        "general remains optimized for surgical tasks and review fixes.",
+        "Both workers stop on undeclared files, architecture changes, scope growth, lifecycle mutation, or operations lacking required approval.",
+        "Pre-existing workspace edits in both files are re-read and preserved; overlapping concurrent changes cause a stop rather than silent replacement."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test --test-name-pattern=\"GLM ship workers expose Fabric|GLM ship workers are bounded executors\" .pi/tests/skill-system.test.ts",
+        "git diff --check -- .pi/agents/build.md .pi/agents/general.md"
+      ]
+    },
+    {
+      "id": "task-3",
+      "category": "workflow",
+      "title": "Route /ship through bounded GLM workers",
+      "description": "The canonical shipping and delegation surfaces select build or general by bounded task criteria, provide complete Fabric worker envelopes, retain parent ownership, and stop at unapproved operations.",
+      "status": "passed",
+      "passes": true,
+      "attempt": 2,
+      "evidence_refs": [
+        {
+          "kind": "verification",
+          "ref": ".pi/artifacts/subagent-utilization-glm-5-2-fabric-ship/progress.md#evidence-task-3-attempt-1-failed",
+          "attempt": 1
+        },
+        {
+          "kind": "test",
+          "ref": ".pi/artifacts/subagent-utilization-glm-5-2-fabric-ship/progress.md#evidence-task-3-attempt-2",
+          "attempt": 2
+        },
+        {
+          "kind": "verification",
+          "ref": ".pi/artifacts/subagent-utilization-glm-5-2-fabric-ship/progress.md#evidence-task-3-attempt-2",
+          "attempt": 2
+        }
+      ],
+      "depends_on": [
+        "task-1"
+      ],
+      "parallel": true,
+      "conflicts_with": [],
+      "files": [
+        ".pi/prompts/ship.md",
+        ".pi/workflows/batch-implement.md",
+        ".pi/skills/subagent-driven-development/SKILL.md"
+      ],
+      "acceptance_criteria": [
+        "The parent routes normally one-to-three-file surgical tasks and review fixes to general, and larger bounded implementation tasks to build.",
+        "Every child implementation and fix uses Pi Agent for orchestration and fabric_exec for code-mode changes.",
+        "Every child receives a self-contained task envelope with identity/attempt, files/neighborhood, non-goals, dependencies, acceptance criteria, verification, stop conditions, and approval restrictions.",
+        "Children cannot schedule graph nodes, mutate .active or lifecycle state, integrate work, or spawn nested agents.",
+        "The parent inspects actual changes, reruns verification, owns review and graph transitions, and recomputes the frontier after accepted transitions.",
+        "Branch/worktree creation, commits, merges/integration, pushes/deployments, dependencies, new files, and active-artifact mutations are explicit approval checkpoints rather than automatic actions.",
+        "Concurrent waves remain limited to at most three disjoint tasks and use isolated worktrees only after separate approval."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test --test-name-pattern=\"ship routes GLM Fabric workers with self-contained contracts|ship honors project approval gates|ship executes a validated dynamic frontier|subagent coordination remains Pi-native and parent-verified\" .pi/tests/skill-system.test.ts",
+        "git diff --check -- .pi/prompts/ship.md .pi/workflows/batch-implement.md .pi/skills/subagent-driven-development/SKILL.md"
+      ]
+    },
+    {
+      "id": "task-4",
+      "category": "verification",
+      "title": "Run integrated ship-worker verification",
+      "description": "The combined worker and routing changes pass the retained Pi Core suite and preserve the version-2 graph, fan-out, Fabric boundary, and approval contracts.",
+      "status": "passed",
+      "passes": true,
+      "attempt": 1,
+      "evidence_refs": [
+        {
+          "kind": "test",
+          "ref": ".pi/artifacts/subagent-utilization-glm-5-2-fabric-ship/progress.md#evidence-task-4-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "verification",
+          "ref": ".pi/artifacts/subagent-utilization-glm-5-2-fabric-ship/progress.md#evidence-task-4-attempt-1",
+          "attempt": 1
+        }
+      ],
+      "depends_on": [
+        "task-2",
+        "task-3"
+      ],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [],
+      "acceptance_criteria": [
+        "All retained Pi Core tests pass after the worker and routing changes are integrated.",
+        "The active version-2 task graph validates successfully.",
+        "Fabric's runtime model registry still exposes makora/zai-org/GLM-5.2-NVFP4.",
+        "One foreground general smoke and one foreground build smoke each invoke fabric_exec read-only, report the exact GLM model route, and make no file changes.",
+        "All owned implementation paths pass whitespace checks.",
+        "No unrelated or runtime-managed file is included in implementation evidence or claimed as owned work."
+      ],
+      "verification": [
+        "Fabric runtime check: tools.models() includes makora/zai-org/GLM-5.2-NVFP4",
+        "Pi Agent smoke: run general then build foreground with a read-only fabric_exec model-registry task; verify exact model and zero changed files",
+        "node --experimental-strip-types --test .pi/tests/*.test.ts",
+        "node --experimental-strip-types .pi/scripts/task-graph.ts validate .pi/artifacts/subagent-utilization-glm-5-2-fabric-ship/tasks.json",
+        "git diff --check -- .pi/agents/build.md .pi/agents/general.md .pi/prompts/ship.md .pi/workflows/batch-implement.md .pi/skills/subagent-driven-development/SKILL.md .pi/tests/skill-system.test.ts"
+      ]
+    }
+  ]
+}

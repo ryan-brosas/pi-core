@@ -52,13 +52,16 @@ Keep each task description under 100 words.
 ### Phase 2: implement
 
 - **Depends on:** Phase 1
-- **Subagent type:** `general`
+- **Worker type:** `{worker_type}` constrained to `build|general`
+- **Routing:** Resolve `general` for a surgical task that normally declares one to three files and has no unresolved architecture, security, or migration decision. Resolve `build` for a larger substantial bounded task with resolved architecture. Stop for a parent decision when unresolved.
 - **Concurrency:** One call per task in the current dependency wave (min 1, max 3)
-- **Dispatch:** The parent resolves Phase 1 into disjoint `{task_shard}` values. Never send the full task list to every worker. If a dependency wave has more than three tasks, run sequential shards of at most three and integrate each shard before continuing.
-- **Isolation:** For a wave with multiple tasks, every call uses `run_in_background: true` and `isolation: "worktree"`. A one-task wave runs foreground without isolation.
+- **Dispatch:** The parent resolves Phase 1 into disjoint `{task_shard}` values and one `{worker_type}` per task. Never send the full task list to every worker. If a dependency wave has more than three tasks, run sequential shards of at most three and return control after each shard.
+- **Isolation:** A one-task wave runs foreground without isolation. Multiple background calls and branch or worktree isolation require explicit approval; if approval is absent, stop at a checkpoint.
+- **Ship-worker envelope:** Every child receives the task ID and attempt, goal, dependencies, exact files and transient neighborhood, non-goals, acceptance criteria, required `fabric_exec` use, verification commands, stop conditions, approval constraints, and expected result fields. Children must not spawn agents, schedule siblings, mutate `.active`, `tasks.json`, `progress.md`, or lifecycle state, or commit, merge, integrate, or publish work. The parent must inspect actual changes and verify every result.
+- **Approval checkpoint:** Explicit approval is required before branch or worktree creation; commit, merge, or integration; dependency installation or new file creation; `.active` or active-artifact mutation; push or deploy; and destructive operations.
 - **Prompt:**
 
-Implement only this resolved task: {task_shard}. When invoked from `/ship`, use `fabric_exec` for code-mode implementation. Follow project conventions, add behavior tests, and stay within the listed files. Do not implement sibling or dependent tasks. Return:
+Implement only this resolved task: {task_shard}. Worker type: {worker_type}. Apply the complete ship-worker envelope, use `fabric_exec` for code-mode implementation, stay within the exact files, and stop on every envelope stop condition. Do not implement sibling or dependent tasks. Return:
 
 ## Task: [name]
 - **Worktree/branch or commit:** [value]
@@ -88,7 +91,7 @@ Keep each finding under 100 words.
 
 ## Final Merge (Main Agent)
 
-After Phase 3 completes, inspect each passing worktree/commit, run its verification directly, and integrate only verified results. The parent must rerun task-graph validate and frontier after integration; only that fresh frontier may select the next ready shard.
+After Phase 3 completes, the parent inspects each passing result and runs its verification directly. Commit, merge, and integration require explicit approval; if approval is absent, stop at a checkpoint without claiming integration. After any authorized integration, rerun task-graph validate and frontier; only that fresh frontier may select the next ready shard.
 
 Ensure:
 - No duplicate imports

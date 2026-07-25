@@ -275,3 +275,73 @@ test("subagent coordination remains Pi-native and parent-verified", () => {
     assert.match(text, /parent[^\n]*(inspect|synthesi|verif)|(?:inspect|synthesi|verif)[^\n]*parent/i, path);
   }
 });
+
+function agentFrontmatter(path: string): string {
+  const match = readRequired(path).match(/^---\n([\s\S]*?)\n---/);
+  assert.ok(match, `agent frontmatter is missing: ${path}`);
+  return match[1];
+}
+
+function agentBody(path: string): string {
+  return readRequired(path).replace(/^---\n[\s\S]*?\n---\n?/, "");
+}
+
+test("GLM ship workers expose Fabric", () => {
+  const build = agentFrontmatter(".pi/agents/build.md");
+  const general = agentFrontmatter(".pi/agents/general.md");
+  for (const [path, frontmatter] of [["build", build], ["general", general]] as const) {
+    assert.match(frontmatter, /^model: makora\/zai-org\/GLM-5\.2-NVFP4$/m, path);
+    assert.match(frontmatter, /^extensions: true$/m, path);
+  }
+  assert.match(build, /^enabled: true$/m);
+});
+
+test("GLM ship workers are bounded executors", () => {
+  const build = agentBody(".pi/agents/build.md");
+  const general = agentBody(".pi/agents/general.md");
+  for (const [path, body] of [["build", build], ["general", general]] as const) {
+    assert.match(body, /(?:do not|never|must not)[^\n]*(?:spawn|delegate)[^\n]*agent/i, path);
+    assert.match(body, /(?:do not|never|must not)[^\n]*(?:\.active|task graph|tasks\.json|progress\.md|lifecycle)/i, path);
+    assert.match(body, /(?:undeclared|outside)[^\n]*files?[^\n]*(?:stop|report)|(?:stop|report)[^\n]*(?:undeclared|outside)[^\n]*files?/i, path);
+    assert.match(body, /explicit approval[^\n]*(?:branch|worktree|commit|merge|dependency|new file)/i, path);
+  }
+  assert.doesNotMatch(build, /you are[^\n]*orchestrator/i);
+  assert.doesNotMatch(build, /\.pi\/artifacts\/TODO\.md/i);
+});
+
+test("ship routes GLM Fabric workers with self-contained contracts", () => {
+  const ship = readRequired(".pi/prompts/ship.md");
+  const batch = readRequired(".pi/workflows/batch-implement.md");
+  const delegation = readRequired(".pi/skills/subagent-driven-development/SKILL.md");
+  assert.match(ship, /(?:larger|substantial)[^\n]*`build`|`build`[^\n]*(?:larger|substantial)/i);
+  assert.match(ship, /(?:surgical|one[- ]to[- ]three)[^\n]*`general`|`general`[^\n]*(?:surgical|one[- ]to[- ]three)/i);
+  assert.match(batch, /worker_type[\s\S]*build\|general/i);
+  assert.match(delegation, /worker_type[\s\S]*build\|general/i);
+  for (const [path, text] of [["ship", ship], ["batch", batch], ["delegation", delegation]] as const) {
+    assert.match(text, /ship-worker envelope/i, path);
+    assert.match(text, /task (?:ID|id)[^\n]*attempt|attempt[^\n]*task (?:ID|id)/i, path);
+    assert.match(text, /exact files|files in scope/i, path);
+    assert.match(text, /non-goals/i, path);
+    assert.match(text, /acceptance criteria/i, path);
+    assert.match(text, /fabric_exec/i, path);
+    assert.match(text, /verification/i, path);
+    assert.match(text, /stop conditions/i, path);
+    assert.match(text, /parent[^\n]*(?:inspect|verify)|(?:inspect|verify)[^\n]*parent/i, path);
+  }
+});
+
+test("ship honors project approval gates", () => {
+  const ship = readRequired(".pi/prompts/ship.md");
+  const batch = readRequired(".pi/workflows/batch-implement.md");
+  const delegation = readRequired(".pi/skills/subagent-driven-development/SKILL.md");
+  for (const [path, text] of [["ship", ship], ["batch", batch], ["delegation", delegation]] as const) {
+    assert.match(text, /explicit approval/i, path);
+    assert.match(text, /checkpoint/i, path);
+    assert.match(text, /branch[^\n]*worktree|worktree[^\n]*branch/i, path);
+    assert.match(text, /commit[^\n]*(?:merge|integrat)|(?:merge|integrat)[^\n]*commit/i, path);
+    assert.match(text, /dependenc[^\n]*new file|new file[^\n]*dependenc/i, path);
+    assert.match(text, /\.active|active artifact/i, path);
+  }
+  assert.doesNotMatch(ship, /Set up the workspace: create branch, install deps if needed/i);
+  assert.doesNotMatch(ship, /Commit before close[^\n]*required/i);
+});

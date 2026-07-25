@@ -44,28 +44,34 @@ All dispatches in this skill use the installed pi-subagents `Agent` tool. Do not
 
 Read the explicitly active `tasks.json`, validate it, and consume only the parent-selected validated ready shard. `tasks.json` owns scheduling; plan waves are explanatory snapshots. Children must not schedule graph nodes, recompute sibling work, or change `.active`. Record progress in the active `progress.md`.
 
-Every child receives a compact `task_brief` with: goal, exact files, non-goals, dependencies, acceptance criteria, verification commands, and stop conditions. The child returns a `result` with: assumptions, blockers, changed files, commit/worktree, commands, observed evidence, and unresolved risks. Reject incomplete envelopes instead of inferring fields.
+Every implementation child receives a complete **ship-worker envelope**, the canonical `task_brief`, with: task ID and attempt, goal, dependencies, exact files and transient neighborhood, non-goals, acceptance criteria, required `fabric_exec` use, verification commands, stop conditions, approval constraints, and expected result fields. The child returns assumptions, blockers, changed files, commands, observed evidence, and unresolved risks. Reject incomplete envelopes instead of inferring fields. Children must not spawn agents, schedule siblings, mutate `.active`, `tasks.json`, `progress.md`, or lifecycle state, or commit, merge, integrate, or publish work. The parent must inspect actual changes and verify every result.
 
 If shared context exceeds ~500 tokens, put bounded supporting context in the active `worker-context.md` and reference it; this optional handoff is not canonical state.
 
 ### 2. Execute One Ready Shard
 
-For a one-task validated ready shard, use a foreground call. For multiple independent tasks in the conflict-free shard, issue all calls together with `run_in_background: true` and `isolation: "worktree"`; let smart join return the group. When this skill is invoked by `/ship`, each implementation prompt must require `fabric_exec` for code-mode implementation.
+Resolve `{worker_type}` constrained to `build|general`: use `general` for a surgical task that normally declares one to three files and has no unresolved architecture, security, or migration decision; use `build` for a larger substantial bounded task with resolved architecture. Stop for a parent decision when unresolved.
+
+For a one-task validated ready shard, use a foreground call. Multiple independent background calls and branch or worktree isolation require explicit approval; if approval is absent, stop at a checkpoint. When this skill is invoked by `/ship`, every implementation and fix prompt must include the complete ship-worker envelope and require `fabric_exec`.
 
 ```typescript
 Agent({
-  subagent_type: "general",
+  subagent_type: "{worker_type}",
   description: "Implement [task name]",
   prompt: `Implement only this resolved task: [task text].
 
+Task ID and attempt: [canonical ID and current attempt]
 Goal: [required end state]
-Files in scope: [exact paths]
+Dependencies: [resolved dependencies]
+Exact files and transient neighborhood: [exact paths]
 Non-goals: [explicit exclusions]
 Acceptance criteria: [criteria]
 Required verification: [commands]
-Implementation tool: [for /ship: use fabric_exec]
+Implementation tool: use fabric_exec
+Stop conditions: [scope, architecture, verification, and approval stops]
+Approval constraints: explicit approval before branch/worktree, commit/merge/integration, dependency/new file, .active/active artifact, push/deploy, or destructive actions
 
-Follow TDD when behavior changes. Preserve unrelated work. Report the worktree branch/commit, files changed, commands and results, assumptions, and blockers.`,
+Follow TDD when behavior changes. Do not spawn agents or mutate lifecycle state. Preserve unrelated work. Report files changed, commands and results, assumptions, blockers, and risks.`,
   run_in_background: true,
   isolation: "worktree",
 });
@@ -104,13 +110,14 @@ Fix Critical and Important findings before integration. Resume the matching impl
 Agent({
   subagent_type: "general",
   description: "Fix [task name] findings",
-  prompt: `In [exact worktree/branch], fix only these verified findings: [findings]. Stay within [files]. When invoked by /ship, use fabric_exec. Run [commands] and report evidence.`,
+  prompt: `Task ID and attempt: [task ID]-fix-[finding ID], attempt [current fix attempt]\nGoal: fix only the verified findings: [findings]\nDependencies: parent review result for [task]\nExact files and transient neighborhood: [exact paths]\nNon-goals: no unrelated refactoring, no scope expansion, no Minor findings without parent direction\nAcceptance criteria: findings resolved and required verification passes\nRequired verification: [commands]\nImplementation tool: use fabric_exec\nStop conditions: incomplete envelope, undeclared files, scope expansion, missing approval for branch/worktree, verification fails twice\nApproval constraints: explicit approval before branch/worktree, commit/merge/integration, dependency/new file, .active/active artifact, push/deploy, or destructive actions\nExpected result: changed files, commands/results, assumptions, blockers, risks. In [exact worktree/branch]. Stay within [files].`,
 });
 ```
 
 ### 5. Integrate, Then Advance
 
-- Integrate only reviewed, parent-verified branches/commits.
+- Commit, merge, and integration require explicit approval; if approval is absent, stop at a checkpoint without claiming the action.
+- Integrate only reviewed, parent-verified work after approval.
 - Run an integration check after the complete wave is merged.
 - Append task status and evidence to the active `progress.md`.
 - Return control to the parent after the shard passes; the parent reruns validation and frontier selection before any next shard.
