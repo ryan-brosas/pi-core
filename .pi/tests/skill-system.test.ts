@@ -415,3 +415,54 @@ test("plan agent output is chat-only and canonical-state safe", () => {
   assert.match(plan, /never write or edit[^\n]*implementation files[^\n]*Git state[^\n]*dependencies/i);
   assert.match(plan, /(?:do not|never|must not)[^\n]*(?:spawn|delegate|schedule)[^\n]*agents?/i);
 });
+
+test("Plan delegation uses one foreground self-contained call", () => {
+  const planPrompt = readRequired(".pi/prompts/plan.md");
+  const calls = [...planPrompt.matchAll(/Agent\(\{[\s\S]*?\n\s*\}\);/g)]
+    .map((match) => match[0])
+    .filter((call) => /subagent_type:\s*"Plan"/.test(call));
+  assert.equal(calls.length, 1, "expected exactly one concrete Plan Agent call");
+  const call = calls[0];
+  assert.match(call, /description:\s*(?:`[^`]+`|"[^"]+")/);
+  assert.match(call, /prompt:\s*planningEnvelope/);
+  assert.doesNotMatch(call, /\b(?:model|thinking|run_in_background)\s*:/);
+
+  assert.match(planPrompt, /parent plans inline by default/i);
+  assert.match(planPrompt, /material ambiguity/i);
+  assert.match(planPrompt, /architectural trade-offs?/i);
+  assert.match(planPrompt, /cross-subsystem sequencing/i);
+  assert.match(planPrompt, /(?:skip|skips|decline)[^\n]*rationale|rationale[^\n]*(?:skip|skips|decline)/i);
+  assert.match(planPrompt, /foreground[^\n]*(?:depends|dependency|next decision)|(?:depends|dependency|next decision)[^\n]*foreground/i);
+  assert.match(planPrompt, /resolved[^\n]*self-contained[^\n]*envelope|self-contained[^\n]*resolved[^\n]*envelope/i);
+  assert.doesNotMatch(planPrompt, /Plan\s*(?:→|->)\s*Implement\s*(?:→|->)\s*Review/i);
+});
+
+test("plan prompt keeps canonical and lifecycle writes parent-owned", () => {
+  const planPrompt = readRequired(".pi/prompts/plan.md");
+  const section = (heading: string): string => {
+    const start = planPrompt.indexOf(heading);
+    assert.notEqual(start, -1, `missing /plan section: ${heading}`);
+    const contentStart = start + heading.length;
+    const next = planPrompt.indexOf("\n## ", contentStart);
+    return planPrompt.slice(contentStart, next === -1 ? undefined : next);
+  };
+
+  const envelope = section("### Planning Envelope");
+  assert.match(envelope, /chat-only advisory/i);
+  assert.match(envelope, /canonical graph and input paths/i);
+  assert.match(envelope, /dependencies and prior decisions/i);
+  assert.match(envelope, /resolved research/i);
+  assert.match(envelope, /remaining gaps/i);
+  assert.doesNotMatch(envelope, /updated\s+`?plan\.md`?/i);
+  assert.doesNotMatch(envelope, /updated\s+`?tasks\.json`?/i);
+
+  assert.match(planPrompt, /parent alone (?:writes|updates|validates)[^\n]*`plan\.md`[^\n]*`tasks\.json`/i);
+  assert.match(planPrompt, /invoking `?\/plan`?[^\n]*(?:authorizes|permits)[^\n]*first[^\n]*`plan\.md`/i);
+  assert.match(planPrompt, /overwrite[^\n]*`plan\.md`[^\n]*explicit approval/i);
+  assert.match(planPrompt, /unrelated (?:extra )?files?[^\n]*explicit approval/i);
+
+  const handoff = section("## Phase 9: Handoff to `/ship`");
+  assert.match(handoff, /`\.active` remains unchanged/i);
+  assert.match(handoff, /exceptional[^\n]*parent-owned[^\n]*explicit approval/i);
+  assert.doesNotMatch(handoff, /those are `?\/ship`? responsibilities/i);
+});
