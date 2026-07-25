@@ -113,8 +113,8 @@ If complexity is detected as parallel:
 1. **Read the workflow:** `.pi/workflows/batch-implement.md`
 2. **Execute all phases:**
    - Phase 1: Spawn 1 `review` agent to review plan for task independence
-   - Phase 2: Spawn multiple `general` agents (1 per task, dynamic count)
-   - Phase 3: Spawn multiple `review` agents to verify implementations
+   - Phase 2: Spawn at most three `general` agents for the current disjoint task shard; integrate before later sequential shards
+   - Phase 3: Spawn at most three matching `review` agents for the completed shard; process review overflow sequentially
    - Final merge: the parent verifies and integrates results
 3. **Replace placeholders:**
    - `{plan}` → the implementation plan
@@ -141,7 +141,7 @@ If `plan.md` exists with dependency graph:
 1. **Parse waves** from dependency graph section
 3. **Execute wave-by-wave:**
    - Single-task wave → implement directly with `fabric_exec` (no subagent overhead)
-   - Multi-task wave → issue one `Agent({ subagent_type: "general", description: "Implement [task]", prompt: "Implement only [resolved task and exact files]. Use fabric_exec for code-mode implementation. Return branch/commit and verification evidence.", run_in_background: true, isolation: "worktree" })` call per task together in the same turn
+   - Multi-task wave → issue at most three disjoint `Agent({ subagent_type: "general", description: "Implement [task]", prompt: "Implement only [resolved task and exact files]. Use fabric_exec for code-mode implementation. Return branch/commit and verification evidence.", run_in_background: true, isolation: "worktree" })` calls for the current shard; integrate it before processing overflow in later sequential shards
 4. **Review after each wave** — inspect each isolated result, run verification directly, review it, integrate passing branches/commits, then run an integration check
 5. **Continue** until all waves complete
 
@@ -312,22 +312,21 @@ If any UI files changed:
 
 ### Standard Review Mode
 
-Define five distinct review focuses: `security-correctness`, `performance-architecture`, `type-safety-tests`, `conventions-patterns`, and `simplicity-completeness`. Issue all five pi-subagents calls together:
+Default to one foreground `review` agent covering security/correctness, performance/architecture, type-safety/tests, conventions/patterns, and simplicity/completeness. For high-risk changes only, split those concerns into at most three non-overlapping bundles: `security-correctness`, `performance-architecture`, and `types-tests-conventions-simplicity`. Dispatch the current bundle wave together with `run_in_background: true`; process any additional review work in sequential shards.
 
 ```typescript
 Agent({
   subagent_type: "review",
-  description: "Review [focus]",
-  prompt: `Review only [focus] for {WHAT_WAS_IMPLEMENTED} against {PLAN_OR_REQUIREMENTS}. Diff: {BASE_SHA}...{HEAD_SHA}. Return severity-ranked findings with file:line evidence, or explicitly report none.`,
-  run_in_background: true,
+  description: "Review [focus bundle]",
+  prompt: `Review only [resolved focus bundle] for {WHAT_WAS_IMPLEMENTED} against {PLAN_OR_REQUIREMENTS}. Diff: {BASE_SHA}...{HEAD_SHA}. Return severity-ranked findings with file:line evidence, or explicitly report none.`,
 });
 ```
 
-Resolve the placeholders before dispatch. Let smart join return the group, then synthesize and validate every finding.
+Resolve placeholders before dispatch. The parent validates every finding and retains synthesis and verification.
 
 **Auto-fix rule:**
 
-- Critical and Important issues → dispatch `Agent({ subagent_type: "general", description: "Fix [finding]", prompt: "Use fabric_exec to fix only [exact finding, file scope]. Run [verification]." })`. Use `run_in_background: true` plus `isolation: "worktree"` only for disjoint files; otherwise use foreground sequential calls.
+- Critical and Important issues → dispatch `Agent({ subagent_type: "general", description: "Fix [finding]", prompt: "Use fabric_exec to fix only [exact finding, file scope]. Run [verification]." })`. Use `run_in_background: true` plus `isolation: "worktree"` only for a disjoint shard of at most three files/findings; integrate it before later sequential shards. Otherwise use foreground sequential calls.
 - After **any** code fix → inspect changes and re-run Phase 4 verification before proceeding.
 - Minor issues → note them in the active `progress.md`; append only durable cross-feature learnings to `.pi/artifacts/MEMORY.md`
 
@@ -372,7 +371,7 @@ Repeat steps 2-8 until exit or escalation:
 | | • **Actionable** (code-level, clear fix) → proceed to fix |
 | | • **Informational** (note, no code change) → log to progress.md with `[info]` |
 | | • **Architecture/Design** → stop loop, present to user for decision |
-| **7. FIX** | Dispatch `Agent({ subagent_type: "general", description: "Fix [finding]", prompt: "Use fabric_exec to fix only [exact finding, file:line, scope]. Run [verification]." })`. Same-file/dependent fixes stay foreground and sequential; disjoint fixes may run together with `run_in_background: true` and `isolation: "worktree"` |
+| **7. FIX** | Dispatch `Agent({ subagent_type: "general", description: "Fix [finding]", prompt: "Use fabric_exec to fix only [exact finding, file:line, scope]. Run [verification]." })`. Same-file/dependent fixes stay foreground and sequential; at most three disjoint fixes may run in the current shard with `run_in_background: true` and `isolation: "worktree"`, followed by later sequential shards |
 | **8. VERIFY + RE-REVIEW** | Integrate accepted fixes, inspect files, re-run Phase 4 verification, update `review-state.json`, then go to step 2 |
 
 #### Loop State Updates

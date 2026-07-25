@@ -148,7 +148,7 @@ Gather only the implementation context required by the selected level:
 | `scout`   | Best practices, common patterns, pitfalls                            |
 
 - **Level 2:** Use one foreground `scout` call with the exact external question because planning depends on its answer.
-- **Level 3:** The parent first defines distinct `{angle}` values (for example: ecosystem precedent, security constraints, operational risk, migration path). Issue one `Agent({ subagent_type: "scout", description: "Research [angle]", prompt: "Research only [resolved angle] for [feature] with authoritative citations.", run_in_background: true })` call per angle together in the same turn. Never repeat the same broad prompt across scouts.
+- **Level 3:** The parent first defines distinct `{angle}` values (for example: ecosystem precedent, security constraints, operational risk, migration path). Dispatch at most three resolved angles in the current wave with `run_in_background: true`, then join and inspect the results. Process additional questions in later sequential shards before synthesis. Never repeat the same broad prompt across scouts.
 - Local discovery uses a separate `Explore` call with a bounded file/symbol question. The parent joins research, resolves conflicts, and writes the plan.
 
 ## Phase 4: Goal-Backward Analysis

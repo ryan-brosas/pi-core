@@ -540,3 +540,10 @@ Split the fan-out regression into independently named surface tests. The suite r
 - `/create` now reuses current-session research, uses at most two agents for Standard and three for Deep, and defers dependent review.
 - `/research` uses one focused scout or at most three distinct angles per wave, with sequential overflow shards and one later cross-check.
 - Verification: 2 focused prompt tests passed.
+
+## Task K — planning, shipping, and review caps
+
+- Level-3 planning dispatches at most three distinct questions per wave and handles overflow in sequential shards.
+- Shipping caps implementation, matching review, and fixer shards at three.
+- Standard review now defaults to one foreground reviewer; high-risk review permits at most three bundled focuses.
+- Verification: 2 focused prompt tests passed.
