@@ -99,13 +99,17 @@ Read the PRD, `plan.md` when present, and relevant research/design sections reco
 - [ ] Plan/spec exists and is up to date
 - [ ] You have read the full spec
 
-## Phase 2: Completeness
+## Phase 2: Completeness and Graph Evidence
 
 Extract all requirements/tasks from the PRD and verify each is implemented:
 
 - For each requirement: find evidence in the codebase (file:line reference)
 - Mark as: complete, partial, or missing
 - Report completeness score (X/Y requirements met)
+
+Validate the authoritative `tasks.json`. For every version-2 node, compare status and passes, current attempt, evidence refs, referenced `progress.md` anchors, and the artifacts covered by that evidence. A passed node requires current-attempt evidence that still exists and supports its claimed verification, review, or commit.
+
+If an upstream artifact changed after evidence was recorded, mark its affected evidence stale and run `task-graph descendants`. Pending descendants become blocked; passed or running descendants become stale with `passes: false`; already failed or stale descendants remain unchanged. Ancestors remain unchanged unless evidence attributes the failure upstream or their produced output changed. Release blocked nodes to pending only when all dependencies pass; stale nodes require explicit rerun. Revalidate and recompute the frontier after every state update, and report the exact affected IDs rather than blanket-resetting the graph.
 
 ## Phase 3: Correctness
 

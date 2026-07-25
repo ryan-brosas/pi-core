@@ -100,6 +100,14 @@ The batch workflow receives only the parent-selected ready shard and returns con
 
 Use `fabric_exec` for every implementation or code-fix step. Read the canonical task, its verification commands, and its transient neighborhood; stay inside declared files; automate checkpoints first; verify with at most two fix attempts; commit the task; and append task state plus evidence to `progress.md`.
 
+### Attempt-Scoped State Transitions
+
+- **Start:** change `pending` to `running`, increment the attempt, set `passes: false`, and preserve historical evidence. Revalidate and recompute the frontier.
+- **Pass:** first append a unique `progress.md#evidence-<task-id>-attempt-<n>` section containing fresh verification, review, and commit evidence. Then add matching current-attempt evidence refs; only afterward change `running` to `passed` and `passes: true`. Revalidate and recompute the frontier.
+- **Fail:** append failure evidence, change `running` to `failed`, and keep `passes: false`. Run `task-graph descendants`; pending descendants become blocked, passed or running descendants become stale with `passes: false`, and already failed or stale descendants remain unchanged.
+- **Recovery:** blocked descendants return to pending only when every dependency passes. Stale nodes require explicit re-execution or verification. Ancestors remain unchanged unless recorded failure attribution names the ancestor or its produced output changed.
+- After every mutation, revalidate the graph and recompute the frontier before selecting more work.
+
 ### Checkpoint Protocol
 
 When task has `checkpoint:*` type:
