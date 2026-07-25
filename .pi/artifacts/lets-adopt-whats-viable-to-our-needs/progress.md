@@ -534,3 +534,9 @@ Split the fan-out regression into independently named surface tests. The suite r
 - Same-file/dependent work remains foreground; parent inspection and verification occur before later sequential shards.
 - Verification: 2 focused surface tests passed.
 - Deviation: used the actual test labels `gc prompt|garbage-collection`; the plan's spaced `garbage collection` filter matched no test name.
+
+## Task J — create and research discovery caps
+
+- `/create` now reuses current-session research, uses at most two agents for Standard and three for Deep, and defers dependent review.
+- `/research` uses one focused scout or at most three distinct angles per wave, with sequential overflow shards and one later cross-check.
+- Verification: 2 focused prompt tests passed.

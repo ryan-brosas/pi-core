@@ -76,7 +76,7 @@ question({
       options: [
         {
           label: "Deep (Recommended for complex work)",
-          description: "3-5 agents: patterns, tests, deps, best practices (~2 min)",
+          description: "At most 3 agents: one local scan plus distinct specialist inputs",
         },
         {
           label: "Standard",
@@ -98,26 +98,27 @@ question({
 
 ## Phase 4: Gather Context
 
-Based on research depth choice, make one `Agent` call per bullet below. Calls within the selected depth are independent, so issue them together with `run_in_background: true`:
+Reuse relevant research already completed in the current session before spawning. Based on the selected depth, dispatch only distinct missing inputs; the parent inspects evidence, resolves conflicts, and verifies the resulting PRD.
 
-**If Deep:**
+**If Deep (at most three agents):**
 
-- 3x `Explore` (patterns, tests, deps)
-- 1x `scout` (feature/epic)
-- 1x `review` (epic)
+- 1x `Explore` for local patterns, tests, and dependencies
+- Up to 2 distinct `Explore` or `scout` specialist inputs for unresolved risks
+- Process any additional questions in later sequential shards
+- Run a dependent foreground `review` only after research joins, and only when feature risk warrants it
 
-**If Standard:**
+**If Standard (at most two agents):**
 
-- 2x `Explore` (patterns, tests)
-- 1x `scout` (feature/epic only)
+- 1x `Explore` for local patterns and tests
+- Optionally 1x `scout` for one unresolved external question
 
 **If Minimal:**
 
-- 1x `Explore` (patterns)
+- 0–1 `Explore` call for a bounded gap
 
 **If Skip:**
 
-- No agents, use existing AGENTS.md context
+- No agents; use existing AGENTS.md and current-session evidence
 
 **While agents run**, ask clarifying questions if the description lacks scope or expected outcome. For bugs, also ask for reproduction steps and expected vs actual behavior.
 

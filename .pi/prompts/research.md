@@ -52,10 +52,10 @@ Before starting, analyze the research topic complexity:
 
 If complexity is detected as complex:
 
-1. **Read the workflow:** `.pi/workflows/deep-research.md`
-2. **Execute all phases:**
-   - Phase 1: Spawn multiple `scout` agents (dynamic count based on angles)
-   - Phase 2: Spawn `review` agents to cross-check findings
+1. **Reuse current-session research**, then read `.pi/workflows/deep-research.md` only for unresolved gaps.
+2. **Execute bounded phases:**
+   - Phase 1: Spawn one focused `scout` for bounded work or at most three scouts for distinct angles in the current wave; process additional angles in sequential shards
+   - Phase 2: After every research shard joins, spawn one dependent foreground `review` to cross-check findings
    - Final synthesis: the parent combines verified results and writes the report
 3. **Replace placeholders:**
    - `{question}` → the research topic from $ARGUMENTS
