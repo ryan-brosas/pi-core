@@ -535,7 +535,7 @@ test("plan writer boundary keeps canonical plan.md and tasks.json parent-owned",
     "Plan advisory output must never be handed to general to render/write canonical plan.md or tasks.json",
   );
 
-  const calls = [...planPrompt.matchAll(/Agent\(\{[\s\S]*?\n\s*\}\);/g)].map((match) => match[0]);
+  const calls = [...planPrompt.matchAll(/Agent\(\{[\s\S]*?\}\);/g)].map((match) => match[0]);
   const nonAdvisoryCalls = calls.filter((call) => {
     const role = call.match(/subagent_type:\s*([^,\n]+)/)?.[1].trim();
     return !role || !/^["'](?:Plan|Explore|scout)["']$/.test(role);
@@ -560,8 +560,11 @@ test("ship primary worker call resolves workerType and dispatches one foreground
   const tsBlocks = [...section.matchAll(/```(?:typescript|ts)\n([\s\S]*?)\n```/g)].map((match) => match[1]);
   assert.equal(tsBlocks.length, 1, "expected exactly one fenced TypeScript block in the primary worker dispatch section");
   const block = tsBlocks[0];
+  const executableBlock = block
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/^\s*\/\/.*$/gm, "");
 
-  const agentCalls = [...block.matchAll(/Agent\(\{[\s\S]*?\n\s*\}\);/g)].map((match) => match[0]);
+  const agentCalls = [...executableBlock.matchAll(/Agent\(\{[\s\S]*?\}\);/g)].map((match) => match[0]);
   assert.equal(agentCalls.length, 1, "expected exactly one Agent call in the primary worker dispatch block");
   const call = agentCalls[0];
 
@@ -570,14 +573,14 @@ test("ship primary worker call resolves workerType and dispatches one foreground
   assert.match(call, /prompt:\s*shipWorkerEnvelope/, "primary call must use the shipWorkerEnvelope");
   assert.doesNotMatch(call, /\b(?:model|thinking|run_in_background)\s*:/, "primary call must omit invocation-level model/thinking/background overrides");
 
-  const callIndex = block.indexOf(call);
-  const beforeCall = block.slice(0, callIndex);
+  const callIndex = executableBlock.indexOf(call);
+  const beforeCall = executableBlock.slice(0, callIndex);
   assert.match(
     beforeCall,
     /^(?!\s*\/\/)\s*const\s+workerType\s*:\s*"general"\s*\|\s*"build"\s*=\s*resolvedWorkerType\s*;\s*$/m,
     "workerType must be an uncommented executable general|build union before the primary call",
   );
-  const unresolvedGuard = /unresolved architecture, security, migration, scope, or approval/i;
+  const unresolvedGuard = /if any unresolved architecture, security, migration, scope, or approval question remains,\s*stop before worker selection\./i;
   const guardIndex = section.search(unresolvedGuard);
   assert.notEqual(guardIndex, -1, "primary dispatch must stop for every unresolved decision class");
   assert.ok(guardIndex < section.indexOf("```"), "unresolved-decision guard must occur before the dispatch code fence");
