@@ -616,3 +616,7 @@ Use a **prompt-first hybrid**, not an extension-first solution:
 ### Next step
 
 Run `/create "conversation-aware research-to-spec handoff"` using this report as evidence, then choose the prompt-first scope above before considering extension persistence.
+
+### Verification-command correction
+
+Replaced the broad numeric grep with the agent-specific fan-out test. The grep falsely matched `.pi/prompts/init.md`'s unrelated `max 150` AGENTS.md line limit; the deterministic test parses only concurrency declarations and dispatch wording.

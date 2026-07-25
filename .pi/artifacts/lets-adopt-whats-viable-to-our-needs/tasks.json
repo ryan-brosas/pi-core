@@ -143,7 +143,7 @@
       ],
       "verification": [
         "node --experimental-strip-types --test .pi/tests/*.test.ts",
-        "! rg -n \"max (?:[4-9]|[1-9][0-9])|3-5 agents|five distinct review\" .pi/prompts .pi/workflows .pi/skills/subagent-driven-development/SKILL.md",
+        "node --experimental-strip-types --test --test-name-pattern=\"fan-out\" .pi/tests/skill-system.test.ts",
         "rg -n \"sequential.*shard|shard.*sequential|max 3|at most three\" .pi/prompts .pi/workflows .pi/skills/subagent-driven-development/SKILL.md"
       ]
     }

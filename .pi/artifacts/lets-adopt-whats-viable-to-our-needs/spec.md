@@ -179,7 +179,7 @@ files:
   - .pi/tests/skill-system.test.ts
 ```
 
-Verify: `node --experimental-strip-types --test .pi/tests/*.test.ts` and `! rg -n "max (?:[4-9]|[1-9][0-9])|3-5 agents|five distinct review" .pi/prompts .pi/workflows .pi/skills/subagent-driven-development/SKILL.md`.
+Verify: `node --experimental-strip-types --test .pi/tests/*.test.ts` and `node --experimental-strip-types --test --test-name-pattern="fan-out" .pi/tests/skill-system.test.ts`.
 
 ## Risks and Mitigations
 
