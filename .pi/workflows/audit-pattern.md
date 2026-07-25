@@ -16,7 +16,7 @@ Agent({
 ```
 
 - Concurrency 1: omit `run_in_background`, consume the foreground result, then continue.
-- Concurrency >1 or dynamic: issue all independent calls together with `run_in_background: true`; let smart join return the group. Do not poll.
+- A concurrent wave contains at most three independent calls. Issue those together with `run_in_background: true`; let smart join return the group. Process additional work in sequential shards and do not poll.
 - Do not start a dependent phase until upstream results are available.
 - Omit `model` and `thinking`; scoped agent definitions own those settings.
 - The parent resolves placeholders before dispatch, synthesizes results, inspects child changes, and runs verification itself.
@@ -45,8 +45,8 @@ Keep each entry under 50 words.
 
 - **Depends on:** Phase 1
 - **Subagent type:** `review`
-- **Concurrency:** Dynamic (one disjoint shard of about 10 occurrences per agent, min 1, max 15)
-- **Dispatch:** The parent partitions Phase 1 into non-overlapping `{occurrence_shard}` values and issues one call per shard. Never send the complete occurrence list to every reviewer.
+- **Concurrency:** Dynamic (one disjoint occurrence shard per agent, min 1, max 3)
+- **Dispatch:** The parent partitions Phase 1 into non-overlapping `{occurrence_shard}` values and issues at most three calls for the current wave. Never send the complete occurrence list to every reviewer. Join and inspect each wave, then continue remaining occurrences in sequential shards before synthesis.
 - **Prompt:**
 
 Review only this occurrence shard for the pattern '{pattern}': {occurrence_shard}. For each occurrence check: correctness, edge cases, security implications, error handling, and adherence to project conventions. Return findings in this format:

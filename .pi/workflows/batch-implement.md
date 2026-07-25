@@ -16,7 +16,7 @@ Agent({
 ```
 
 - Concurrency 1: omit `run_in_background`, consume the foreground result, then continue.
-- Concurrency >1 or dynamic: issue all independent calls together with `run_in_background: true`; let smart join return the group. Do not poll.
+- A concurrent wave contains at most three independent calls. Issue those together with `run_in_background: true`; let smart join return the group. Process additional work in sequential shards and do not poll.
 - Do not start a dependent phase until upstream results are available.
 - Omit `model` and `thinking`; scoped agent definitions own those settings.
 - The parent resolves placeholders before dispatch, synthesizes results, inspects child changes, and runs verification itself.
@@ -52,8 +52,8 @@ Keep each task description under 100 words.
 
 - **Depends on:** Phase 1
 - **Subagent type:** `general`
-- **Concurrency:** One call per task in the current dependency wave (min 1, max 10)
-- **Dispatch:** The parent resolves Phase 1 into disjoint `{task_shard}` values. Never send the full task list to every worker.
+- **Concurrency:** One call per task in the current dependency wave (min 1, max 3)
+- **Dispatch:** The parent resolves Phase 1 into disjoint `{task_shard}` values. Never send the full task list to every worker. If a dependency wave has more than three tasks, run sequential shards of at most three and integrate each shard before continuing.
 - **Isolation:** For a wave with multiple tasks, every call uses `run_in_background: true` and `isolation: "worktree"`. A one-task wave runs foreground without isolation.
 - **Prompt:**
 
@@ -72,8 +72,8 @@ Keep the summary under 200 words.
 
 - **Depends on:** Phase 2
 - **Subagent type:** `review`
-- **Concurrency:** One call per implementation result in the completed wave
-- **Dispatch:** Give each reviewer exactly one `{task_shard}` plus its matching `{implementation_result}` and worktree/commit. Dispatch independent reviews together with `run_in_background: true`.
+- **Concurrency:** One call per implementation result in the completed shard (min 1, max 3)
+- **Dispatch:** Give each reviewer exactly one `{task_shard}` plus its matching `{implementation_result}` and worktree/commit. Dispatch at most three independent reviews together with `run_in_background: true`; process overflow in sequential shards.
 - **Prompt:**
 
 Review this task and only its matching implementation: task={task_shard}; implementation={implementation_result}. Check correctness, test coverage, edge cases, type safety, and scope. Return:

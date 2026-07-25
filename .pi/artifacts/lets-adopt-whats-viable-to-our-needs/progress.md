@@ -521,3 +521,9 @@ Split the fan-out regression into independently named surface tests. The suite r
 - Research/lifecycle waves now allow one to three agents, with overflow handled by sequential shards before dependent phases.
 - Batch implementation inherits the same ceiling.
 - Verification: 2 focused surface tests passed.
+
+## Task H — audit and batch caps
+
+- Audit discovery remains single-agent; occurrence review runs in sequential shards of at most three.
+- Batch implementation and matching review use at most three isolated results per shard before parent integration.
+- Verification: 3 focused surface tests passed.
