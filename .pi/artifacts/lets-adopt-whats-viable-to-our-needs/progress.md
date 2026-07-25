@@ -511,3 +511,7 @@ test at .pi/tests/skill-system.test.ts:127:1
 - Subagent skill size: 182 lines (baseline 238).
 - Verification: 1 focused test passed.
 - PRD task 3 status: passed after Tasks E and F.
+
+### Test-harness correction before Wave 6
+
+Split the fan-out regression into independently named surface tests. The suite remains RED on the unchanged high-fan-out prompts/workflows, but each G–K verification filter now executes its intended assertion instead of matching zero tests.

@@ -104,27 +104,34 @@ test("adapted material has pinned MIT attribution", () => {
   assert.match(notice, /MIT/);
 });
 
-test("agent fan-out stays within one-to-three agents per concurrent wave", () => {
-  const errors: string[] = [];
-  for (const path of orchestrationSurfaces) {
+function fanoutLabel(path: string): string {
+  const name = path.split("/").at(-1)?.replace(/\.md$/, "") ?? path;
+  if (path.includes("/prompts/")) return `${name} prompt`;
+  if (path.includes("/workflows/")) return `${name} workflow`;
+  return "subagent coordination skill";
+}
+
+for (const path of orchestrationSurfaces) {
+  test(`${fanoutLabel(path)} fan-out stays within one-to-three agents`, () => {
     const text = read(path);
+    const errors: string[] = [];
     const concurrencyLines = text.split("\n").filter((line) => /concurrenc|agents? per wave|review calls|issue .*calls?/i.test(line));
     for (const line of concurrencyLines) {
       const maxMatch = line.match(/max(?:imum)?\s*[:=]?\s*(\d+)/i);
-      if (maxMatch && Number(maxMatch[1]) > 3) errors.push(`${path}: ${line.trim()}`);
+      if (maxMatch && Number(maxMatch[1]) > 3) errors.push(line.trim());
       if (/3-5 agents|five distinct review|issue one call per independent finding together|one call per task.*max 10/i.test(line)) {
-        errors.push(`${path}: ${line.trim()}`);
+        errors.push(line.trim());
       }
     }
     if (!/(at most three|max(?:imum)?\s*[:=]?\s*3|one to three|one-to-three|1–3|1-3)/i.test(text)) {
-      errors.push(`${path}: missing explicit max-three wave policy`);
+      errors.push("missing explicit max-three wave policy");
     }
     if (!/sequential[^\n]{0,80}shard|shard[^\n]{0,80}sequential/i.test(text)) {
-      errors.push(`${path}: missing sequential sharding for overflow`);
+      errors.push("missing sequential sharding for overflow");
     }
-  }
-  assert.deepEqual(errors, []);
-});
+    assert.deepEqual(errors, [], path);
+  });
+}
 
 test("subagent coordination remains Pi-native and parent-verified", () => {
   for (const path of orchestrationSurfaces) {
