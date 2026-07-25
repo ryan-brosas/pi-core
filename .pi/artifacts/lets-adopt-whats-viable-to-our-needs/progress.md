@@ -639,3 +639,9 @@ Replaced the broad numeric grep with the agent-specific fan-out test. The grep f
 - Important: `max` parsing could bind unrelated budgets to agent lines — restricted `max` checks to explicit `**Concurrency:**` declarations and added contextual budget regressions.
 - Minor: only the first numeric dispatch count was checked — switched to `matchAll` and added a compliant-first/violating-second case.
 - Minor: hyphenated spelled counts escaped detection — added compound tens such as `twenty-one`.
+
+## Final review round 4
+
+- Important: concurrency-labelled agent lines could still bind unrelated budgets — standalone concurrency maxima now require the value to terminate before punctuation/end.
+- Minor: a compliant count could consume a later numeric count — optional adjective tokens now reject numbers, allowing `matchAll` to find the later violation.
+- Added regressions for a concurrency-labelled `100 tool calls`, `3 and 11 agents`, and a `max 15` concurrency declaration.

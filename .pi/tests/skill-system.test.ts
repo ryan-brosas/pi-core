@@ -117,7 +117,7 @@ function fanoutLabel(path: string): string {
 
 const dispatchNouns = "(?:agents?|subagents?|reviewers?|workers?|scouts?|(?:pi-)?subagents?\\s+calls?|(?:agent|review|worker|scout)[\\w-]*\\s+calls?)";
 const spelledAboveThree = "(?:four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|(?:(?:twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety)(?:[-\\s](?:one|two|three|four|five|six|seven|eight|nine))?)|hundred)";
-const numericDispatchCount = new RegExp(`\\b(\\d+)\\b(?:\\s+[\\w-]+){0,2}\\s+${dispatchNouns}\\b`, "ig");
+const numericDispatchCount = new RegExp(`\\b(\\d+)\\b(?:\\s+(?!\\d+\\b)[\\w-]+){0,2}\\s+${dispatchNouns}\\b`, "ig");
 const spelledDispatchCount = new RegExp(`\\b${spelledAboveThree}\\b(?:\\s+[\\w-]+){0,2}\\s+${dispatchNouns}\\b`, "i");
 
 function explicitDispatchCountErrors(text: string): string[] {
@@ -126,8 +126,8 @@ function explicitDispatchCountErrors(text: string): string[] {
     for (const numeric of line.matchAll(numericDispatchCount)) {
       if (Number(numeric[1]) > 3) errors.push(line.trim());
     }
-    const maxMatch = line.match(/max(?:imum)?\s*[:=]?\s*(\d+)/i);
-    if (/^\s*-\s*\*\*Concurrency:\*\*/i.test(line) && maxMatch && Number(maxMatch[1]) > 3) errors.push(line.trim());
+    const concurrencyMax = line.match(/\bmax(?:imum)?\s*[:=]?\s*(\d+)\s*(?=\)|,|[.;]?$)/i);
+    if (/^\s*-\s*\*\*Concurrency:\*\*/i.test(line) && concurrencyMax && Number(concurrencyMax[1]) > 3) errors.push(line.trim());
     if (spelledDispatchCount.test(line) || /3-5 agents|five distinct review|issue one call per independent finding together|one call per task.*max 10/i.test(line)) {
       errors.push(line.trim());
     }
@@ -141,10 +141,12 @@ test("fan-out detector rejects every explicit agent count above three", () => {
   assert.deepEqual(explicitDispatchCountErrors("Dispatch twenty-one agents."), ["Dispatch twenty-one agents."]);
   assert.deepEqual(explicitDispatchCountErrors("Issue 5 pi-subagents calls."), ["Issue 5 pi-subagents calls."]);
   assert.deepEqual(explicitDispatchCountErrors("Use 3 scouts initially, then spawn 11 scouts together."), ["Use 3 scouts initially, then spawn 11 scouts together."]);
+  assert.deepEqual(explicitDispatchCountErrors("Use between 3 and 11 agents."), ["Use between 3 and 11 agents."]);
+  assert.deepEqual(explicitDispatchCountErrors("- **Concurrency:** Dynamic (one shard per agent, min 1, max 15)"), ["- **Concurrency:** Dynamic (one shard per agent, min 1, max 15)"]);
 });
 
 test("fan-out detector ignores unrelated budgets even on agent lines", () => {
-  const text = "Budget: maximum 100 tool calls.\nAllow 10 API calls.\nCreate AGENTS.md with max 150 lines.\nDispatch one scout with maximum 100 tool calls.\nDispatch one agent to create AGENTS.md with max 150 lines.";
+  const text = "Budget: maximum 100 tool calls.\nAllow 10 API calls.\nCreate AGENTS.md with max 150 lines.\nDispatch one scout with maximum 100 tool calls.\nDispatch one agent to create AGENTS.md with max 150 lines.\n- **Concurrency:** one agent with maximum 100 tool calls.";
   assert.deepEqual(explicitDispatchCountErrors(text), []);
 });
 
