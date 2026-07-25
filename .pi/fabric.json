@@ -29,8 +29,7 @@
   "fullCodeMode": true,
   "capture": {
     "keepVisible": [
-      "fabric_exec",
-      "Agent"
+      "fabric_exec"
     ]
   },
   "prewalk": {

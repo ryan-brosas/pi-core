@@ -315,8 +315,12 @@ test("legacy Pi-subagent project configuration is absent", () => {
   ]) {
     assert.equal(existsSync(path), false, `legacy Pi-subagent artifact remains: ${path}`);
   }
-  const fabric = JSON.parse(readRequired(".pi/fabric.json")) as { agents?: { enabled?: boolean } };
+  const fabric = JSON.parse(readRequired(".pi/fabric.json")) as {
+    agents?: { enabled?: boolean };
+    capture?: { keepVisible?: string[] };
+  };
   assert.equal(fabric.agents?.enabled, true, "Fabric agents must be enabled");
+  assert.equal(fabric.capture?.keepVisible?.includes("Agent") ?? false, false, "legacy Agent capture must be absent");
 });
 
 test("ship routes bounded Fabric workers with self-contained contracts", () => {
