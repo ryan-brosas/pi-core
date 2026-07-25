@@ -25,12 +25,12 @@ When this prompt says to spawn, delegate to, or use an agent, invoke the pi-suba
 
 - Route a surgical task that normally declares one to three files and has no unresolved architecture, security, or migration decision to `general`.
 - Route a larger substantial but still bounded task with resolved architecture to `build`.
-- Stop for a parent decision when architecture or scope is unresolved; do not hide that decision in worker selection.
+- Stop for a parent decision when architecture, security, migration, scope, or approval is unresolved; do not hide that decision in worker selection.
 - One selected task uses one foreground Pi `Agent` call to the resolved worker. Two or three disjoint tasks may use the parent-selected batch workflow; process overflow in sequential shards.
 
 ### Primary Worker Dispatch
 
-After resolving architecture, scope, and approval questions, the parent resolves `workerType` to the closed set `general|build`. If it cannot resolve one of those two roles, stop before invocation. For one selected task, invoke the resolved worker in the foreground with the existing complete ship-worker envelope:
+If any unresolved architecture, security, migration, scope, or approval question remains, stop before worker selection. Otherwise, the parent resolves `workerType` to the closed set `general|build`. If it cannot resolve one of those two roles, stop before invocation. For one selected task, invoke the resolved worker in the foreground with the existing complete ship-worker envelope:
 
 ```typescript
 const workerType: "general" | "build" = resolvedWorkerType;
