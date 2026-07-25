@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import test from "node:test";
 
-const ROOT = process.cwd();
 const SKILLS = ".pi/skills";
 
 function read(path: string): string {
