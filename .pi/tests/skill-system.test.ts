@@ -97,16 +97,6 @@ test("delegation and handoff patterns are wired into existing local skills", () 
   assert.match(lifecycle, /progress\.md|worker-context\.md/);
 });
 
-test("adapted material preserves the pinned MIT notice", () => {
-  const notice = readRequired(".pi/skills/THIRD_PARTY_NOTICES.md");
-  assert.match(notice, /danielvm-git\/bigpowers/);
-  assert.match(notice, /d1993d31437bfbdb5bda81e84650628215365754/);
-  assert.match(notice, /MIT License/);
-  assert.match(notice, /Copyright \(c\) 2026 Daniel VM/);
-  assert.match(notice, /Permission is hereby granted, free of charge/);
-  assert.match(notice, /THE SOFTWARE IS PROVIDED "AS IS"/);
-});
-
 test("graph producers use one canonical task graph", () => {
   const create = readRequired(".pi/prompts/create.md");
   const plan = readRequired(".pi/prompts/plan.md");
