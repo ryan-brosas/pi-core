@@ -1,0 +1,366 @@
+{
+  "version": 2,
+  "slug": "agent-subagent-utilization-research",
+  "title": "Agent and Subagent Utilization Contracts",
+  "status": "ready",
+  "execution": {
+    "mode": "dependency-waves",
+    "max_concurrent_agents": 2,
+    "reason": "A shared RED contract task runs first; the global policy and lifecycle prompts then change disjoint files in parallel before integrated verification."
+  },
+  "tasks": [
+    {
+      "id": "task-1",
+      "category": "test",
+      "title": "Lock role-specific orchestration contracts",
+      "description": "Focused tests fail against the current residual gaps and define the global policy, no-plan-writer boundary, and executable /ship worker-call contract.",
+      "status": "passed",
+      "passes": true,
+      "attempt": 6,
+      "evidence_refs": [
+        {
+          "kind": "test",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-1-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "verification",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-1-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "commit",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-1-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "test",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-1-attempt-2",
+          "attempt": 2
+        },
+        {
+          "kind": "verification",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-1-attempt-2",
+          "attempt": 2
+        },
+        {
+          "kind": "commit",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-1-attempt-2",
+          "attempt": 2
+        },
+        {
+          "kind": "test",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-1-attempt-3",
+          "attempt": 3
+        },
+        {
+          "kind": "verification",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-1-attempt-3",
+          "attempt": 3
+        },
+        {
+          "kind": "commit",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-1-attempt-3",
+          "attempt": 3
+        },
+        {
+          "kind": "test",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-1-attempt-4",
+          "attempt": 4
+        },
+        {
+          "kind": "verification",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-1-attempt-4",
+          "attempt": 4
+        },
+        {
+          "kind": "commit",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-1-attempt-4",
+          "attempt": 4
+        },
+        {
+          "kind": "test",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-1-attempt-5",
+          "attempt": 5
+        },
+        {
+          "kind": "verification",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-1-attempt-5",
+          "attempt": 5
+        },
+        {
+          "kind": "commit",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-1-attempt-5",
+          "attempt": 5
+        },
+        {
+          "kind": "test",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-1-attempt-6",
+          "attempt": 6
+        },
+        {
+          "kind": "verification",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-1-attempt-6",
+          "attempt": 6
+        },
+        {
+          "kind": "commit",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-1-attempt-6",
+          "attempt": 6
+        }
+      ],
+      "depends_on": [],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [
+        ".pi/tests/skill-system.test.ts"
+      ],
+      "acceptance_criteria": [
+        "Tests require the generic Agent policy to distinguish conditional Plan, surgical general, and substantial bounded build roles.",
+        "Tests require the generic direct-first default to coexist explicitly with stricter lifecycle-specific worker routing.",
+        "Tests reject any /plan handoff that delegates canonical plan.md or tasks.json rendering to general.",
+        "Tests require one concrete foreground /ship primary-worker Agent call after workerType is resolved to the closed set general|build.",
+        "Tests require the primary-worker prompt to use the complete ship-worker envelope and omit invocation-level model, thinking, and background overrides.",
+        "The focused test command demonstrates RED only for the newly specified residual behavior before production prompt or policy changes."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test --test-name-pattern=\"agent utilization policy|plan writer boundary|ship primary worker call\" .pi/tests/skill-system.test.ts",
+        "git diff --check -- .pi/tests/skill-system.test.ts"
+      ],
+      "expected_verification_state": "The named tests fail before implementation only because the generic build/lifecycle policy, explicit no-general writer statement, and concrete /ship primary-worker call are missing."
+    },
+    {
+      "id": "task-2",
+      "category": "policy",
+      "title": "Align the global Agent routing policy",
+      "description": "The generic Agent guidance distinguishes Plan, general, and build while explaining direct-first defaults and stricter lifecycle-specific worker routing.",
+      "status": "passed",
+      "passes": true,
+      "attempt": 6,
+      "evidence_refs": [
+        {
+          "kind": "test",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-2-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "verification",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-2-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "commit",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-2-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "test",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-2-attempt-2",
+          "attempt": 2
+        },
+        {
+          "kind": "verification",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-2-attempt-2",
+          "attempt": 2
+        },
+        {
+          "kind": "test",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-2-attempt-3",
+          "attempt": 3
+        },
+        {
+          "kind": "verification",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-2-attempt-3",
+          "attempt": 3
+        },
+        {
+          "kind": "test",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-2-attempt-4",
+          "attempt": 4
+        },
+        {
+          "kind": "verification",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-2-attempt-4",
+          "attempt": 4
+        },
+        {
+          "kind": "test",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-2-attempt-5",
+          "attempt": 5
+        },
+        {
+          "kind": "verification",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-2-attempt-5",
+          "attempt": 5
+        },
+        {
+          "kind": "test",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-2-attempt-6",
+          "attempt": 6
+        },
+        {
+          "kind": "verification",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-2-attempt-6",
+          "attempt": 6
+        }
+      ],
+      "depends_on": [
+        "task-1"
+      ],
+      "parallel": true,
+      "conflicts_with": [],
+      "files": [
+        ".pi/agent-tool-description.md"
+      ],
+      "acceptance_criteria": [
+        "Plan remains conditional for ambiguity, architectural trade-offs, or cross-subsystem sequencing.",
+        "general is defined as the surgical implementation or review-fix worker and not as a canonical plan writer.",
+        "build is defined as the substantial bounded implementation worker used only after architecture is resolved.",
+        "The generic direct-parent default explicitly permits lifecycle prompts such as /ship to impose validated task-worker routing without transferring parent ownership.",
+        "The policy continues to prohibit automatic Plan-to-Implement-to-Review choreography, mixed orchestration systems, and unverified child claims."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test --test-name-pattern=\"agent utilization policy\" .pi/tests/skill-system.test.ts",
+        "git diff --check -- .pi/agent-tool-description.md"
+      ]
+    },
+    {
+      "id": "task-3",
+      "category": "prompt",
+      "title": "Make planning ownership and shipping dispatch executable",
+      "description": "/plan explicitly rejects a general-writer handoff and /ship invokes one parent-resolved foreground general|build worker with the complete envelope.",
+      "status": "passed",
+      "passes": true,
+      "attempt": 6,
+      "evidence_refs": [
+        {
+          "kind": "test",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-3-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "verification",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-3-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "commit",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-3-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "test",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-3-attempt-2",
+          "attempt": 2
+        },
+        {
+          "kind": "verification",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-3-attempt-2",
+          "attempt": 2
+        },
+        {
+          "kind": "test",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-3-attempt-3",
+          "attempt": 3
+        },
+        {
+          "kind": "verification",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-3-attempt-3",
+          "attempt": 3
+        },
+        {
+          "kind": "commit",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-3-attempt-3",
+          "attempt": 3
+        },
+        {
+          "kind": "test",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-3-attempt-4",
+          "attempt": 4
+        },
+        {
+          "kind": "verification",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-3-attempt-4",
+          "attempt": 4
+        },
+        {
+          "kind": "test",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-3-attempt-5",
+          "attempt": 5
+        },
+        {
+          "kind": "verification",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-3-attempt-5",
+          "attempt": 5
+        },
+        {
+          "kind": "test",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-3-attempt-6",
+          "attempt": 6
+        },
+        {
+          "kind": "verification",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-3-attempt-6",
+          "attempt": 6
+        },
+        {
+          "kind": "commit",
+          "ref": ".pi/artifacts/agent-subagent-utilization-research/progress.md#evidence-task-3-attempt-6",
+          "attempt": 6
+        }
+      ],
+      "depends_on": [
+        "task-1"
+      ],
+      "parallel": true,
+      "conflicts_with": [],
+      "files": [
+        ".pi/prompts/plan.md",
+        ".pi/prompts/ship.md"
+      ],
+      "acceptance_criteria": [
+        "/plan explicitly states that Plan advisory output is not handed to general for canonical plan.md or tasks.json rendering.",
+        "/plan retains conditional foreground Plan use, the detailed Plan agent as the sole persona source, and parent-only canonical writes.",
+        "/ship resolves workerType to general for surgical work or build for substantial bounded work before invocation.",
+        "/ship contains exactly one concrete primary implementation Agent call using the resolved workerType and shipWorkerEnvelope.",
+        "The single-task call is foreground and omits invocation-level model, thinking, and run_in_background fields.",
+        "Children retain no graph, lifecycle, sibling-scheduling, commit, integration, or publishing authority."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test --test-name-pattern=\"Plan delegation|plan writer boundary|ship primary worker call|ship routes GLM Fabric workers\" .pi/tests/skill-system.test.ts",
+        "git diff --check -- .pi/prompts/plan.md .pi/prompts/ship.md"
+      ]
+    },
+    {
+      "id": "task-4",
+      "category": "verification",
+      "title": "Verify integrated orchestration behavior",
+      "description": "The complete role-specific routing contract passes focused and retained tests, validates the canonical graph, and leaves unrelated workspace state untouched.",
+      "status": "running",
+      "passes": false,
+      "attempt": 5,
+      "evidence_refs": [],
+      "depends_on": [
+        "task-2",
+        "task-3"
+      ],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [],
+      "acceptance_criteria": [
+        "All retained Pi Core tests pass or any pre-existing unrelated failure is identified with evidence and no false completion claim.",
+        "The active version-2 graph validates successfully and its task IDs match the specification.",
+        "All owned paths pass whitespace checks.",
+        "The detailed Plan, general, and build agent definitions remain unchanged by this feature.",
+        "Deleted extensions, runtime-managed files, and unrelated artifacts are neither restored nor modified by this feature.",
+        "An independent review finds no unresolved Critical or Important role-routing or ownership defect."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test .pi/tests/*.test.ts",
+        "node --experimental-strip-types .pi/scripts/task-graph.ts validate .pi/artifacts/agent-subagent-utilization-research/tasks.json",
+        "git diff --check -- .pi/agent-tool-description.md .pi/prompts/plan.md .pi/prompts/ship.md .pi/tests/skill-system.test.ts",
+        "Confirm .pi/agents/Plan.md, .pi/agents/general.md, .pi/agents/build.md, deleted extensions, runtime-managed files, and unrelated artifact paths were not modified by this feature"
+      ]
+    }
+  ]
+}
