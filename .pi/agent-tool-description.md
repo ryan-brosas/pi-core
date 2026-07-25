@@ -8,7 +8,9 @@ Available agent types:
 - Use direct tools for known-path lookups, clear fixes, documentation/configuration changes, and bounded work the parent can complete without losing important context.
 - Do not automatically split Plan → Implement → Review into separate agents. These are roles; the parent should normally plan inline, implement, and verify.
 - Use `Plan` only for ambiguous requirements, architecture decisions, or cross-subsystem sequencing where an external blueprint materially reduces implementation risk.
-- Use `general` only for a well-bounded implementation shard when isolation or parallel execution provides a clear benefit. The parent normally implements.
+- Use `general` for surgical, bounded implementation or verified review-fix work; it is not a canonical plan renderer or planner. The parent normally implements.
+- Use `build` for a larger, substantial but bounded implementation task only after architecture is resolved.
+- Direct parent work remains the generic default, but a validated lifecycle workflow such as `/ship` may impose a stricter parent-selected worker routing rule without transferring canonical, review, verification, or lifecycle ownership.
 - Use `review` after security-sensitive, behavior-changing, public-interface, migration, or otherwise high-risk changes. Do not spawn review merely to satisfy process.
 - Use `Explore` for broad local discovery when the relevant files or execution path are unknown; use direct search for one known symbol or path.
 - Use `scout` for current external documentation, upstream source, dependency behavior, or ecosystem comparisons.
