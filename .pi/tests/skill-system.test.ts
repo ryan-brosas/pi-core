@@ -466,3 +466,31 @@ test("plan prompt keeps canonical and lifecycle writes parent-owned", () => {
   assert.match(handoff, /exceptional[^\n]*parent-owned[^\n]*explicit approval/i);
   assert.doesNotMatch(handoff, /those are `?\/ship`? responsibilities/i);
 });
+
+test("planning skill conditionally routes bounded Plan advice", () => {
+  const skill = readRequired(".pi/skills/planning-and-task-breakdown/SKILL.md");
+  const start = skill.indexOf("## Pi Subagent Inputs");
+  assert.notEqual(start, -1, "planning skill is missing Pi Subagent Inputs");
+  const next = skill.indexOf("\n## ", start + 1);
+  const inputs = skill.slice(start, next === -1 ? undefined : next);
+
+  assert.match(inputs, /direct parent planning is the default/i);
+  const calls = [...inputs.matchAll(/Agent\(\{[^\n]*subagent_type:\s*"Plan"[^\n]*\}\);/g)];
+  assert.equal(calls.length, 1, "expected one compact Plan advisory call in the planning skill body");
+  assert.match(inputs, /material ambiguity/i);
+  assert.match(inputs, /architectural trade-offs?/i);
+  assert.match(inputs, /cross-subsystem sequencing/i);
+  assert.match(inputs, /Explore[^\n]*local evidence|local evidence[^\n]*Explore/i);
+  assert.match(inputs, /scout[^\n]*external evidence|external evidence[^\n]*scout/i);
+  assert.match(inputs, /foreground[^\n]*(?:blocks|depends)|(?:blocks|depends)[^\n]*foreground/i);
+  assert.match(inputs, /advisory (?:input|output|result)/i);
+});
+
+test("planning ownership remains with the parent", () => {
+  const skill = readRequired(".pi/skills/planning-and-task-breakdown/SKILL.md");
+  assert.match(skill, /parent[^\n]*(?:verifies|validates)[^\n]*evidence/i);
+  assert.match(skill, /parent[^\n]*resolves conflicts/i);
+  assert.match(skill, /parent alone writes[^\n]*`plan\.md`[^\n]*`tasks\.json`/i);
+  assert.match(skill, /parent[^\n]*owns lifecycle state/i);
+  assert.match(skill, /worker[^\n]*advisory (?:input|output|result)/i);
+});
