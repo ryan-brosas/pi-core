@@ -3,8 +3,8 @@ description: General-purpose subagent for small, well-defined implementation tas
 tools: "*"
 extensions: false
 skills: false
-model: openai-codex/gpt-5.4-mini
-thinking: medium
+model: makora/zai-org/GLM-5.2-NVFP4
+thinking: max
 max_turns: 15
 prompt_mode: replace
 inherit_context: false

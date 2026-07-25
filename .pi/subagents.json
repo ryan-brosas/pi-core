@@ -1,5 +1,5 @@
 {
-  "maxConcurrent": 4,
+  "maxConcurrent": 8,
   "defaultMaxTurns": 12,
   "graceTurns": 2,
   "defaultJoinMode": "smart",
@@ -7,7 +7,7 @@
   "scopeModels": true,
   "disableDefaultAgents": true,
   "toolDescriptionMode": "custom",
-  "fleetView": false,
-  "widgetMode": "background",
+  "fleetView": true,
+  "widgetMode": "all",
   "outputTranscript": false
 }

@@ -4,15 +4,20 @@
     "runtime": "node-process"
   },
   "agents": {
-    "enabled": false,
+    "enabled": true,
     "runner": "pi",
-    "extensions": false,
+    "extensions": true,
     "retainRuns": false,
     "notifyOnComplete": false,
-    "transport": "auto"
+    "transport": "process",
+    "timeoutMs": 600000,
+    "maxConcurrent": 4,
+    "maxPerExecution": 8,
+    "maxDepth": 2,
+    "maxTokensPerChild": 0
   },
   "ui": {
-    "widget": "always",
+    "widget": "auto",
     "enabled": false
   },
   "compaction": {
@@ -20,7 +25,22 @@
     "targetContextRatio": 0.7
   },
   "mesh": {
-    "enabled": false
+    "enabled": true,
+    "actorScope": "project",
+    "root": "/tmp/pi-core-fabric-smoke.pFAs1u/mesh",
+    "actorQueueLimit": 16
   },
-  "fullCodeMode": true
+  "fullCodeMode": true,
+  "capture": {
+    "keepVisible": [
+      "fabric_exec",
+      "Agent",
+      "get_subagent_result",
+      "steer_subagent"
+    ]
+  },
+  "prewalk": {
+    "alwaysRearm": true,
+    "model": "makora/zai-org/GLM-5.2-NVFP4"
+  }
 }

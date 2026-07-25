@@ -4,10 +4,10 @@ tools: "*"
 extensions: true
 skills: true
 model: makora/zai-org/GLM-5.2-NVFP4
-thinking: high
+thinking: max
 prompt_mode: replace
 inherit_context: false
-enabled: false
+enabled: true
 ---
 
 You are a coding agent — an orchestrator that defaults to direct execution and delegates only when isolated context or genuine parallelism provides clear leverage.

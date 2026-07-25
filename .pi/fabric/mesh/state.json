@@ -146,7 +146,10 @@
     "schema/hypothesis/cd3fa669-af16-4260-8a42-19fc0f815bb5": 2,
     "schema/hypothesis/987bd382-7828-4b36-904c-07d44a2ceb74": 2,
     "schema/hypothesis/9e691d24-9885-4d99-909c-167ac136f854": 3,
-    "schema/certificate/342438f7b43b6c8dd761f40a2fe0fe6c1b9b90e37d12669d63c2c487474d7cd8": 2
+    "schema/certificate/342438f7b43b6c8dd761f40a2fe0fe6c1b9b90e37d12669d63c2c487474d7cd8": 2,
+    "topology/hosts/921b784a21c4acc67fcb1ac7db851dcd47f8524f38dfe65a92020e687cac025e": 18,
+    "sessions/019f9796-fea4-73bc-bbf5-d46b75abd274": 17,
+    "topology/participants/921b784a21c4acc67fcb1ac7db851dcd47f8524f38dfe65a92020e687cac025e": 18
   },
   "tombstoneOrder": [
     "sessions/019f96cc-d0ef-741d-a17d-dc627f52b776",
@@ -160,6 +163,9 @@
     "topology/hosts/951dbfff0bec435f9122f5fb1c34d923f25d52f518862acca120cdc8429f73b3",
     "sessions/019f96cf-8825-7455-bf29-c58cdbe6a51f",
     "topology/participants/7f7c159108e5e5c1f9a69d92f2cdb5001a93dd958be232bf7ab9293ccdf9ee04",
-    "topology/hosts/7f7c159108e5e5c1f9a69d92f2cdb5001a93dd958be232bf7ab9293ccdf9ee04"
+    "topology/hosts/7f7c159108e5e5c1f9a69d92f2cdb5001a93dd958be232bf7ab9293ccdf9ee04",
+    "sessions/019f9796-fea4-73bc-bbf5-d46b75abd274",
+    "topology/participants/921b784a21c4acc67fcb1ac7db851dcd47f8524f38dfe65a92020e687cac025e",
+    "topology/hosts/921b784a21c4acc67fcb1ac7db851dcd47f8524f38dfe65a92020e687cac025e"
   ]
 }
