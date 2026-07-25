@@ -1,6 +1,6 @@
 # batch-implement
 
-Take a plan with independent tasks and dispatch one subagent per task in parallel. Each task result is reviewed, then merged. Use for multi-file feature implementation where tasks don't share file dependencies.
+Execute only a parent-selected ready shard from the authoritative task graph. Each task result is reviewed, then merged. The workflow never schedules from a whole static plan and never changes `.active`.
 
 ## Pi Subagent Execution
 
@@ -23,7 +23,8 @@ Agent({
 
 ## Args
 
-- `plan` (required) — The implementation plan or PRD
+- `task_shard` (required) — The parent-selected conflict-free ready shard (one to three canonical task IDs)
+- `graph_path` (required) — The explicitly active slug's `tasks.json`; never an all-artifacts report
 
 ## Phases
 
@@ -33,7 +34,7 @@ Agent({
 - **Concurrency:** 1
 - **Prompt:**
 
-Review this implementation plan for task independence: {plan}. Verify that the tasks don't edit the same files. If any tasks have overlapping file dependencies, flag them as conflicts. Return the list of tasks grouped by dependency in this format:
+Review this parent-selected ready shard for task independence: {task_shard}. Verify that its tasks don't edit the same files and match the validated canonical graph. If any tasks have overlapping file dependencies, flag them as conflicts. Return the list of tasks grouped by dependency in this format:
 
 ## Independent Tasks (can run in parallel)
 - **Task 1:** [description]
@@ -87,7 +88,7 @@ Keep each finding under 100 words.
 
 ## Final Merge (Main Agent)
 
-After Phase 3 completes, inspect each passing worktree/commit, run its verification directly, and integrate only verified results. Resolve the next dependency wave only after the current wave is merged and integration checks pass.
+After Phase 3 completes, inspect each passing worktree/commit, run its verification directly, and integrate only verified results. The parent must rerun task-graph validate and frontier after integration; only that fresh frontier may select the next ready shard.
 
 Ensure:
 - No duplicate imports

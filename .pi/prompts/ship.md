@@ -79,90 +79,26 @@ Read `.pi/artifacts/$(cat .pi/artifacts/.active)/` to check what artifacts exist
 
 Set up the workspace: create branch, install deps if needed.
 
-## Phase 2: Route to Execution
+## Phase 2: Validate the Canonical Graph
 
-### Complexity Detection
+Resolve the explicitly active slug and set `GRAPH=.pi/artifacts/$SLUG/tasks.json`. Run `task-graph validate` with `node --experimental-strip-types .pi/scripts/task-graph.ts validate "$GRAPH"` before routing or editing. Malformed or invalid graphs stop with their machine-readable issues.
 
-Before routing, analyze the plan complexity:
+If `plan.md` exists, compare its task IDs with the authoritative graph. Any task ID divergence is a stop condition; never infer execution state from a derived wave snapshot. `frontier --all` is read-only visibility only, requires an explicit slug selection, never changes `.active`, and never dispatches work.
 
-**Direct execution** (use existing logic):
-- Plan has <5 tasks
-- Tasks have dependencies (not fully independent)
-- Tasks require sequential execution
-- User explicitly requests sequential execution
+## Phase 3: Dynamic Frontier Execution
 
-**Workflow execution** (invoke `batch-implement`):
-- Plan has ≥5 independent tasks
-- Tasks have no file conflicts
-- Tasks can run in parallel
-- User wants maximum parallelism
+1. Run `task-graph frontier` with `node --experimental-strip-types .pi/scripts/task-graph.ts frontier "$GRAPH"`.
+2. Handle no-ready states exactly: `complete` proceeds to verification; `running` reports active work; `blocked` reports unmet dependency reasons; `intervention_required` reports failed, blocked, or stale IDs; `invalid` stops.
+3. Execute only the returned conflict-free `selected` shard. One selected task runs directly with `fabric_exec`; two or three disjoint tasks may use the parent-selected batch workflow. Never exceed three.
+4. Before editing each selected task, derive a bounded transient code/test neighborhood from declared files, imports and references, nearby tests, public contracts, and relevant git history. Append the discovered paths to `progress.md`. If declared files and neighborhood evidence materially disagree, stop for focused discovery; do not persist a repository graph.
+5. After every start, pass, failure, invalidation, or integration transition, revalidate and recompute the frontier. Never fall back to list order or an old plan wave.
+6. Continue with the fresh selected shard until the graph is complete or a blocker requires intervention.
 
-### Decision Logic
+The batch workflow receives only the parent-selected ready shard and returns control after integration so the parent can recompute the frontier.
 
-1. **Parse the plan** from `.pi/artifacts/$(cat .pi/artifacts/.active)/plan.md` or `tasks.json`
-2. **Count independent tasks** (tasks with no dependencies)
-3. **Check for file conflicts** (do any tasks edit the same files?)
-4. **Route accordingly:**
-   - <5 tasks OR has dependencies OR has file conflicts → Direct execution (see "Direct Execution" below)
-   - ≥5 independent tasks AND no file conflicts → Invoke `batch-implement` workflow (see "Workflow Execution" below)
+### Per-Task Execution
 
-### Workflow Execution (Parallel Implementation)
-
-If complexity is detected as parallel:
-
-1. **Read the workflow:** `.pi/workflows/batch-implement.md`
-2. **Execute all phases:**
-   - Phase 1: Spawn 1 `review` agent to review plan for task independence
-   - Phase 2: Spawn at most three `general` agents for the current disjoint task shard; integrate before later sequential shards
-   - Phase 3: Spawn at most three matching `review` agents for the completed shard; process review overflow sequentially
-   - Final merge: the parent verifies and integrates results
-3. **Replace placeholders:**
-   - `{plan}` → the implementation plan
-   - `{phase_N_output}` → actual output from completed phases
-4. **Aggregate results** between phases
-5. **Continue to Phase 4: Verification** (skip Phase 3 below)
-
-**Announce:** "This plan has [N] independent tasks. Invoking batch-implement workflow for parallel execution."
-
-### Direct Execution
-
-If complexity is simple or tasks have dependencies, use the existing execution logic below.
-
-| Artifact exists in `.pi/artifacts/$(cat .pi/artifacts/.active)/` | Action                                                   |
-| --------------- | -------------------------------------------------------- |
-| `plan.md`       | Parse plan header + dependency graph, execute wave-by-wave |
-| `tasks.json`    | Proceed to PRD task loop below                             |
-| Only `spec.md`  | Convert spec to `tasks.json`, then proceed                    |
-
-## Phase 3: Wave-Based Execution
-
-If `plan.md` exists with dependency graph:
-
-1. **Parse waves** from dependency graph section
-3. **Execute wave-by-wave:**
-   - Single-task wave → implement directly with `fabric_exec` (no subagent overhead)
-   - Multi-task wave → issue at most three disjoint `Agent({ subagent_type: "general", description: "Implement [task]", prompt: "Implement only [resolved task and exact files]. Use fabric_exec for code-mode implementation. Return branch/commit and verification evidence.", run_in_background: true, isolation: "worktree" })` calls for the current shard; integrate it before processing overflow in later sequential shards
-4. **Review after each wave** — inspect each isolated result, run verification directly, review it, integrate passing branches/commits, then run an integration check
-5. **Continue** until all waves complete
-
-**Parallel safety:** Only tasks within same wave run in parallel. Tasks must NOT share files. Tasks in Wave N+1 wait for Wave N.
-
-### Phase 3A: PRD Task Loop (Sequential Fallback)
-
-Use `fabric_exec` for every implementation or code-fix step in this loop.
-
-For each task (wave-based or sequential fallback):
-
-1. **Read** the task description, verification steps, and affected files
-2. **Read** the affected files before editing
-3. **Implement** the changes — stay within the task's `files` list
-4. **Handle Deviations:** Apply deviation rules 1-4 as discovered
-5. **Checkpoint Protocol:** If task has `checkpoint:*`, stop and request user input
-6. **Verify** — run each verification step from the task
-7. **If verification fails**, fix and retry (max 2 attempts per task)
-8. **Commit** — per-task commit (see below)
-9. **Mark** `passes: true` in `.pi/artifacts/$(cat .pi/artifacts/.active)/tasks.json`
-10. **Append** progress to `.pi/artifacts/$(cat .pi/artifacts/.active)/progress.md`
+Use `fabric_exec` for every implementation or code-fix step. Read the canonical task, its verification commands, and its transient neighborhood; stay inside declared files; automate checkpoints first; verify with at most two fix attempts; commit the task; and append task state plus evidence to `progress.md`.
 
 ### Checkpoint Protocol
 

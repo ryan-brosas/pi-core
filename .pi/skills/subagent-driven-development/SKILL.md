@@ -40,17 +40,17 @@ All dispatches in this skill use the installed pi-subagents `Agent` tool. Do not
 
 ## The Process
 
-### 1. Load Plan and Build Waves
+### 1. Load the Validated Ready Shard
 
-Read the active `plan.md` or `tasks.json`. Partition tasks into dependency waves; tasks in the same wave must have disjoint file ownership. Record progress in `.pi/artifacts/$(cat .pi/artifacts/.active)/progress.md`.
+Read the explicitly active `tasks.json`, validate it, and consume only the parent-selected validated ready shard. `tasks.json` owns scheduling; plan waves are explanatory snapshots. Children must not schedule graph nodes, recompute sibling work, or change `.active`. Record progress in the active `progress.md`.
 
 Every child receives a compact `task_brief` with: goal, exact files, non-goals, dependencies, acceptance criteria, verification commands, and stop conditions. The child returns a `result` with: assumptions, blockers, changed files, commit/worktree, commands, observed evidence, and unresolved risks. Reject incomplete envelopes instead of inferring fields.
 
 If shared context exceeds ~500 tokens, put bounded supporting context in the active `worker-context.md` and reference it; this optional handoff is not canonical state.
 
-### 2. Execute One Wave
+### 2. Execute One Ready Shard
 
-For a one-task wave, use a foreground call. For multiple independent tasks, issue all calls together with `run_in_background: true` and `isolation: "worktree"`; let smart join return the group. When this skill is invoked by `/ship`, each implementation prompt must require `fabric_exec` for code-mode implementation.
+For a one-task validated ready shard, use a foreground call. For multiple independent tasks in the conflict-free shard, issue all calls together with `run_in_background: true` and `isolation: "worktree"`; let smart join return the group. When this skill is invoked by `/ship`, each implementation prompt must require `fabric_exec` for code-mode implementation.
 
 ```typescript
 Agent({
@@ -113,7 +113,7 @@ Agent({
 - Integrate only reviewed, parent-verified branches/commits.
 - Run an integration check after the complete wave is merged.
 - Append task status and evidence to the active `progress.md`.
-- Start the next dependency wave only after the current wave passes.
+- Return control to the parent after the shard passes; the parent reruns validation and frontier selection before any next shard.
 
 ### 6. Final Review
 
