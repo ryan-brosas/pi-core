@@ -16,7 +16,7 @@ Agent({
 ```
 
 - Concurrency 1: omit `run_in_background`, consume the foreground result, then continue.
-- Concurrency >1 or dynamic: issue all independent calls together with `run_in_background: true`; let smart join return the group. Do not poll.
+- A concurrent wave contains at most three independent calls. Issue those together with `run_in_background: true`; let smart join return the group. Process additional work in sequential shards and do not poll.
 - Do not start a dependent phase until upstream results are available.
 - Omit `model` and `thinking`; scoped agent definitions own those settings.
 - The parent resolves placeholders before dispatch, synthesizes results, inspects child changes, and runs verification itself.
@@ -30,8 +30,8 @@ Agent({
 ### Phase 1: research
 
 - **Subagent type:** `scout`
-- **Concurrency:** Dynamic (1 agent per parent-defined angle, min 3, max 10)
-- **Dispatch:** Before spawning, the parent defines distinct `{angle}` values and gives exactly one angle to each scout. Do not send the same broad prompt to every scout.
+- **Concurrency:** Dynamic (one agent per parent-defined angle, min 1, max 3)
+- **Dispatch:** Before spawning, the parent defines distinct `{angle}` values and gives exactly one angle to each scout. Do not send the same broad prompt to every scout. If more than three angles remain, complete sequential shards of at most three before starting the dependent cross-check.
 - **Prompt:**
 
 Research this angle only: {angle}. Question: {question}. Use authoritative sources and relevant recent developments. For each finding, include the URL and publication date. Return findings grouped by angle in this format:

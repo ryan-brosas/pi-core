@@ -515,3 +515,9 @@ test at .pi/tests/skill-system.test.ts:127:1
 ### Test-harness correction before Wave 6
 
 Split the fan-out regression into independently named surface tests. The suite remains RED on the unchanged high-fan-out prompts/workflows, but each G–K verification filter now executes its intended assertion instead of matching zero tests.
+
+## Task G — research and lifecycle workflow caps
+
+- Research/lifecycle waves now allow one to three agents, with overflow handled by sequential shards before dependent phases.
+- Batch implementation inherits the same ceiling.
+- Verification: 2 focused surface tests passed.

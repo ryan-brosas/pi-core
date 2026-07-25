@@ -16,7 +16,7 @@ Agent({
 ```
 
 - Concurrency 1: omit `run_in_background`, consume the foreground result, then continue.
-- Concurrency >1 or dynamic: issue all independent calls together with `run_in_background: true`; let smart join return the group. Do not poll.
+- A concurrent wave contains at most three independent calls. Issue those together with `run_in_background: true`; let smart join return the group. Process additional work in sequential shards and do not poll.
 - Do not start a dependent phase until upstream results are available.
 - Omit `model` and `thinking`; scoped agent definitions own those settings.
 - The parent resolves placeholders before dispatch, synthesizes results, inspects child changes, and runs verification itself.
@@ -30,7 +30,7 @@ Agent({
 ### Phase 1: Research Approaches
 
 - **Subagent type:** `scout`
-- **Concurrency:** Dynamic (1 agent per parent-defined research angle, min 2, max 5)
+- **Concurrency:** Dynamic (one agent per parent-defined research angle, min 1, max 3)
 - **Dispatch:** The parent defines distinct `{angle}` values such as local fit, ecosystem precedent, operational risk, or simplest viable design. Each scout receives one angle only.
 - **Prompt:**
 
@@ -107,7 +107,7 @@ The `Plan` result is a candidate, not the final plan. The parent checks it again
 - **Workflow:** batch-implement
 - **Args:** parent-approved plan from the Parent Plan Gate
 
-Execute the batch-implement workflow with the parent-approved implementation plan. This will:
+Execute the batch-implement workflow with the parent-approved implementation plan. It inherits the same at-most-three concurrent wave ceiling and processes overflow in sequential shards. This will:
 1. Review the plan for task independence
 2. Implement tasks in parallel
 3. Verify each implementation
