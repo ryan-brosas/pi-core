@@ -1,0 +1,158 @@
+{
+  "version": 1,
+  "slug": "graph-based-development-workflow",
+  "title": "Graph-Based Development Workflow Pilot",
+  "status": "complete",
+  "execution": {
+    "mode": "dependency-frontier",
+    "max_concurrent_agents": 2,
+    "reason": "Behavior and policy contracts establish RED first; the core utility follows; producer and frontier-consumer policy form a disjoint fork; evidence and invalidation then join both branches before integration verification."
+  },
+  "tasks": [
+    {
+      "id": "task-1",
+      "category": "test",
+      "title": "Establish graph behavior and policy contracts",
+      "description": "Tests capture graph invariants, frontier behavior, version compatibility, producer/consumer policy, evidence links, and read-only reporting before production changes.",
+      "status": "passed",
+      "passes": true,
+      "depends_on": [],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [
+        ".pi/tests/task-graph.test.ts",
+        ".pi/tests/skill-system.test.ts"
+      ],
+      "acceptance_criteria": [
+        "Behavior tests cover duplicate IDs, dangling dependency/conflict targets, self-edges, dependency cycles, status/pass coherence, and version-2 evidence rules.",
+        "Frontier tests cover dependency gating, running-task conflicts, one-sided conflict normalization, and file overlap.",
+        "Existing version-1 artifacts are valid fixtures and new version-2 evidence requirements are explicit.",
+        "Policy tests require canonical graph producers, dynamic frontier consumers, evidence links, conservative invalidation, and transient code neighborhoods.",
+        "The all-artifacts frontier test proves no write to .active or task artifacts."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test .pi/tests/task-graph.test.ts",
+        "node --experimental-strip-types --test --test-name-pattern=\"graph producers|frontier execution|evidence-linked graph state\" .pi/tests/skill-system.test.ts"
+      ],
+      "expected_verification_state": "Both commands exit non-zero only for the named unimplemented graph behavior and policy contracts."
+    },
+    {
+      "id": "task-2",
+      "category": "core",
+      "title": "Implement deterministic task-graph utility",
+      "description": "A single dependency-free module validates versioned task graphs, computes conflict-free ready frontiers, and reports all artifact frontiers without mutation.",
+      "status": "passed",
+      "passes": true,
+      "depends_on": [
+        "task-1"
+      ],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [
+        ".pi/scripts/task-graph.ts"
+      ],
+      "acceptance_criteria": [
+        "The validate command emits deterministic machine-readable output and exits non-zero on structural errors.",
+        "The frontier command returns only pending nodes whose dependencies passed and which do not conflict with running nodes.",
+        "Declared conflicts are normalized as undirected and overlapping files prevent concurrent readiness.",
+        "Version-1 graphs remain readable; version-2 graphs enforce attempts and evidence references.",
+        "The --all artifact scan is report-only and never changes .active or graph files.",
+        "No package, extension, database, daemon, or second production module is introduced."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test .pi/tests/task-graph.test.ts",
+        "for f in .pi/artifacts/*/tasks.json; do node --experimental-strip-types .pi/scripts/task-graph.ts validate \"$f\"; done"
+      ]
+    },
+    {
+      "id": "task-3",
+      "category": "workflow",
+      "title": "Make task producers graph-canonical",
+      "description": "Create, plan, and lifecycle guidance emit or refine one version-2 tasks.json graph while treating displayed waves as derived views.",
+      "status": "passed",
+      "passes": true,
+      "depends_on": [
+        "task-2"
+      ],
+      "parallel": true,
+      "conflicts_with": [],
+      "files": [
+        ".pi/prompts/create.md",
+        ".pi/prompts/plan.md",
+        ".pi/skills/development-lifecycle/SKILL.md"
+      ],
+      "acceptance_criteria": [
+        "New work emits version-2 task nodes with attempt and evidence_refs fields while preserving version-1 read compatibility.",
+        "tasks.json is named the only authoritative persisted work graph.",
+        "Plan node IDs match tasks.json and plan changes update the canonical graph.",
+        "Textual waves are explicitly derived snapshots and divergence is a stop condition.",
+        "The four-artifact lifecycle remains intact with no new canonical state file."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test --test-name-pattern=\"graph producers\" .pi/tests/skill-system.test.ts",
+        "rg -n \"version 2|authoritative|derived.*wave|task-graph\" .pi/prompts/create.md .pi/prompts/plan.md .pi/skills/development-lifecycle/SKILL.md"
+      ]
+    },
+    {
+      "id": "task-4",
+      "category": "workflow",
+      "title": "Execute the dynamic ready frontier",
+      "description": "Ship, batch execution, and subagent guidance validate and repeatedly consume conflict-free ready frontiers with bounded transient code neighborhoods.",
+      "status": "passed",
+      "passes": true,
+      "depends_on": [
+        "task-2"
+      ],
+      "parallel": true,
+      "conflicts_with": [],
+      "files": [
+        ".pi/prompts/ship.md",
+        ".pi/workflows/batch-implement.md",
+        ".pi/skills/subagent-driven-development/SKILL.md"
+      ],
+      "acceptance_criteria": [
+        "Ship validates the canonical graph before execution and stops on graph errors or plan/task ID drift.",
+        "Ship computes a deterministic conflict-free shard from the current ready frontier, with at most three concurrent tasks.",
+        "Ship recomputes readiness after every state transition or integration instead of trusting fixed waves or list order.",
+        "No-ready states report exact blockers, invalid state, active work, or completion.",
+        "Each selected task receives a bounded transient code/test neighborhood before editing.",
+        "Cross-artifact reporting stays read-only; execution remains scoped to the explicitly active slug."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test --test-name-pattern=\"frontier execution\" .pi/tests/skill-system.test.ts",
+        "node --experimental-strip-types --test .pi/tests/task-graph.test.ts",
+        "git diff --check"
+      ]
+    },
+    {
+      "id": "task-5",
+      "category": "workflow",
+      "title": "Link evidence and selective invalidation",
+      "description": "Ship and verify record attempt-scoped evidence, stale affected descendants, and preserve unrelated ancestors before final integration gates.",
+      "status": "passed",
+      "passes": true,
+      "depends_on": [
+        "task-3",
+        "task-4"
+      ],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [
+        ".pi/prompts/ship.md",
+        ".pi/prompts/verify.md"
+      ],
+      "acceptance_criteria": [
+        "Passed version-2 nodes point to current-attempt progress, verification, review, or commit evidence.",
+        "Failed or changed upstream nodes block pending descendants and stale passed descendants.",
+        "Ancestors reopen only when evidence attributes the cause or their produced output changed.",
+        "Blocked descendants return to pending only after every dependency passes; stale nodes require explicit re-execution or verification.",
+        "All graph behavior and policy tests pass together without restoring deleted or unrelated files."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test --test-name-pattern=\"evidence-linked graph state\" .pi/tests/skill-system.test.ts",
+        "node --experimental-strip-types --test .pi/tests/*.test.ts",
+        "git diff --check"
+      ]
+    }
+  ]
+}

@@ -72,4 +72,4 @@ Every non-trivial phase ends with a 1-3 line summary. If you can't summarize it,
 
 ## Gotchas
 
-(none yet — add entries here when you spend time debugging something, so nobody repeats it)
+- Task-graph schedulers must normalize repository-relative file aliases and subtract already-running tasks from shard capacity; serial tasks require zero running work. Keep regression tests for both invariants.
