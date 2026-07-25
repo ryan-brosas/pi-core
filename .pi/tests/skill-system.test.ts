@@ -351,8 +351,8 @@ test("plan agent preserves detailed voice and exact runtime contract", () => {
   for (const expected of [
     "description: Planning agent for architecture, decomposition, and executable implementation plans",
     "tools: read, bash, grep, find, ls",
-    "extensions: false",
-    "skills: false",
+    "extensions: true",
+    "skills: true",
     "model: openai-codex/gpt-5.6-sol",
     "thinking: high",
     "max_turns: 12",
