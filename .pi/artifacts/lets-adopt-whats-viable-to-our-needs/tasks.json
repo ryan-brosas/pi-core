@@ -43,8 +43,8 @@
       "category": "skills",
       "title": "Add the two adapted skills and reconcile provenance/catalog",
       "description": "Two compact Pi-native skills pass GREEN pressure scenarios, are indexed exactly once, and carry clear upstream MIT attribution.",
-      "status": "pending",
-      "passes": false,
+      "status": "passed",
+      "passes": true,
       "depends_on": [
         "task-1"
       ],

@@ -487,3 +487,11 @@ test at .pi/tests/skill-system.test.ts:127:1
 - GREEN trial 1: 5/5. Preserved the organization/tenant/workspace collision, chose `project` only where evidence agreed, and retained decision owners/open questions.
 - GREEN trial 2: 5/5. Repeated the evidence register, concept grouping, alias rejection, unresolved contracts, and no-persistence behavior.
 - Two consecutive GREEN trials passed with the same pressure scenario.
+
+## Task D — catalog and provenance
+
+- Manifest parity: 67 actual skills, 67 unique manifest entries.
+- Removed stale `behavioral-kernel` and `jira` entries.
+- Added the nine previously unlisted local skills plus `organize-workspace` and `define-language` to Tier 2.
+- Pinned Bigpowers source and MIT attribution recorded.
+- PRD task 2 status: passed.
