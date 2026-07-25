@@ -73,3 +73,9 @@ Every non-trivial phase ends with a 1-3 line summary. If you can't summarize it,
 ## Gotchas
 
 - Task-graph schedulers must normalize repository-relative file aliases and subtract already-running tasks from shard capacity; serial tasks require zero running work. Keep regression tests for both invariants.
+
+## Planning Boundary Contract Lessons (2026-07-25)
+
+- Mirrored Markdown templates must adapt heading levels to their host hierarchy; semantic parity does not imply identical heading depth.
+- Contract tests for workflow templates should extract the authoritative fenced block before asserting semantics, so moving correct prose outside the executable template cannot pass falsely.
+- If a strict worker workflow requires `fabric_exec` while project agents intentionally exclude `pi-fabric`, stop for an explicit execution-path decision; do not silently alter agent configuration or substitute tools.

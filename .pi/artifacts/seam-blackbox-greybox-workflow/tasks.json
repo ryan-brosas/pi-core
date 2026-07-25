@@ -1,0 +1,202 @@
+{
+  "version": 2,
+  "slug": "seam-blackbox-greybox-workflow",
+  "title": "Boundaries and Testability in the Planning Workflow",
+  "status": "complete",
+  "execution": {
+    "mode": "dependency-waves",
+    "max_concurrent_agents": 1,
+    "reason": "Contract tests come first; the three surface edits touch disjoint files but share one test file for verification, so they are sequenced conservatively."
+  },
+  "tasks": [
+    {
+      "status": "passed",
+      "passes": true,
+      "attempt": 2,
+      "evidence_refs": [
+        {
+          "kind": "test",
+          "ref": "progress.md#evidence-task-1-attempt-2",
+          "attempt": 2
+        },
+        {
+          "kind": "review",
+          "ref": "progress.md#evidence-review-fix-round-1",
+          "attempt": 2
+        }
+      ],
+      "parallel": false,
+      "conflicts_with": [],
+      "id": "task-1",
+      "category": "test",
+      "title": "Lock Boundary and Testability Contracts",
+      "description": "Focused tests express the conditional section, seam gate, gray-box record, observable-criteria, and corrected-seam contracts, and fail against the current unmodified surfaces.",
+      "depends_on": [],
+      "files": [
+        ".pi/tests/skill-system.test.ts"
+      ],
+      "acceptance_criteria": [
+        "Tests assert the Boundaries and Testability section is conditional, not an unconditional heading.",
+        "Tests assert the three-part seam gate: substitution need, enabling point, and a real alternative implementation.",
+        "Tests assert the gray-box exception record and verification-perspective vocabulary.",
+        "Tests assert PRD Success Criteria require observable behavior while Proposed Solution and Technical Context survive.",
+        "Tests assert the deep-module-design seam claim requires an enabling point.",
+        "New tests are appended without altering existing assertions in the file."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test .pi/tests/skill-system.test.ts",
+        "git diff --check -- .pi/tests/skill-system.test.ts"
+      ],
+      "expected_verification_state": "red"
+    },
+    {
+      "status": "passed",
+      "passes": true,
+      "attempt": 1,
+      "evidence_refs": [
+        {
+          "kind": "test",
+          "ref": "progress.md#evidence-task-2-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "review",
+          "ref": "progress.md#evidence-review-fix-round-1",
+          "attempt": 1
+        }
+      ],
+      "parallel": true,
+      "conflicts_with": [],
+      "id": "task-2",
+      "category": "docs",
+      "title": "Add the Boundaries and Testability Plan Section",
+      "description": "The plan prompt and planning skill both carry the conditional section, the three-part seam gate, the gray-box exception record, and verification-perspective vocabulary.",
+      "depends_on": [
+        "task-1"
+      ],
+      "files": [
+        ".pi/prompts/plan.md",
+        ".pi/skills/planning-and-task-breakdown/SKILL.md"
+      ],
+      "acceptance_criteria": [
+        "The section lives inside the Phase 7 Required Plan Header block in .pi/prompts/plan.md.",
+        "The section is explicitly emitted only when a plan introduces or changes a module boundary.",
+        "The planning skill Plan Template carries the matching section.",
+        "Black-box and gray-box are labelled verification perspectives, not module-design categories."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test --test-name-pattern=\"boundaries\" .pi/tests/skill-system.test.ts",
+        "git diff --check -- .pi/prompts/plan.md .pi/skills/planning-and-task-breakdown/SKILL.md"
+      ],
+      "expected_verification_state": "green"
+    },
+    {
+      "status": "passed",
+      "passes": true,
+      "attempt": 1,
+      "evidence_refs": [
+        {
+          "kind": "test",
+          "ref": "progress.md#evidence-task-3-attempt-1",
+          "attempt": 1
+        }
+      ],
+      "parallel": true,
+      "conflicts_with": [],
+      "id": "task-3",
+      "category": "docs",
+      "title": "Scope Observable Behavior to Acceptance Criteria",
+      "description": "The PRD template requires Success Criteria to describe externally observable behavior while Proposed Solution and Technical Context remain untouched.",
+      "depends_on": [
+        "task-1"
+      ],
+      "files": [
+        ".pi/templates/prd.md"
+      ],
+      "acceptance_criteria": [
+        "Success Criteria requires externally observable behavior.",
+        "The Proposed Solution and Technical Context sections are unchanged.",
+        "No blanket black-box rule is applied to the whole PRD."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test --test-name-pattern=\"observable\" .pi/tests/skill-system.test.ts",
+        "git diff --check -- .pi/templates/prd.md"
+      ],
+      "expected_verification_state": "green"
+    },
+    {
+      "status": "passed",
+      "passes": true,
+      "attempt": 1,
+      "evidence_refs": [
+        {
+          "kind": "test",
+          "ref": "progress.md#evidence-task-4-attempt-1",
+          "attempt": 1
+        }
+      ],
+      "parallel": true,
+      "conflicts_with": [],
+      "id": "task-4",
+      "category": "docs",
+      "title": "Correct the Absolute Seam Claim",
+      "description": "The deep-module-design skill states that an interface becomes a test seam only when an enabling point can select another behavior.",
+      "depends_on": [
+        "task-1"
+      ],
+      "files": [
+        ".pi/skills/deep-module-design/SKILL.md"
+      ],
+      "acceptance_criteria": [
+        "The skill no longer asserts unconditionally that the interface is the test seam.",
+        "The corrected wording requires an enabling point.",
+        "The rest of the skill is otherwise unchanged."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test --test-name-pattern=\"seam\" .pi/tests/skill-system.test.ts",
+        "git diff --check -- .pi/skills/deep-module-design/SKILL.md"
+      ],
+      "expected_verification_state": "green"
+    },
+    {
+      "status": "passed",
+      "passes": true,
+      "attempt": 1,
+      "evidence_refs": [
+        {
+          "kind": "verification",
+          "ref": "progress.md#evidence-task-5-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "review",
+          "ref": "progress.md#evidence-review-round-2",
+          "attempt": 1
+        }
+      ],
+      "parallel": false,
+      "conflicts_with": [],
+      "id": "task-5",
+      "category": "verify",
+      "title": "Verify Integrated Boundary Guidance",
+      "description": "The full retained suite is green, every artifact graph validates, and the untouched templates are byte-identical to HEAD.",
+      "depends_on": [
+        "task-2",
+        "task-3",
+        "task-4"
+      ],
+      "files": [],
+      "acceptance_criteria": [
+        "The full retained suite passes with zero failures.",
+        "Every .pi/artifacts/*/tasks.json validates.",
+        "design.md, adr.md, and tasks.md templates are byte-identical to HEAD."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test .pi/tests/*.test.ts",
+        "for f in .pi/artifacts/*/tasks.json; do node --experimental-strip-types .pi/scripts/task-graph.ts validate \"$f\"; done",
+        "git diff --quiet HEAD -- .pi/templates/design.md .pi/templates/adr.md .pi/templates/tasks.md"
+      ],
+      "expected_verification_state": "green"
+    }
+  ]
+}
