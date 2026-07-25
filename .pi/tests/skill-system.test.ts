@@ -36,6 +36,7 @@ const orchestrationSurfaces = [
   ".pi/prompts/plan.md",
   ".pi/prompts/research.md",
   ".pi/prompts/ship.md",
+  ".pi/prompts/init.md",
   ".pi/workflows/audit-pattern.md",
   ".pi/workflows/batch-implement.md",
   ".pi/workflows/deep-research.md",
@@ -104,6 +105,35 @@ test("research prompt always persists a research artifact", () => {
   assert.match(research, /(missing|invalid|unrelated)[\s\S]*derive[^\n]*slug[\s\S]*research\.md/i);
   assert.match(research, /do not (change|overwrite)[^\n]*\.active/i);
   assert.doesNotMatch(research, /otherwise return the report directly without writing an artifact/i);
+});
+
+test("init policy synthesis preserves evidence and existing content", () => {
+  const init = readRequired(".pi/prompts/init.md");
+  assert.match(init, /read\(\"\.pi\/templates\/agents-policy\.md\"\)/i);
+  const scaffoldRead = init.indexOf('read(".pi/templates/agents-policy.md")');
+  const previewStart = init.indexOf("### Phase 2: Preview Detection and Merge");
+  assert.ok(scaffoldRead >= 0 && previewStart >= 0 && scaffoldRead < previewStart, "policy scaffold must load before preview classification");
+  assert.match(init, /mandatory[\s\S]*project-detected[\s\S]*conditional[\s\S]*conflicting[\s\S]*preserved-custom/i);
+  assert.match(init, /project\/configuration evidence[\s\S]*executable validation/i);
+  assert.match(init, /preserved sections[\s\S]*repairs[\s\S]*omissions[\s\S]*line-budget exception/i);
+  assert.match(init, /never (blindly )?(replace|overwrite)|without blind replacement/i);
+  assert.match(init, /cancel[\s\S]*no target file/i);
+  assert.match(init, /new AGENTS\.md[\s\S]*150 lines/i);
+  assert.match(init, /existing file[\s\S]*preserve[\s\S]*minimize[\s\S]*exception[\s\S]*(never|do not) trunca/i);
+});
+
+test("init policy safety requires fresh Git approval", () => {
+  const init = readRequired(".pi/prompts/init.md");
+  assert.doesNotMatch(init, /Auto-commit/i);
+  assert.match(init, /fresh confirmation[\s\S]*commit[\s\S]*(push|publication)/i);
+  assert.match(init, /legacy-branch synchronization|legacy branch synchronization/i);
+  assert.match(init, /project\/configuration evidence[\s\S]*executable validation/i);
+});
+
+test("init policy activation requires reload or a new session", () => {
+  const init = readRequired(".pi/prompts/init.md");
+  assert.match(init, /\/reload[\s\S]*new session|new session[\s\S]*\/reload/i);
+  assert.match(init, /not (yet )?active|does not claim[\s\S]*active/i);
 });
 
 test("graph producers use one canonical task graph", () => {
@@ -189,6 +219,38 @@ test("fan-out detector rejects every explicit agent count above three", () => {
 test("fan-out detector ignores unrelated budgets even on agent lines", () => {
   const text = "Budget: maximum 100 tool calls.\nAllow 10 API calls.\nCreate AGENTS.md with max 150 lines.\nDispatch one scout with maximum 100 tool calls.\nDispatch one agent to create AGENTS.md with max 150 lines.\n- **Concurrency:** one agent with maximum 100 tool calls.";
   assert.deepEqual(explicitDispatchCountErrors(text), []);
+});
+
+test("init policy scaffold carries universal gates without project assumptions", () => {
+  const scaffold = readRequired(".pi/templates/agents-policy.md");
+  const lines = scaffold.trimEnd().split(/\r?\n/);
+  assert.ok(lines.length <= 150, "scaffold exceeds 150 lines: " + lines.length);
+  assert.match(scaffold, /inert source scaffold[\s\S]*explicitly read by \/init/i);
+  assert.match(scaffold, /user authority/i);
+  assert.match(scaffold, /system\/platform safety/i);
+  assert.match(scaffold, /requested scope/i);
+  assert.match(scaffold, /never delete a file or directory without written permission naming the paths/i);
+
+  const destructiveTerms = ["preflight", "first written confirmation", "refreshed preflight", "second immediate confirmation", "exact execution", "audit"];
+  let destructiveCursor = -1;
+  for (const term of destructiveTerms) {
+    const next = scaffold.toLowerCase().indexOf(term, destructiveCursor + 1);
+    assert.ok(next > destructiveCursor, `missing or out-of-order destructive term: ${term}`);
+    destructiveCursor = next;
+  }
+
+  assert.match(scaffold, /preserve concurrent and unrelated work/i);
+  assert.match(scaffold, /do not stash, reset, restore, rebase away, or overwrite other changes/i);
+  assert.match(scaffold, /do not branch, create worktrees, commit, merge, push, or deploy without explicit approval/i);
+  assert.match(scaffold, /each action needs fresh confirmation; no standing authorization/i);
+  assert.match(scaffold, /prefer manual targeted edits/i);
+  assert.match(scaffold, /avoid speculative file proliferation/i);
+  assert.match(scaffold, /edit the authoritative source[\s\S]*regenerate[\s\S]*review the output/i);
+  assert.match(scaffold, /evidence before completion[\s\S]*narrowest[\s\S]*broader checks/i);
+  assert.match(scaffold, /do not claim completion without observable evidence/i);
+  assert.match(scaffold, /delegate only when useful and keep it bounded[\s\S]*parent-verified/i);
+  assert.match(scaffold, /parent inspection and verification remain required/i);
+  assert.doesNotMatch(scaffold, /bun|node\.js|main branch|primary branch|npm|pnpm|yarn|lockfile|verify command|AGENTS\.md path|fallow|beads|mcp agent mail|\bbv\b|\bubs\b|\brch\b|\bdcg\b|\bmorph\b/i);
 });
 
 for (const path of orchestrationSurfaces) {

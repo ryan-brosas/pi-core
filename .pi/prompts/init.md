@@ -20,11 +20,14 @@ When this prompt says to spawn, delegate to, or use an agent, invoke the pi-suba
 - `general`: small independent implementation
 - `Plan`: architecture and executable planning
 - Use a foreground call when the next step depends on the result. For independent parallel work, issue all calls together with `run_in_background: true`.
+- Use at most three agents in one wave. Process overflow in sequential shards.
+- The parent must inspect and verify all delegated findings before synthesis.
 - Omit `model` and `thinking`; agent definitions and scoped-model settings own those choices.
+
 ## Idempotency Rules
 
 | File | Rule |
-|---|---|---|
+|---|---|
 | `AGENTS.md` | Improve in-place — never overwrite blindly |
 | `.pi/tech-stack.md` | Overwrite with detected values (auto-regenerated) |
 | `.pi/roadmap.md` / `.pi/state.md` | Skip if exists, ask before overwrite |
@@ -42,7 +45,7 @@ Load `verification-before-completion` inside Mode 1 only (after AGENTS.md creati
 
 | Argument | Default | Description |
 |---|---|---|
-| `--deep` | false | Comprehensive research for AGENTS.md (~100+ tool calls) |
+| `--deep` | false | Bounded evidence gathering for AGENTS.md; stop when required decisions reach medium-or-higher confidence |
 | `--context` | false | Init planning context (roadmap.md, state.md) |
 | `--user` | false | Init user profile (user.md) |
 | `--all` | false | Full init: AGENTS.md + context + user profile |
@@ -60,53 +63,75 @@ Load `verification-before-completion` inside Mode 1 only (after AGENTS.md creati
 
 ## Mode 1: Core Setup (Default)
 
+Before detection or preview classification, load the authoritative universal policy source:
+
+```typescript
+read(".pi/templates/agents-policy.md");
+```
+
 ### Phase 1: Detect Project
 
-Detect and validate:
-- Package manager and dependencies (with versions)
-- Build, test, lint, dev commands — **validate each actually works**
+Detect and validate before including a fact:
+- Primary branch, runtime, package manager, dependencies, and lockfile policy
+- Build, test, lint, dev, and integration commands — validate each command actually works
+- Project layout, compatibility contracts, lifecycle/task configuration, and generated or runtime-managed paths
+- Existing `AGENTS.md` plus other AI rules (`.cursor/rules/`, `.cursorrules`, `.github/copilot-instructions.md`)
 - CI/CD configuration
-- Existing AI rules (`.cursor/rules/`, `.cursorrules`, `.github/copilot-instructions.md`)
-- Top-level directory structure
+- Optional workflows: require both project/configuration evidence and executable validation; PATH presence alone is insufficient
 
 With `--deep`:
-- Analyze git history (last 50 commits for patterns)
-- Map source directory structure and subsystem candidates
-- Identify common patterns (error handling, logging, data flow)
-- Detect testing patterns and coverage gaps
+- Define distinct discovery questions before dispatch.
+- Use at most three agents in a wave; process overflow in sequential shards.
+- Analyze only the git history, architecture, conventions, and test evidence needed to answer those questions.
+- Stop when every generation decision has medium-or-higher-confidence evidence; do not target an arbitrary tool-call count.
+- The parent inspects evidence, resolves conflicts, and owns synthesis.
 
-### Phase 2: Preview Detection
+### Phase 2: Preview Detection and Merge
 
-Show detected summary and ask for confirmation before writing:
+Before any target-file write, show these classifications in order:
+
+1. **Mandatory** — universal gates from the scaffold.
+2. **Project-detected** — validated facts and commands.
+3. **Conditional** — optional workflows with project/configuration evidence plus executable validation.
+4. **Conflicting** — existing rules that weaken a mandatory gate and their proposed repairs.
+5. **Preserved-custom** — existing sections retained unchanged.
+6. **Omissions** — unresolved or unsupported facts/workflows.
+7. **Line-budget exception** — whether preserving existing content can exceed the normal limit.
+
+The preview must list additions, preserved sections, repairs, omissions, and any line-budget exception. If the user selects Cancel, change no target file.
 
 ```typescript
 question({
   questions: [
     {
       header: "Proceed?",
-      question: "Write AGENTS.md and tech-stack.md with the detected configuration?",
+      question: "Create or merge AGENTS.md and write tech-stack.md with the previewed configuration?",
       options: [
-        { label: "Yes (Recommended)", description: "Create both files" },
+        { label: "Yes (Recommended)", description: "Create or merge both files" },
         { label: "AGENTS.md only", description: "Skip tech-stack.md" },
-        { label: "Cancel", description: "Don't write anything" },
+        { label: "Cancel", description: "No target file is changed" },
       ],
     },
   ],
 });
 ```
 
-### Phase 3: Create AGENTS.md
+### Phase 3: Create or Merge AGENTS.md
 
 ```typescript
 read(".pi/skills/verification-before-completion/SKILL.md");
 ```
 
-Create `./AGENTS.md` — target <60 lines (max 150). Include:
-- Tech stack with versions, file structure, validated commands
-- Code example from actual codebase
-- Testing conventions, boundaries, gotchas
+Synthesize the root `AGENTS.md`; do not copy the scaffold verbatim and never blindly replace or overwrite an existing AGENTS.md.
 
-**Principles:** Examples > explanations. Pointers > copies. If AGENTS.md exists, improve it — don't overwrite blindly.
+- Classify output as mandatory, project-detected, conditional, conflicting, and preserved-custom content.
+- Include only validated project facts. Optional workflows require project/configuration evidence plus executable validation.
+- Preserve existing custom content unless it weakens a mandatory gate. Disclose conflicts in the preview before mandatory repairs win.
+- A new AGENTS.md must remain at or below 150 lines; prefer pointers over copied manuals.
+- If an existing file is already oversized, or preserved content plus the kernel cannot fit, preserve user content, minimize only generated additions, report the line-budget exception, and never truncate user-authored rules.
+- Git preferences are not standing authorization: require fresh confirmation for every commit, push, publication, branch, worktree, merge, or deployment action. Never perform automatic legacy-branch synchronization.
+
+**Principles:** Examples > explanations. Pointers > copies. Evidence > inference.
 
 ### Phase 4: Create tech-stack.md
 
@@ -119,13 +144,9 @@ Write detected values to `.pi/tech-stack.md`. Then persist:
 Core setup completed: AGENTS.md, tech-stack.md created for [language/framework] project.
 ```
 
-### Phase 5: Setup Fallow (if available)
+### Phase 5: Setup Optional Workflows
 
-Check if fallow is available. If yes and no `.fallowrc.json` exists:
-
-```bash
-npx fallow init --quiet 2>/dev/null || true
-```
+Do not infer project adoption from PATH alone. Offer Fallow setup only when repository/configuration evidence shows it belongs to this project and executable validation succeeds. If initialization would install a dependency or create configuration, request explicit approval before acting.
 
 ---
 
@@ -269,7 +290,7 @@ question({
       question: "How should git commits be handled?",
       options: [
         { label: "Ask first (Recommended)", description: "Always confirm before commit/push" },
-        { label: "Auto-commit", description: "Commit directly after completion" },
+        { label: "Offer to commit", description: "Offer after completion, then require per-action confirmation for each commit or push" },
       ],
     },
   ],
@@ -292,12 +313,13 @@ The file is written for on-demand reference — not injected via `instructions[]
 
 ## Output
 
-Report what was created:
-1. AGENTS.md (if core setup ran)
+Report what was created or merged:
+1. AGENTS.md (if core setup ran), explicitly labeled `created` or `merged`
 2. tech-stack.md (if core setup ran)
 3. roadmap.md + state.md (if `--context`)
 4. user.md (if `--user`)
-5. Recommended next command: `/plan` to start planning, `/research` to explore the codebase, or just describe what you want to build.
+5. If AGENTS.md changed, tell the user to run `/reload` or start a new session before Pi loads it. State that the generated policy is not active earlier in the current turn.
+6. Recommended next command: `/plan` to start planning, `/research` to explore the codebase, or just describe what you want to build.
 
 ---
 
