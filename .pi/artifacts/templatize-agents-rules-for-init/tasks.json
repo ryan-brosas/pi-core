@@ -1,0 +1,122 @@
+{
+  "version": 2,
+  "slug": "templatize-agents-rules-for-init",
+  "title": "Templatize mandatory AGENTS.md rules for /init",
+  "status": "complete",
+  "execution": {
+    "mode": "dependency-frontier",
+    "max_concurrent_agents": 1,
+    "reason": "The policy scaffold and its tests establish the reusable contract before the init prompt consumes it; both tasks touch the same test file and must run sequentially."
+  },
+  "tasks": [
+    {
+      "id": "task-1",
+      "category": "test",
+      "title": "Lock the reusable policy contract",
+      "description": "The canonical scaffold and focused static tests define the mandatory kernel, evidence-derived boundaries, line budget, and forbidden project-specific assumptions.",
+      "status": "passed",
+      "passes": true,
+      "attempt": 2,
+      "evidence_refs": [
+        {
+          "kind": "verification",
+          "ref": ".pi/artifacts/templatize-agents-rules-for-init/progress.md#evidence-task-1-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "verification",
+          "ref": ".pi/artifacts/templatize-agents-rules-for-init/progress.md#evidence-task-1-attempt-2",
+          "attempt": 2
+        }
+      ],
+      "depends_on": [],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [
+        ".pi/templates/agents-policy.md",
+        ".pi/tests/skill-system.test.ts"
+      ],
+      "acceptance_criteria": [
+        "The scaffold contains authority, deletion, concurrent-work, Git-approval, targeted-edit, generated-source, evidence, and bounded-delegation categories, plus the complete destructive-action sequence: preflight, first confirmation, refreshed preflight, second immediate confirmation, exact execution, and audit.",
+        "The scaffold is at most 150 lines and favors pointers over copied workflow manuals.",
+        "The universal body contains no hardcoded package manager, runtime, primary branch, project verification command, target-project path, or unconditional optional-tool workflow.",
+        "Focused tests use semantic category assertions rather than an exact full-document snapshot."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test --test-name-pattern=\"init policy scaffold\" .pi/tests/skill-system.test.ts",
+        "test \"$(wc -l < .pi/templates/agents-policy.md)\" -le 150",
+        "git diff --check -- .pi/templates/agents-policy.md .pi/tests/skill-system.test.ts"
+      ]
+    },
+    {
+      "id": "task-2",
+      "category": "workflow",
+      "title": "Integrate evidence-backed policy synthesis into /init",
+      "description": "The /init prompt explicitly consumes the scaffold, safely previews and merges existing instructions, bounds discovery, removes standing Git authorization, and reports context activation accurately.",
+      "status": "passed",
+      "passes": true,
+      "attempt": 3,
+      "evidence_refs": [
+        {
+          "kind": "test",
+          "ref": ".pi/artifacts/templatize-agents-rules-for-init/progress.md#evidence-task-2-attempt-1-failure",
+          "attempt": 1
+        },
+        {
+          "kind": "review",
+          "ref": ".pi/artifacts/templatize-agents-rules-for-init/progress.md#evidence-task-2-attempt-1-failure",
+          "attempt": 1
+        },
+        {
+          "kind": "test",
+          "ref": ".pi/artifacts/templatize-agents-rules-for-init/progress.md#evidence-task-2-attempt-2-failure",
+          "attempt": 2
+        },
+        {
+          "kind": "review",
+          "ref": ".pi/artifacts/templatize-agents-rules-for-init/progress.md#evidence-task-2-attempt-2-failure",
+          "attempt": 2
+        },
+        {
+          "kind": "verification",
+          "ref": ".pi/artifacts/templatize-agents-rules-for-init/progress.md#evidence-task-2-attempt-3",
+          "attempt": 3
+        },
+        {
+          "kind": "review",
+          "ref": ".pi/artifacts/templatize-agents-rules-for-init/progress.md#evidence-task-2-attempt-3",
+          "attempt": 3
+        },
+        {
+          "kind": "commit",
+          "ref": ".pi/artifacts/templatize-agents-rules-for-init/progress.md#evidence-task-2-attempt-3",
+          "attempt": 3
+        }
+      ],
+      "depends_on": [
+        "task-1"
+      ],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [
+        ".pi/prompts/init.md",
+        ".pi/tests/skill-system.test.ts"
+      ],
+      "acceptance_criteria": [
+        "/init explicitly reads .pi/templates/agents-policy.md and distinguishes mandatory, project-detected, conditional, conflicting, and preserved-custom content.",
+        "/init validates project facts and requires both project/configuration evidence and executable validation before advertising optional workflow tools.",
+        "Existing AGENTS.md content is previewed and merged without blind replacement; custom rules are preserved unless they weaken a mandatory gate.",
+        "The generation contract limits newly created AGENTS.md files to 150 lines; when an existing file already exceeds the limit or cannot fit preserved content plus the kernel, /init preserves existing content, minimizes only generated additions, and reports the exception rather than truncating user-authored rules.",
+        "The user-profile flow does not offer standing auto-commit or automatic publication authorization.",
+        "Deep initialization caps concurrent agent waves at three, processes overflow sequentially, and stops when required decisions have sufficient evidence.",
+        "After AGENTS.md changes, /init instructs the user to run /reload or start a new session and does not claim the policy is already active.",
+        "All retained Pi Core tests pass without adding an extension, dependency, generator executable, or new runtime state."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test --test-name-pattern=\"init policy synthesis|init policy safety|init policy activation|init.*fan-out|fan-out.*init\" .pi/tests/skill-system.test.ts",
+        "node --experimental-strip-types --test .pi/tests/*.test.ts",
+        "git diff --check -- .pi/templates/agents-policy.md .pi/prompts/init.md .pi/tests/skill-system.test.ts"
+      ]
+    }
+  ]
+}
