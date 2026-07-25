@@ -535,7 +535,7 @@ test("plan writer boundary keeps canonical plan.md and tasks.json parent-owned",
     "Plan advisory output must never be handed to general to render/write canonical plan.md or tasks.json",
   );
 
-  const calls = [...planPrompt.matchAll(/Agent\(\{[\s\S]*?\}\);/g)].map((match) => match[0]);
+  const calls = [...planPrompt.matchAll(/Agent\s*\(\s*\{[\s\S]*?\}\s*\);/g)].map((match) => match[0]);
   const nonAdvisoryCalls = calls.filter((call) => {
     const role = call.match(/subagent_type:\s*([^,\n]+)/)?.[1].trim();
     return !role || !/^["'](?:Plan|Explore|scout)["']$/.test(role);
@@ -564,7 +564,7 @@ test("ship primary worker call resolves workerType and dispatches one foreground
     .replace(/\/\*[\s\S]*?\*\//g, "")
     .replace(/^\s*\/\/.*$/gm, "");
 
-  const agentCalls = [...executableBlock.matchAll(/Agent\(\{[\s\S]*?\}\);/g)].map((match) => match[0]);
+  const agentCalls = [...executableBlock.matchAll(/Agent\s*\(\s*\{[\s\S]*?\}\s*\);/g)].map((match) => match[0]);
   assert.equal(agentCalls.length, 1, "expected exactly one Agent call in the primary worker dispatch block");
   const call = agentCalls[0];
 
@@ -580,7 +580,7 @@ test("ship primary worker call resolves workerType and dispatches one foreground
     /^(?!\s*\/\/)\s*const\s+workerType\s*:\s*"general"\s*\|\s*"build"\s*=\s*resolvedWorkerType\s*;\s*$/m,
     "workerType must be an uncommented executable general|build union before the primary call",
   );
-  const unresolvedGuard = /if any unresolved architecture, security, migration, scope, or approval question remains,\s*stop before worker selection\./i;
+  const unresolvedGuard = /^If any unresolved architecture, security, migration, scope, or approval question remains, stop before worker selection\.$/m;
   const guardIndex = section.search(unresolvedGuard);
   assert.notEqual(guardIndex, -1, "primary dispatch must stop for every unresolved decision class");
   assert.ok(guardIndex < section.indexOf("```"), "unresolved-decision guard must occur before the dispatch code fence");
