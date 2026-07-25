@@ -26,7 +26,7 @@ Durable cross-feature knowledge belongs in `.pi/artifacts/MEMORY.md`, outside th
 
 - `/create <idea>` — create the active slug and write `spec.md`. Loaded from `brainstorming` + `spec-driven-development`.
 - `/plan` — create or refine the active `plan.md`. Loaded from `planning-and-task-breakdown`.
-- `/ship` — execute `plan.md` or `tasks.json`, recording `progress.md`. Loaded from `shipping-and-launch`.
+- `/ship` — execute the authoritative `tasks.json`, consult `plan.md` only as an explanatory view, and record `progress.md`; stop if plan and graph task IDs diverge. Loaded from `shipping-and-launch`.
 - `/verify` — run the evidence gate and append results to `progress.md`. Loaded from `verification-before-completion`.
 - `/research` — write active research findings and progress that feed `/create` or `/plan`.
 

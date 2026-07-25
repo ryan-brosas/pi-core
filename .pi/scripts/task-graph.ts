@@ -53,9 +53,16 @@ function decode(input: unknown): { graph?: TaskGraph; version: 1 | 2; issues: Gr
     if (!strings(raw.depends_on)) issues.push(issue("dependencies_invalid", `${base}/depends_on`, "depends_on must be a string array"));
     if (!strings(raw.conflicts_with)) issues.push(issue("conflicts_invalid", `${base}/conflicts_with`, "conflicts_with must be a string array"));
     if (!strings(raw.files)) issues.push(issue("files_invalid", `${base}/files`, "files must be a string array"));
-    tasks.push({ id, status, passes, depends_on: depends, conflicts_with: conflicts, files, parallel: raw.parallel !== false,
+    if (typeof raw.parallel !== "boolean") issues.push(issue("parallel_invalid", `${base}/parallel`, "parallel must be a boolean"));
+    const evidence = Array.isArray(raw.evidence_refs) ? raw.evidence_refs.map((ref) => record(ref) ? {
+      kind: typeof ref.kind === "string" ? ref.kind : "",
+      ref: typeof ref.ref === "string" ? ref.ref : "",
+      attempt: typeof ref.attempt === "number" ? ref.attempt : Number.NaN,
+    } : { kind: "", ref: "", attempt: Number.NaN }) : undefined;
+    tasks.push({ id, status, passes, depends_on: depends, conflicts_with: conflicts, files,
+      parallel: typeof raw.parallel === "boolean" ? raw.parallel : true,
       attempt: typeof raw.attempt === "number" ? raw.attempt : undefined,
-      evidence_refs: Array.isArray(raw.evidence_refs) ? raw.evidence_refs.filter(record).map((ref) => ({ kind: String(ref.kind ?? ""), ref: String(ref.ref ?? ""), attempt: Number(ref.attempt) })) : undefined });
+      evidence_refs: evidence });
   });
   const execution = record(input.execution) ? { max_concurrent_agents: typeof input.execution.max_concurrent_agents === "number" ? input.execution.max_concurrent_agents : undefined } : undefined;
   return { graph: { version, tasks, execution }, version, issues };
@@ -130,8 +137,8 @@ function validGraph(input: unknown): TaskGraph | undefined {
   return decode(input).graph;
 }
 function overlap(left: TaskNode, right: TaskNode): boolean {
-  const rightFiles = new Set(right.files);
-  return left.files.some((file) => rightFiles.has(file));
+  const rightFiles = new Set(right.files.map((file) => path.posix.normalize(file)));
+  return left.files.some((file) => rightFiles.has(path.posix.normalize(file)));
 }
 function conflicts(left: TaskNode, right: TaskNode): boolean {
   return left.conflicts_with.includes(right.id) || right.conflicts_with.includes(left.id) || overlap(left, right);
@@ -153,16 +160,17 @@ export function computeFrontier(input: unknown, requestedMax?: number) {
     if (reasons.length) blocked.push({ id: task.id, reasons }); else readyTasks.push(task);
   }
   const graphMax = graph.execution?.max_concurrent_agents;
-  const limit = Math.max(1, Math.min(3, Number.isInteger(requestedMax) ? requestedMax! : 3, Number.isInteger(graphMax) ? graphMax! : 3));
+  const maxConcurrent = Math.min(3, Number.isInteger(requestedMax) ? requestedMax! : 3, Number.isInteger(graphMax) ? graphMax! : 3);
+  const capacity = Math.max(0, maxConcurrent - runningTasks.length);
   const selected: TaskNode[] = [];
   for (const candidate of readyTasks) {
-    if (selected.length >= limit) break;
-    if (candidate.parallel === false) { if (selected.length === 0) selected.push(candidate); break; }
+    if (selected.length >= capacity) break;
+    if (candidate.parallel === false) { if (runningTasks.length === 0 && selected.length === 0) selected.push(candidate); break; }
     if (selected.every((chosen) => chosen.parallel !== false && !conflicts(candidate, chosen))) selected.push(candidate);
   }
   const pending = graph.tasks.some((task) => task.status === "pending");
   const intervention = graph.tasks.some((task) => task.status === "failed" || task.status === "stale" || task.status === "blocked");
-  const state = readyTasks.length ? "ready" : runningTasks.length ? "running" : pending ? (intervention ? "intervention_required" : "blocked") : intervention ? "intervention_required" : "complete";
+  const state = selected.length ? "ready" : runningTasks.length ? "running" : pending ? (intervention ? "intervention_required" : "blocked") : intervention ? "intervention_required" : "complete";
   return { ok: true, ready: readyTasks.map((task) => task.id), selected: selected.map((task) => task.id), running: runningTasks.map((task) => task.id), blocked, state };
 }
 
@@ -197,7 +205,10 @@ function load(file: string): unknown {
 function main(args: string[]): never {
   const [command, target, ...rest] = args;
   if (command === "validate" && target && rest.length === 0) { const result = validateTaskGraph(load(target)); return output(result, result.ok ? 0 : 1); }
-  if (command === "frontier" && target === "--all" && rest.length === 1) return output({ ok: true, requires_explicit_slug: true, artifacts: scanArtifactFrontiers(rest[0]) }, 0);
+  if (command === "frontier" && target === "--all" && rest.length === 1) {
+    try { return output({ ok: true, requires_explicit_slug: true, artifacts: scanArtifactFrontiers(rest[0]) }, 0); }
+    catch (error) { return output({ ok: false, error: { code: "artifacts_read_error", message: String(error) } }, 2); }
+  }
   if (command === "frontier" && target) {
     let max: number | undefined;
     if (rest.length) { if (rest.length !== 2 || rest[0] !== "--max" || !/^[1-3]$/.test(rest[1])) return usage("--max must be 1, 2, or 3"); max = Number(rest[1]); }

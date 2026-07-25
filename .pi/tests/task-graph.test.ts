@@ -48,3 +48,32 @@ test("frontier --all is sorted and byte-for-byte read-only", async () => {
   const root = mkdtempSync(path.join(tmpdir(), "artifact-frontiers-")); writeFileSync(path.join(root, ".active"), "zeta\n"); for (const slug of ["zeta", "alpha"]) { const dir = path.join(root, slug); mkdirSync(dir); writeFileSync(path.join(dir, "tasks.json"), JSON.stringify(v1([task(slug)]), null, 2)); }
   const activeBefore = readFileSync(path.join(root, ".active")); const alphaBefore = readFileSync(path.join(root, "alpha/tasks.json")); const result = cli(["frontier", "--all", root]); assert.equal(result.status, 0, result.stderr); const output = JSON.parse(result.stdout); assert.equal(output.requires_explicit_slug, true); assert.deepEqual(output.artifacts.map((entry: { slug: string }) => entry.slug), ["alpha", "zeta"]); assert.deepEqual(readFileSync(path.join(root, ".active")), activeBefore); assert.deepEqual(readFileSync(path.join(root, "alpha/tasks.json")), alphaBefore); const { scanArtifactFrontiers } = await api(); assert.deepEqual(await scanArtifactFrontiers(root), output.artifacts);
 });
+
+test("frontier accounts for occupied capacity and excludes serial work while running", async () => {
+  const { computeFrontier } = await api();
+  const occupied = { ...v1([task("running", { status: "running" }), task("a"), task("b"), task("c")]), execution: { max_concurrent_agents: 3 } };
+  assert.deepEqual(computeFrontier(occupied).selected, ["a", "b"]);
+  const serial = { ...v1([task("running", { status: "running" }), task("serial", { parallel: false })]), execution: { max_concurrent_agents: 3 } };
+  assert.deepEqual(computeFrontier(serial).selected, []);
+});
+
+test("frontier normalizes repository-relative file aliases", async () => {
+  const { computeFrontier } = await api();
+  const graph = v1([task("a", { files: ["src/shared.ts"] }), task("b", { files: ["./src/shared.ts"] }), task("c", { files: ["src/dir/../shared.ts"] })]);
+  assert.deepEqual(computeFrontier(graph, 3).selected, ["a"]);
+});
+
+test("validation rejects malformed scheduling and evidence field types", async () => {
+  const { validateTaskGraph } = await api();
+  const malformedParallel = { ...v1(), tasks: [{ ...task("a"), parallel: "false" }] };
+  assert.ok(validateTaskGraph(malformedParallel).issues.some((entry: { code: string; path: string }) => entry.code === "parallel_invalid" && entry.path === "/tasks/0/parallel"));
+  const malformedEvidence = { ...v2(), tasks: [{ ...task("a", { status: "passed", passes: true, attempt: 1 }), evidence_refs: [{ kind: "test", ref: 7, attempt: "1" }] }] };
+  assert.ok(validateTaskGraph(malformedEvidence).issues.some((entry: { code: string; path: string }) => entry.code === "evidence_invalid" && entry.path === "/tasks/0/evidence_refs/0"));
+});
+
+test("frontier --all returns typed CLI errors for unreadable roots", () => {
+  const root = path.join(tmpdir(), "missing-artifact-root");
+  const result = cli(["frontier", "--all", root]);
+  assert.equal(result.status, 2);
+  assert.equal(JSON.parse(result.stdout).error.code, "artifacts_read_error");
+});
