@@ -633,3 +633,9 @@ Replaced the broad numeric grep with the agent-specific fan-out test. The grep f
 - Important: detector only covered counts 4–10 — replaced with arbitrary numeric counts plus common spelled counts above three.
 - Important: detector could confuse API/tool-call budgets with agent dispatch — restricted call matching to agent/reviewer/worker/scout nouns and added synthetic negative cases.
 - Regression tests cover `11 scouts`, `fifteen review agents`, `5 pi-subagents calls`, `100 tool calls`, `10 API calls`, and `max 150 lines`.
+
+## Final review round 3
+
+- Important: `max` parsing could bind unrelated budgets to agent lines — restricted `max` checks to explicit `**Concurrency:**` declarations and added contextual budget regressions.
+- Minor: only the first numeric dispatch count was checked — switched to `matchAll` and added a compliant-first/violating-second case.
+- Minor: hyphenated spelled counts escaped detection — added compound tens such as `twenty-one`.
