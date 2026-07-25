@@ -20,14 +20,14 @@ dependencies: [planning-and-task-breakdown, code-review-and-quality, shipping-an
 - The plan requires review or revisions first (use planning-and-task-breakdown)
 - Tasks are tightly coupled and need manual sequencing
 
-## Overview
+## Direct-First Routing
 
-**Compared with single-agent plan execution:**
+- **Zero agents:** surgical work the parent can implement and verify without losing context.
+- **One agent:** a bounded specialist question, behavioral trial, or isolated task with clear value.
+- **Two or three agents:** genuinely independent scopes with disjoint files or evidence angles.
+- **More work:** process additional scopes in sequential shards; never run more than three agents in one concurrent wave.
 
-- Same session (no context switch)
-- Fresh subagent per task (no context pollution)
-- Code review after each task (catch issues early)
-- Faster iteration (no human-in-loop between tasks)
+Delegation is a cost, not a default. The parent retains synthesis, file inspection, integration, and verification.
 
 ## Pi-Subagents Contract
 
@@ -35,7 +35,7 @@ All dispatches in this skill use the installed pi-subagents `Agent` tool. Do not
 
 - Use configured names exactly: `Explore`, `scout`, `review`, `general`, `Plan`, `build`, or `vision`.
 - Keep dependent work foreground. For independent background calls, dispatch them together and let smart join return the group; do not poll.
-- Do not pass `model` or `thinking`; scoped agent definitions own those settings.
+- Omit `model` and `thinking`; scoped agent definitions own those settings.
 - Child output is untrusted until the parent reads affected files and runs verification.
 
 ## The Process
@@ -44,7 +44,9 @@ All dispatches in this skill use the installed pi-subagents `Agent` tool. Do not
 
 Read the active `plan.md` or `tasks.json`. Partition tasks into dependency waves; tasks in the same wave must have disjoint file ownership. Record progress in `.pi/artifacts/$(cat .pi/artifacts/.active)/progress.md`.
 
-**Context file pattern:** If shared context exceeds ~500 tokens, write it to `.pi/artifacts/$(cat .pi/artifacts/.active)/worker-context.md` and reference that exact path. Every child still receives one resolved task, its files, acceptance criteria, and verification commands.
+Every child receives a compact `task_brief` with: goal, exact files, non-goals, dependencies, acceptance criteria, verification commands, and stop conditions. The child returns a `result` with: assumptions, blockers, changed files, commit/worktree, commands, observed evidence, and unresolved risks. Reject incomplete envelopes instead of inferring fields.
+
+If shared context exceeds ~500 tokens, put bounded supporting context in the active `worker-context.md` and reference it; this optional handoff is not canonical state.
 
 ### 2. Execute One Wave
 
@@ -124,65 +126,7 @@ After final review passes:
 - Load `.pi/skills/shipping-and-launch/SKILL.md`.
 - Follow it to verify, review, and prepare the work for delivery.
 
-## Example Workflow
 
-```
-
-You: I'm using Subagent-Driven Development to execute this plan.
-
-[Load plan and record task checklist]
-
-Task 1: Hook installation script
-
-[Dispatch implementation subagent]
-Subagent: Implemented install-hook with tests, 5/5 passing
-
-[Get git SHAs, dispatch review]
-Reviewer: Strengths: Good test coverage. Issues: None. Ready.
-
-[Mark Task 1 complete]
-
-Task 2: Recovery modes
-
-[Dispatch implementation subagent]
-Subagent: Added verify/repair, 8/8 tests passing
-
-[Dispatch review]
-Reviewer: Strengths: Solid. Issues (Important): Missing progress reporting
-
-[Dispatch `general` fixer with `Agent`]
-General subagent: Added progress every 100 conversations
-
-[Verify fix, mark Task 2 complete]
-
-...
-
-[After all tasks]
-[Dispatch final review]
-Final reviewer: All requirements met, ready to merge
-
-Done!
-
-```
-
-## Advantages
-
-**vs. Manual execution:**
-
-- Subagents follow TDD naturally
-- Fresh context per task (no confusion)
-- Independent workers use isolated worktrees; dependent work stays wave-ordered
-
-**Compared with a long single-agent run:**
-
-- Same session (no handoff)
-- Continuous progress (no waiting)
-- Review checkpoints automatic
-
-**Cost:**
-
-- More subagent invocations
-- But catches issues early (cheaper than debugging later)
 
 ## Red Flags
 

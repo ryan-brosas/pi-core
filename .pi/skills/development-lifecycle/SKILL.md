@@ -65,8 +65,11 @@ Skills are available to configured pi-subagents because the agent definitions en
 
 Foreground for dependencies; independent calls may be issued together with `run_in_background: true`. Omit `model` and `thinking` so scoped definitions apply.
 
-## Lifecycle Rules
+## Compact Handoff
 
+At a pause, session boundary, or child integration point, append a compact handoff to the active `progress.md`: current goal, completed commits, next dependency, blockers, changed files, and last verification evidence. If bounded shared context would exceed about 500 tokens, an optional `worker-context.md` may hold it; reference that path from `progress.md` and delete or refresh it when stale. It is not a fifth canonical artifact or a state database.
+
+## Lifecycle Rules
 1. **No silent skipping** — if you skip a phase, name it in the response ("skipped /plan: single-file fix with clear spec"). This becomes the audit trail.
 2. **Resolve `.active` first** — all feature-specific reads and writes use `.pi/artifacts/$(cat .pi/artifacts/.active)/`.
 3. **`progress.md` is the execution log** — attempts, failures, reviews, and verification evidence go there.

@@ -78,8 +78,8 @@
       "category": "integration",
       "title": "Merge selected patterns into existing local skills",
       "description": "Existing local skills provide blast-radius planning, contract validation, typed bounded task handoffs, compact lifecycle handoff, and deterministic catalog parity without a duplicate state system.",
-      "status": "pending",
-      "passes": false,
+      "status": "passed",
+      "passes": true,
       "depends_on": [
         "task-2"
       ],

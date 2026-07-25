@@ -502,3 +502,12 @@ test at .pi/tests/skill-system.test.ts:127:1
 - Added producer/consumer boundary validation for parsed inputs, outputs/errors, compatibility, contract tests, and command evidence.
 - Verification: 1 focused test passed.
 - Deviation: split one combined policy test into independent Task E and Task F assertions so each task's named verification exercises real behavior instead of matching zero tests.
+
+## Task F — bounded delegation and handoff
+
+- Direct-first routing now uses zero, one, or two-to-three agents based on actual isolation value.
+- Added typed `task_brief` and `result` envelopes, sequential overflow shards, and parent-owned verification.
+- Compact handoff stays in `progress.md`; optional `worker-context.md` is explicitly non-canonical.
+- Subagent skill size: 182 lines (baseline 238).
+- Verification: 1 focused test passed.
+- PRD task 3 status: passed after Tasks E and F.
