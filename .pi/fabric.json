@@ -6,21 +6,25 @@
   "agents": {
     "enabled": false,
     "runner": "pi",
-    "extensions": false,
+    "extensions": true,
     "retainRuns": false,
     "notifyOnComplete": false,
     "transport": "auto"
   },
   "ui": {
-    "widget": "always",
-    "enabled": false
+    "widget": "hidden",
+    "enabled": true
   },
   "compaction": {
     "engine": "pi",
     "targetContextRatio": 0.7
   },
   "mesh": {
-    "enabled": false
+    "enabled": true
   },
-  "fullCodeMode": true
+  "fullCodeMode": true,
+  "prewalk": {
+    "alwaysRearm": false,
+    "model": ""
+  }
 }

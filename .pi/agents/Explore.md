@@ -1,8 +1,8 @@
 ---
 description: Fast read-only file and code search specialist for locating files, symbols, and usage patterns
 tools: read, bash, grep, find, ls
-extensions: false
-skills: false
+extensions: true
+skills: true
 model: openai-codex/gpt-5.4-mini
 thinking: low
 max_turns: 10

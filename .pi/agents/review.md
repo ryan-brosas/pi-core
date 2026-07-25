@@ -1,10 +1,10 @@
 ---
 description: Read-only code review and debugging specialist for correctness, security, and regressions
 tools: read, bash, grep, find, ls
-extensions: false
-skills: false
+extensions: true
+skills: true
 model: openai-codex/gpt-5.6-sol
-thinking: high
+thinking: medium
 max_turns: 15
 prompt_mode: replace
 inherit_context: false
