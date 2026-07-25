@@ -21,6 +21,66 @@ When this prompt says to spawn, delegate to, or use an agent, invoke the pi-suba
 - `Plan`: architecture and executable planning
 - Use a foreground call when the next step depends on the result. For independent parallel work, issue all calls together with `run_in_background: true`.
 - Omit `model` and `thinking`; agent definitions and scoped-model settings own those choices.
+
+### Planning Worker Routing
+
+`/plan` remains parent-owned synthesis. The parent plans inline by default.
+
+Invoke one foreground `Plan` advisory only when an independent blueprint materially reduces risk:
+
+- **Material ambiguity:** requirements or acceptance boundaries remain unresolved after institutional and local evidence is loaded.
+- **Architectural trade-off:** two or more viable structures have meaningfully different long-term costs.
+- **Cross-subsystem sequencing:** ordering spans multiple contracts or ownership boundaries and a second planning pass reduces integration risk.
+- For complex planning that skips `Plan`, record a brief skip rationale instead of silently declining delegation.
+
+Route missing evidence separately:
+
+- Route **local codebase patterns, file structure, and test discovery** to `Explore`.
+- Route **external docs, library comparisons, and ecosystem evidence** to `scout`.
+- Stop for a parent decision when the right worker is unclear; do not hide that decision in worker selection.
+- One selected input uses one foreground Pi `Agent` call. Two or three genuinely independent questions may run together with `run_in_background: true` and smart join; never exceed three.
+
+Use a foreground Plan call because the next parent decision depends on its advisory result. Do not make specialist planning a mandatory prelude to implementation and review.
+
+### Planning Envelope
+
+Every planning child receives a resolved, self-contained **planning envelope** containing:
+
+- **Task identity and bounded advisory question:** feature slug, planning round/attempt, and the one decision the child must settle
+- **Goal:** outcome-shaped goal from the PRD
+- **Constraints:** hard constraints, soft preferences, and non-negotiables
+- **Canonical graph and input paths:** exact paths to `spec.md`, any existing `plan.md`, `tasks.json`, and relevant files or symbols
+- **Dependencies and prior decisions:** already-resolved tasks, evidence, and choices to preserve
+- **Non-goals:** explicit exclusions
+- **Acceptance criteria:** what must be true for the advisory to be complete
+- **Discovery level cap:** 0–3, set by the parent
+- **Research state:** resolved research, remaining gaps, and questions that must return to the parent
+- **Expected chat-only advisory:** one primary recommendation expressed as an advisory plan draft, proposed task-graph delta, validation findings, risks, assumptions, and open decisions
+- **Stop conditions:** scope thresholds, ambiguity limits, missing evidence, or approval gates
+- **Approval constraints:** read-only inspection only; identify actions requiring parent approval without performing them
+
+Never send unresolved placeholders. Children must not spawn other agents, schedule sibling work, mutate `.active`, `tasks.json`, `progress.md`, or other lifecycle state, implement production code, or write files. The parent verifies worker evidence and resolves conflicts. The parent alone writes or validates canonical `plan.md` and `tasks.json`.
+
+### Foreground Plan Advisory
+
+After required evidence is available, pass the resolved planning envelope to one foreground Plan child:
+
+```typescript
+Agent({
+  subagent_type: "Plan",
+  description: `Advise on ${featureSlug} planning decision`,
+  prompt: planningEnvelope,
+});
+```
+
+Omit `model` and `thinking`; agent definitions and scoped-model settings own those choices. Treat the response as untrusted advisory input until the parent checks its cited evidence.
+
+## Load Skills
+
+```typescript
+read(".pi/skills/planning-and-task-breakdown/SKILL.md");
+```
+
 ## Parse Arguments
 
 | Argument | Default  | Description                       |
@@ -96,7 +156,19 @@ Verify:
 
 - `.pi/artifacts/$(cat .pi/artifacts/.active)/spec.md` exists (if not, tell user to run `/create` first)
 - The authoritative `tasks.json` exists and passes `node --experimental-strip-types .pi/scripts/task-graph.ts validate <tasks.json>` before planning.
-- If `.pi/artifacts/$(cat .pi/artifacts/.active)/plan.md` already exists, ask user: overwrite or skip?
+- If `.pi/artifacts/$(cat .pi/artifacts/.active)/plan.md` already exists, stop for explicit approval: overwrite or skip?
+
+### Approval Checkpoints
+
+Invoking `/plan` authorizes creation of the first canonical `plan.md`. It does not authorize broader workspace or lifecycle changes.
+
+- Overwriting an existing `plan.md` requires explicit approval.
+- Creating unrelated extra files requires explicit approval.
+- Changing `.active` or mutating an unrelated active artifact requires explicit approval.
+- Committing, merging, integrating, pushing, or deploying requires explicit approval.
+- Adding dependencies or running a destructive operation requires explicit approval.
+
+When required approval is absent, stop at a checkpoint and preserve the verified work.
 
 ## Phase 2: Discovery Assessment
 
@@ -406,7 +478,21 @@ If violations found:
 Violations resolved. Plan is compliant.
 ```
 
-## Phase 9: Report
+## Phase 9: Handoff to `/ship`
+
+When planning is complete:
+
+1. Validate the authoritative task graph:
+   ```bash
+   node --experimental-strip-types .pi/scripts/task-graph.ts validate .pi/artifacts/$(cat .pi/artifacts/.active)/tasks.json
+   ```
+2. Confirm `spec.md`, `plan.md`, and `tasks.json` are consistent. If they diverge, update `tasks.json` first; it owns scheduling.
+3. Summarize the ready frontier, any blocked tasks, and open questions.
+4. Transition to `/ship` with the explicitly selected active slug and validated graph.
+
+`.active` remains unchanged during handoff. Any later active-artifact switch is exceptional, parent-owned, and requires explicit approval. Do not implement or commit during the planning handoff.
+
+## Phase 10: Report
 
 Output:
 

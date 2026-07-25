@@ -458,7 +458,7 @@ test("plan prompt keeps canonical and lifecycle writes parent-owned", () => {
 
   assert.match(planPrompt, /parent alone (?:writes|updates|validates)[^\n]*`plan\.md`[^\n]*`tasks\.json`/i);
   assert.match(planPrompt, /invoking `?\/plan`?[^\n]*(?:authorizes|permits)[^\n]*first[^\n]*`plan\.md`/i);
-  assert.match(planPrompt, /overwrite[^\n]*`plan\.md`[^\n]*explicit approval/i);
+  assert.match(planPrompt, /overwrit(?:e|ing)[^\n]*`plan\.md`[^\n]*explicit approval/i);
   assert.match(planPrompt, /unrelated (?:extra )?files?[^\n]*explicit approval/i);
 
   const handoff = section("## Phase 9: Handoff to `/ship`");
