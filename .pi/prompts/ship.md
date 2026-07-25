@@ -28,6 +28,20 @@ When this prompt says to spawn, delegate to, or use an agent, invoke the pi-suba
 - Stop for a parent decision when architecture or scope is unresolved; do not hide that decision in worker selection.
 - One selected task uses one foreground Pi `Agent` call to the resolved worker. Two or three disjoint tasks may use the parent-selected batch workflow; process overflow in sequential shards.
 
+### Primary Worker Dispatch
+
+After resolving architecture, scope, and approval questions, the parent resolves `workerType` to the closed set `general|build`. If it cannot resolve one of those two roles, stop before invocation. For one selected task, invoke the resolved worker in the foreground with the existing complete ship-worker envelope:
+
+```typescript
+const workerType: "general" | "build" = resolvedWorkerType;
+
+Agent({
+  subagent_type: workerType,
+  description: `Implement ${taskId}`,
+  prompt: shipWorkerEnvelope,
+});
+```
+
 ## Implementation Tooling
 
 During `/ship`, use `fabric_exec` for code-mode implementation and batched tool execution. Fabric is the required implementation tool here—not the subagent orchestrator.

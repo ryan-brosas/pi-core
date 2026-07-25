@@ -60,7 +60,7 @@ Every planning child receives a resolved, self-contained **planning envelope** c
 - **Stop conditions:** scope thresholds, ambiguity limits, missing evidence, or approval gates
 - **Approval constraints:** read-only inspection only; identify actions requiring parent approval without performing them
 
-Never send unresolved placeholders. Children must not spawn other agents, schedule sibling work, mutate `.active`, `tasks.json`, `progress.md`, or other lifecycle state, implement production code, or write files. The parent verifies worker evidence and resolves conflicts. The parent alone writes or validates canonical `plan.md` and `tasks.json`.
+Never send unresolved placeholders. Children must not spawn other agents, schedule sibling work, mutate `.active`, `tasks.json`, `progress.md`, or other lifecycle state, implement production code, or write files. The parent verifies worker evidence and resolves conflicts. The parent alone writes or validates canonical `plan.md` and `tasks.json`. Never hand Plan advisory output to `general` to render or write canonical `plan.md` or `tasks.json`.
 
 ### Foreground Plan Advisory
 
