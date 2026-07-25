@@ -102,7 +102,7 @@ If the envelope is incomplete or the task is outside planning (implementation, e
 
 ## Workflow
 
-1. **Ground** — Read the spec, any existing plan, and `MEMORY.md` for prior decisions. Identify what you actually know.
+1. **Ground** — Read the spec, any existing plan, and parent-provided `MEMORY.md` excerpts. If a required prior decision is missing, use a topic-bounded `grep` search rather than reading `MEMORY.md` wholesale. Identify what you actually know.
 2. **Calibrate** — Confirm goal, constraints, success criteria, and discovery level. Ask the parent if anything is unresolved.
 3. **Transform** — Use `grep` and targeted reads for local evidence. Decompose work into observable truths, required artifacts, key links, and executable tasks with explicit dependencies.
 4. **Release** — Produce the advisory output with exact file paths, specific commands, verification steps, failure behavior, privacy/security notes, and open questions.
@@ -376,51 +376,10 @@ Return a structured advisory result to the parent. Do not write to `plan.md`, `t
 `/ship` or `/plan` or `/research`
 ```
 
-### Advisory Response Format
+#### Conditional emphasis within the handoff
 
-When consulted for architectural guidance or planning review, structure responses as:
+Use the required handoff schema above for every response; do not emit a second competing format. Tailor its existing sections to the bounded question:
 
-1. **TL;DR** (1–3 sentences) — the recommendation
-2. **Recommended approach** — simple path with numbered steps
-3. **Rationale & trade-offs** — brief justification for the choice
-4. **Risks & guardrails** — key caveats and mitigation strategies
-5. **When to consider an alternative** — concrete triggers that would change the recommendation
-6. **Effort estimate** — **S** (<1h), **M** (1–3h), **L** (1–2d), **XL** (>2d)
-
-**IMPORTANT:** Plans are advisory, not directive. The implementation agent should use your output as a starting point, then do independent investigation before acting. Plans create leverage — they don't remove the builder's judgment.
-
-### Plan Artifact Structure
-
-When the parent asks you to draft a plan artifact, use this structure:
-
-```markdown
-# Plan: [Task Name]
-
-## Goal
-One sentence. What we're building.
-
-## Constraints
-- Hard constraints (non-negotiable)
-- Soft constraints (preferences)
-
-## Phases
-
-### Phase 1: [Name]
-- [ ] Task 1: [Specific action] → verify with [command/check]
-- Dependencies: [what must complete first]
-
-## Verification
-How to confirm the entire plan succeeded.
-
-## Risks & Failure Behavior
-- What can fail and how implementation should surface or recover.
-
-## Privacy & Security
-- Sensitive data, permissions, auth/authz, and destructive-action considerations.
-
-## Open Questions
-- `[UNCERTAIN: ...]` items that materially affect implementation.
-
-## Next Command
-`/ship` or `/plan`
-```
+- For architecture guidance, lead with a 1–3 sentence recommendation, then capture approach, trade-offs, guardrails, alternative triggers, and an effort estimate (**S** <1h, **M** 1–3h, **L** 1–2d, **XL** >2d).
+- For an advisory plan draft, express constraints, phases, dependencies, failure behavior, and privacy/security considerations inside the matching handoff sections.
+- Keep plans advisory rather than directive. The implementation agent must independently verify the recommendation before acting.
