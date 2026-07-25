@@ -455,6 +455,8 @@ test("plan prompt keeps canonical and lifecycle writes parent-owned", () => {
   assert.match(envelope, /dependencies and prior decisions/i);
   assert.match(envelope, /resolved research/i);
   assert.match(envelope, /remaining gaps/i);
+  assert.match(envelope, /include only task-relevant evidence/i, "planning envelope must minimize context");
+  assert.match(envelope, /never include[^\n]*credentials[^\n]*secrets[^\n]*private conversation[^\n]*unrelated user data/i);
   assert.doesNotMatch(envelope, /updated\s+`?plan\.md`?/i);
   assert.doesNotMatch(envelope, /updated\s+`?tasks\.json`?/i);
 
