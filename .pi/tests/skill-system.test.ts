@@ -571,7 +571,12 @@ test("ship primary worker call resolves workerType and dispatches one foreground
   const beforeCall = block.slice(0, callIndex);
   assert.match(
     beforeCall,
-    /const\s+workerType\s*:\s*"general"\s*\|\s*"build"\s*=\s*resolvedWorkerType\s*;/,
-    "workerType must be an executable general|build union before the primary call",
+    /^(?!\s*\/\/)\s*const\s+workerType\s*:\s*"general"\s*\|\s*"build"\s*=\s*resolvedWorkerType\s*;\s*$/m,
+    "workerType must be an uncommented executable general|build union before the primary call",
+  );
+  assert.match(
+    section,
+    /unresolved architecture, security, migration, scope, or approval/i,
+    "primary dispatch must stop for every unresolved decision class",
   );
 });
