@@ -466,3 +466,10 @@ test at .pi/tests/skill-system.test.ts:127:1
 **Observed failure:** The agent silently collapsed `organization`, `tenant`, and `workspace`, declared both ADRs superseded, invented a new `/workspaces/:id/projects` surface, and claimed finality despite missing identity evidence.
 
 **Rationalization:** “Treating all three account-words as one canonical term … dissolves both hierarchies” and “This standard is final.”
+
+## Task A — Failing policy harness
+
+- Status: passed
+- Commit: `133daef`
+- Static RED: 8 named failures, 0 unexpected passes.
+- Behavioral RED: workspace confirmation loophole observed; terminology pressure produced an unsupported merge and invented API surface.
