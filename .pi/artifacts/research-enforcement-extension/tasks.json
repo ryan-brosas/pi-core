@@ -1,0 +1,185 @@
+{
+  "version": 2,
+  "slug": "research-enforcement-extension",
+  "title": "Pi Research-Enforcement Extension",
+  "status": "ready",
+  "execution": {
+    "mode": "dependency-waves",
+    "max_concurrent_agents": 1,
+    "reason": "All tasks share a focused contract test and build sequentially from tests to policy to lifecycle integration."
+  },
+  "tasks": [
+    {
+      "id": "task-1",
+      "category": "test",
+      "title": "Lock Research-Enforcement Contracts",
+      "description": "Focused tests express classification, evidence, citation, privacy, correction, and Fabric integration contracts and demonstrate the intended red state against the absent extension.",
+      "status": "passed",
+      "passes": true,
+      "attempt": 1,
+      "evidence_refs": [
+        {
+          "kind": "test",
+          "ref": "progress.md#evidence-task-1-attempt-1",
+          "attempt": 1
+        }
+      ],
+      "depends_on": [],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [
+        ".pi/tests/research-enforcement.test.ts"
+      ],
+      "acceptance_criteria": [
+        "Tests cover none, standard, high, and explicit opt-out classification.",
+        "Tests cover provider independence, exact direct and Fabric mappings for opt-in xAI web search, citation shape, privacy, and one-correction behavior.",
+        "The initial focused run fails for the intended missing policy or extension behavior rather than a malformed test."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test --test-name-pattern=\"research enforcement\" .pi/tests/research-enforcement.test.ts",
+        "git diff --check -- .pi/tests/research-enforcement.test.ts"
+      ],
+      "expected_verification_state": "red"
+    },
+    {
+      "id": "task-2",
+      "category": "policy",
+      "title": "Implement Pure Research Policy",
+      "description": "A dependency-free policy and trusted configuration satisfy tier classification, evidence normalization, Fabric trace, citation, privacy, and configuration tests without requiring a Pi runtime.",
+      "status": "passed",
+      "passes": true,
+      "attempt": 3,
+      "evidence_refs": [
+        {
+          "kind": "test",
+          "ref": "progress.md#evidence-task-2-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "review",
+          "ref": "progress.md#evidence-task-2-attempt-2",
+          "attempt": 2
+        },
+        {
+          "kind": "review",
+          "ref": "progress.md#evidence-task-2-attempt-3",
+          "attempt": 3
+        }
+      ],
+      "depends_on": [
+        "task-1"
+      ],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [
+        ".pi/extensions/research-enforcement/policy.ts",
+        ".pi/research-enforcement.json",
+        ".pi/tests/research-enforcement.test.ts"
+      ],
+      "acceptance_criteria": [
+        "Pure policy tests pass without loading a Pi runtime.",
+        "Only successful independent provider categories satisfy evidence requirements.",
+        "Direct xai_grok_web_search and exact Fabric ref extensions.xai_grok_web_search map to one independent xai-web-search category only after successful use.",
+        "Configuration and metrics logic fail safely and retain metadata only."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test --test-name-pattern=\"research enforcement.*(classification|evidence|citation|config|privacy|trace)\" .pi/tests/research-enforcement.test.ts",
+        "node --experimental-strip-types --check .pi/extensions/research-enforcement/policy.ts",
+        "git diff --check -- .pi/extensions/research-enforcement/policy.ts .pi/research-enforcement.json .pi/tests/research-enforcement.test.ts"
+      ]
+    },
+    {
+      "id": "task-3",
+      "category": "extension",
+      "title": "Wire Corrective Extension Lifecycle",
+      "description": "The lifecycle integration injects routes, observes direct and Fabric-mediated research, reports status and metadata-only metrics, and performs at most one race-safe corrective turn.",
+      "status": "passed",
+      "passes": true,
+      "attempt": 3,
+      "evidence_refs": [
+        {
+          "kind": "test",
+          "ref": "progress.md#evidence-task-3-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "review",
+          "ref": "progress.md#evidence-task-3-attempt-2",
+          "attempt": 2
+        },
+        {
+          "kind": "test",
+          "ref": "progress.md#evidence-task-3-attempt-3",
+          "attempt": 3
+        }
+      ],
+      "depends_on": [
+        "task-2"
+      ],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [
+        ".pi/extensions/research-enforcement/index.ts",
+        ".pi/tests/research-enforcement.test.ts"
+      ],
+      "acceptance_criteria": [
+        "Main uses trusted project discovery and child scope follows existing load or exclusion controls.",
+        "Direct and Fabric-mediated successful research activity, including explicit successful xAI web search, updates per-turn provider metadata.",
+        "The extension never enables or invokes the opt-in xAI web-search tool automatically.",
+        "A correction marker is persisted before dispatch and no turn receives a second correction.",
+        "Status and metrics commands expose policy metadata without raw research content."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test --test-name-pattern=\"research enforcement.*(correction|status|scope|direct|Fabric)\" .pi/tests/research-enforcement.test.ts",
+        "node --experimental-strip-types --check .pi/extensions/research-enforcement/index.ts",
+        "git diff --check -- .pi/extensions/research-enforcement/index.ts .pi/tests/research-enforcement.test.ts"
+      ]
+    },
+    {
+      "id": "task-4",
+      "category": "verification",
+      "title": "Verify Integrated Research Enforcement",
+      "description": "The complete feature passes focused checks and graph validation without introducing regressions, restoring deleted extensions, or modifying unrelated runtime state.",
+      "status": "passed",
+      "passes": true,
+      "attempt": 3,
+      "evidence_refs": [
+        {
+          "kind": "verification",
+          "ref": "progress.md#evidence-task-4-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "verification",
+          "ref": "progress.md#evidence-task-4-attempt-2",
+          "attempt": 2
+        },
+        {
+          "kind": "verification",
+          "ref": "progress.md#evidence-task-4-attempt-3",
+          "attempt": 3
+        }
+      ],
+      "depends_on": [
+        "task-3"
+      ],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [],
+      "acceptance_criteria": [
+        "Focused tests, including xAI direct/Fabric mapping and no-auto-activation safeguards, and TypeScript syntax checks pass.",
+        "The active task graph and every retained artifact graph validate.",
+        "The full suite has no new failures beyond the two documented unrelated baseline failures, if those remain.",
+        "Legacy deleted extensions remain absent and unrelated runtime state is untouched."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test .pi/tests/research-enforcement.test.ts",
+        "node --experimental-strip-types --check .pi/extensions/research-enforcement/policy.ts && node --experimental-strip-types --check .pi/extensions/research-enforcement/index.ts",
+        "node --experimental-strip-types .pi/scripts/task-graph.ts validate .pi/artifacts/research-enforcement-extension/tasks.json",
+        "for f in .pi/artifacts/*/tasks.json; do node --experimental-strip-types .pi/scripts/task-graph.ts validate \"$f\"; done",
+        "node --experimental-strip-types --test .pi/tests/*.test.ts",
+        "git diff --check -- .pi/extensions/research-enforcement .pi/research-enforcement.json .pi/tests/research-enforcement.test.ts .pi/artifacts/research-enforcement-extension"
+      ]
+    }
+  ]
+}
