@@ -1,0 +1,359 @@
+{
+  "version": 2,
+  "slug": "detailed-plan-agent-prompt-research",
+  "title": "Detailed Plan Agent and /plan Delegation",
+  "status": "ready",
+  "execution": {
+    "mode": "dependency-waves",
+    "max_concurrent_agents": 1,
+    "reason": "All implementation tasks share the planning contract test file and must execute sequentially in TDD order; integrated verification runs last."
+  },
+  "tasks": [
+    {
+      "id": "task-1",
+      "category": "agent",
+      "title": "Restore the detailed Plan specialist and advisory boundary",
+      "description": "The Plan child has its original planning character, a self-contained envelope, and an enforceable chat-only advisory contract without canonical or lifecycle writes.",
+      "status": "passed",
+      "passes": true,
+      "attempt": 3,
+      "evidence_refs": [
+        {
+          "kind": "test",
+          "ref": ".pi/artifacts/detailed-plan-agent-prompt-research/progress.md#evidence-task-1-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "verification",
+          "ref": ".pi/artifacts/detailed-plan-agent-prompt-research/progress.md#evidence-task-1-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "review",
+          "ref": ".pi/artifacts/detailed-plan-agent-prompt-research/progress.md#evidence-task-1-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "commit",
+          "ref": ".pi/artifacts/detailed-plan-agent-prompt-research/progress.md#evidence-task-1-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "test",
+          "ref": ".pi/artifacts/detailed-plan-agent-prompt-research/progress.md#evidence-task-1-attempt-2",
+          "attempt": 2
+        },
+        {
+          "kind": "verification",
+          "ref": ".pi/artifacts/detailed-plan-agent-prompt-research/progress.md#evidence-task-1-attempt-2",
+          "attempt": 2
+        },
+        {
+          "kind": "review",
+          "ref": ".pi/artifacts/detailed-plan-agent-prompt-research/progress.md#evidence-task-1-attempt-2",
+          "attempt": 2
+        },
+        {
+          "kind": "commit",
+          "ref": ".pi/artifacts/detailed-plan-agent-prompt-research/progress.md#evidence-task-1-attempt-2",
+          "attempt": 2
+        },
+        {
+          "kind": "test",
+          "ref": ".pi/artifacts/detailed-plan-agent-prompt-research/progress.md#evidence-task-1-attempt-3",
+          "attempt": 3
+        },
+        {
+          "kind": "verification",
+          "ref": ".pi/artifacts/detailed-plan-agent-prompt-research/progress.md#evidence-task-1-attempt-3",
+          "attempt": 3
+        },
+        {
+          "kind": "review",
+          "ref": ".pi/artifacts/detailed-plan-agent-prompt-research/progress.md#evidence-task-1-attempt-3",
+          "attempt": 3
+        },
+        {
+          "kind": "commit",
+          "ref": ".pi/artifacts/detailed-plan-agent-prompt-research/progress.md#evidence-task-1-attempt-3",
+          "attempt": 3
+        }
+      ],
+      "depends_on": [],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [
+        ".pi/agents/Plan.md",
+        ".pi/tests/skill-system.test.ts"
+      ],
+      "acceptance_criteria": [
+        "Plan.md preserves its existing frontmatter and directly defines the specialist identity, task, success criteria, read-only boundaries, required envelope, workflow, and advisory output schema.",
+        "Plan.md restores the selected original Planning Guidelines, Architecture as Ritual, Clarity Through Constraint, Simplicity First, leverage and architecture/body quotations, and Ground through Reset ritual.",
+        "The expected child output is chat-only advice, an advisory plan draft, a proposed task-graph delta, or validation findings rather than child-produced canonical files.",
+        "The Plan child cannot write plan.md, tasks.json, progress.md, MEMORY.md, .active, implementation files, Git state, or dependencies and cannot schedule nested agents.",
+        "Focused tests assert exact positive voice and schema markers and reject unsafe canonical-output language.",
+        "The focused contract demonstrates RED against the current missing behavior before the minimum Plan prompt correction passes GREEN."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test --test-name-pattern=\"plan agent\" .pi/tests/skill-system.test.ts",
+        "git diff --check -- .pi/agents/Plan.md .pi/tests/skill-system.test.ts"
+      ]
+    },
+    {
+      "id": "task-2",
+      "category": "prompt",
+      "title": "Wire conditional Plan delegation into /plan",
+      "description": "The parent /plan workflow contains a concrete foreground Plan invocation, a resolved advisory envelope, correct canonical ownership, precise approval gates, and a safe /ship handoff.",
+      "status": "passed",
+      "passes": true,
+      "attempt": 3,
+      "evidence_refs": [
+        {
+          "kind": "test",
+          "ref": ".pi/artifacts/detailed-plan-agent-prompt-research/progress.md#evidence-task-2-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "verification",
+          "ref": ".pi/artifacts/detailed-plan-agent-prompt-research/progress.md#evidence-task-2-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "review",
+          "ref": ".pi/artifacts/detailed-plan-agent-prompt-research/progress.md#evidence-task-2-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "commit",
+          "ref": ".pi/artifacts/detailed-plan-agent-prompt-research/progress.md#evidence-task-2-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "test",
+          "ref": ".pi/artifacts/detailed-plan-agent-prompt-research/progress.md#evidence-task-2-attempt-2",
+          "attempt": 2
+        },
+        {
+          "kind": "verification",
+          "ref": ".pi/artifacts/detailed-plan-agent-prompt-research/progress.md#evidence-task-2-attempt-2",
+          "attempt": 2
+        },
+        {
+          "kind": "review",
+          "ref": ".pi/artifacts/detailed-plan-agent-prompt-research/progress.md#evidence-task-2-attempt-2",
+          "attempt": 2
+        },
+        {
+          "kind": "commit",
+          "ref": ".pi/artifacts/detailed-plan-agent-prompt-research/progress.md#evidence-task-2-attempt-2",
+          "attempt": 2
+        },
+        {
+          "kind": "test",
+          "ref": ".pi/artifacts/detailed-plan-agent-prompt-research/progress.md#evidence-task-2-attempt-3",
+          "attempt": 3
+        },
+        {
+          "kind": "verification",
+          "ref": ".pi/artifacts/detailed-plan-agent-prompt-research/progress.md#evidence-task-2-attempt-3",
+          "attempt": 3
+        },
+        {
+          "kind": "review",
+          "ref": ".pi/artifacts/detailed-plan-agent-prompt-research/progress.md#evidence-task-2-attempt-3",
+          "attempt": 3
+        },
+        {
+          "kind": "commit",
+          "ref": ".pi/artifacts/detailed-plan-agent-prompt-research/progress.md#evidence-task-2-attempt-3",
+          "attempt": 3
+        }
+      ],
+      "depends_on": [
+        "task-1"
+      ],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [
+        ".pi/prompts/plan.md",
+        ".pi/tests/skill-system.test.ts"
+      ],
+      "acceptance_criteria": [
+        "/plan contains a concrete Agent invocation example whose subagent_type is Plan and whose model and thinking settings remain owned by agent configuration.",
+        "/plan plans inline by default and invokes Plan for material ambiguity, architectural trade-offs, or cross-subsystem sequencing, with a rationale when complex work skips delegation.",
+        "The Plan invocation is foreground and receives a fully resolved, self-contained advisory envelope.",
+        "The parent alone reconciles evidence and writes or validates canonical plan.md and tasks.json.",
+        "Initial canonical plan creation is distinguished from approval-gated overwrite and unrelated extra-file creation.",
+        ".active remains exceptional and approval-gated and is not assigned as a routine /ship responsibility.",
+        "Focused tests require the concrete call and ownership language and reject unsafe child writes, automatic Plan-to-Implement-to-Review choreography, and routine .active switching.",
+        "The focused contract demonstrates RED against the current missing behavior before the minimum /plan correction passes GREEN."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test --test-name-pattern=\"plan prompt|Plan delegation\" .pi/tests/skill-system.test.ts",
+        "git diff --check -- .pi/prompts/plan.md .pi/tests/skill-system.test.ts"
+      ]
+    },
+    {
+      "id": "task-3",
+      "category": "skill",
+      "title": "Align reusable planning doctrine and routing",
+      "description": "The planning skill owns reusable decomposition doctrine and consistently describes bounded Plan, Explore, and scout inputs while preserving parent synthesis and lifecycle ownership.",
+      "status": "passed",
+      "passes": true,
+      "attempt": 3,
+      "evidence_refs": [
+        {
+          "kind": "test",
+          "ref": ".pi/artifacts/detailed-plan-agent-prompt-research/progress.md#evidence-task-3-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "verification",
+          "ref": ".pi/artifacts/detailed-plan-agent-prompt-research/progress.md#evidence-task-3-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "review",
+          "ref": ".pi/artifacts/detailed-plan-agent-prompt-research/progress.md#evidence-task-3-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "commit",
+          "ref": ".pi/artifacts/detailed-plan-agent-prompt-research/progress.md#evidence-task-3-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "test",
+          "ref": ".pi/artifacts/detailed-plan-agent-prompt-research/progress.md#evidence-task-3-attempt-2",
+          "attempt": 2
+        },
+        {
+          "kind": "verification",
+          "ref": ".pi/artifacts/detailed-plan-agent-prompt-research/progress.md#evidence-task-3-attempt-2",
+          "attempt": 2
+        },
+        {
+          "kind": "review",
+          "ref": ".pi/artifacts/detailed-plan-agent-prompt-research/progress.md#evidence-task-3-attempt-2",
+          "attempt": 2
+        },
+        {
+          "kind": "commit",
+          "ref": ".pi/artifacts/detailed-plan-agent-prompt-research/progress.md#evidence-task-3-attempt-2",
+          "attempt": 2
+        },
+        {
+          "kind": "test",
+          "ref": ".pi/artifacts/detailed-plan-agent-prompt-research/progress.md#evidence-task-3-attempt-3",
+          "attempt": 3
+        },
+        {
+          "kind": "verification",
+          "ref": ".pi/artifacts/detailed-plan-agent-prompt-research/progress.md#evidence-task-3-attempt-3",
+          "attempt": 3
+        },
+        {
+          "kind": "review",
+          "ref": ".pi/artifacts/detailed-plan-agent-prompt-research/progress.md#evidence-task-3-attempt-3",
+          "attempt": 3
+        },
+        {
+          "kind": "commit",
+          "ref": ".pi/artifacts/detailed-plan-agent-prompt-research/progress.md#evidence-task-3-attempt-3",
+          "attempt": 3
+        }
+      ],
+      "depends_on": [
+        "task-2"
+      ],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [
+        ".pi/skills/planning-and-task-breakdown/SKILL.md",
+        ".pi/tests/skill-system.test.ts"
+      ],
+      "acceptance_criteria": [
+        "The planning skill explicitly assigns bounded architecture and cross-subsystem advisory work to Plan, local discovery to Explore, and external evidence to scout.",
+        "The skill preserves direct parent work as the default and assigns conflict resolution, synthesis, canonical writes, and lifecycle ownership to the parent.",
+        "Reusable doctrine remains agent-neutral and does not duplicate the complete /plan lifecycle or the Plan specialist persona.",
+        "Focused tests assert conditional Plan routing and parent-owned synthesis.",
+        "The focused contract demonstrates RED against the current missing behavior before the minimum skill correction passes GREEN."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test --test-name-pattern=\"planning skill|planning ownership\" .pi/tests/skill-system.test.ts",
+        "git diff --check -- .pi/skills/planning-and-task-breakdown/SKILL.md .pi/tests/skill-system.test.ts"
+      ]
+    },
+    {
+      "id": "task-4",
+      "category": "verification",
+      "title": "Run integrated verification and independent review",
+      "description": "All focused and retained checks pass, the canonical graph validates, affected files are clean, and an independent review finds no unresolved critical or important contract issue.",
+      "status": "passed",
+      "passes": true,
+      "attempt": 4,
+      "evidence_refs": [
+        {
+          "kind": "test",
+          "ref": ".pi/artifacts/detailed-plan-agent-prompt-research/progress.md#failure-task-4-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "review",
+          "ref": ".pi/artifacts/detailed-plan-agent-prompt-research/progress.md#failure-task-4-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "test",
+          "ref": ".pi/artifacts/detailed-plan-agent-prompt-research/progress.md#failure-task-4-attempt-2",
+          "attempt": 2
+        },
+        {
+          "kind": "verification",
+          "ref": ".pi/artifacts/detailed-plan-agent-prompt-research/progress.md#failure-task-4-attempt-2",
+          "attempt": 2
+        },
+        {
+          "kind": "review",
+          "ref": ".pi/artifacts/detailed-plan-agent-prompt-research/progress.md#failure-task-4-attempt-3",
+          "attempt": 3
+        },
+        {
+          "kind": "test",
+          "ref": ".pi/artifacts/detailed-plan-agent-prompt-research/progress.md#failure-task-4-attempt-4",
+          "attempt": 4
+        },
+        {
+          "kind": "verification",
+          "ref": ".pi/artifacts/detailed-plan-agent-prompt-research/progress.md#failure-task-4-attempt-4",
+          "attempt": 4
+        },
+        {
+          "kind": "review",
+          "ref": ".pi/artifacts/detailed-plan-agent-prompt-research/progress.md#failure-task-4-attempt-4",
+          "attempt": 4
+        }
+      ],
+      "depends_on": [
+        "task-3"
+      ],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [],
+      "acceptance_criteria": [
+        "Focused planning-agent, planning-prompt, planning-skill, and task-graph tests pass together.",
+        "The full Pi Core test suite is run and any independently verified pre-existing blocker is reported without being absorbed into this scope.",
+        "The active version-2 task graph validates successfully.",
+        "All affected implementation paths pass whitespace checks.",
+        "An independent review reports no unresolved critical or important correctness, ownership, orchestration, or test-contract finding.",
+        "No unrelated, runtime-managed, or unapproved path is included in implementation evidence."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test .pi/tests/skill-system.test.ts .pi/tests/task-graph.test.ts",
+        "node --experimental-strip-types --test .pi/tests/*.test.ts",
+        "node --experimental-strip-types .pi/scripts/task-graph.ts validate .pi/artifacts/detailed-plan-agent-prompt-research/tasks.json",
+        "git diff --check -- .pi/agents/Plan.md .pi/prompts/plan.md .pi/skills/planning-and-task-breakdown/SKILL.md .pi/tests/skill-system.test.ts"
+      ]
+    }
+  ]
+}

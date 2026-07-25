@@ -138,6 +138,21 @@
 - **Final review outcome:** no severity-ranked findings remain; the patch is ready for user sign-off.
 - **Commit/merge:** not performed; explicit approval required.
 
+## 2026-07-25 — Closed
+
+- User authorized commit and close.
+- Staged and committed only the 7 owned paths (6 implementation files + artifact directory):
+  - `.pi/agents/build.md`
+  - `.pi/agents/general.md`
+  - `.pi/prompts/ship.md`
+  - `.pi/skills/subagent-driven-development/SKILL.md`
+  - `.pi/tests/skill-system.test.ts`
+  - `.pi/workflows/batch-implement.md`
+  - `.pi/artifacts/subagent-utilization-glm-5-2-fabric-ship/`
+- Commit SHA: `6eea2d6` on branch `main`.
+- Cleared `.pi/artifacts/.active`; the artifact is closed.
+- Push was not requested and has not been performed.
+
 ## Next action
 
-Report `/ship` completion to the user and await explicit direction on commit, merge, push, or close.
+None; the feature is shipped and closed. Push or other follow-up requires separate user approval.
