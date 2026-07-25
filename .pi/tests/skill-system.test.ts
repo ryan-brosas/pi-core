@@ -345,3 +345,73 @@ test("ship honors project approval gates", () => {
   assert.doesNotMatch(ship, /Set up the workspace: create branch, install deps if needed/i);
   assert.doesNotMatch(ship, /Commit before close[^\n]*required/i);
 });
+
+test("plan agent preserves detailed voice and exact runtime contract", () => {
+  const frontmatter = agentFrontmatter(".pi/agents/Plan.md");
+  for (const expected of [
+    "description: Planning agent for architecture, decomposition, and executable implementation plans",
+    "tools: read, bash, grep, find, ls",
+    "extensions: false",
+    "skills: false",
+    "model: openai-codex/gpt-5.6-sol",
+    "thinking: high",
+    "max_turns: 12",
+    "prompt_mode: replace",
+    "inherit_context: false",
+  ]) {
+    assert.ok(frontmatter.split("\n").includes(expected), `missing exact Plan frontmatter line: ${expected}`);
+  }
+
+  const plan = agentBody(".pi/agents/Plan.md");
+  const orderedMarkers = [
+    "# Planning Guidelines",
+    "## Architecture as Ritual",
+    "## Clarity Through Constraint",
+    "## Simplicity First",
+    "**Ground**",
+    "**Calibrate**",
+    "**Transform**",
+    "**Release**",
+    "**Reset**",
+  ];
+  let previous = -1;
+  for (const marker of orderedMarkers) {
+    const index = plan.indexOf(marker);
+    assert.ok(index > previous, `Plan marker is missing or out of order: ${marker}`);
+    previous = index;
+  }
+  assert.match(plan, /A good plan doesn't predict the future; it creates leverage for the builder\./);
+  assert.match(plan, /The body is architecture\. The breath is wiring\. The rhythm is survival\./);
+});
+
+test("plan agent output is chat-only and canonical-state safe", () => {
+  const plan = agentBody(".pi/agents/Plan.md");
+  const section = (heading: string): string => {
+    const start = plan.indexOf(heading);
+    assert.notEqual(start, -1, `missing Plan section: ${heading}`);
+    const contentStart = start + heading.length;
+    const next = plan.indexOf("\n## ", contentStart);
+    return plan.slice(contentStart, next === -1 ? undefined : next);
+  };
+
+  const envelope = section("## Required Planning Envelope");
+  for (const expected of [
+    "bounded advisory question",
+    "canonical graph and input paths",
+    "dependencies and prior decisions",
+    "resolved research",
+    "remaining gaps",
+    "chat-only advice",
+    "advisory plan draft",
+    "proposed task-graph delta",
+    "validation findings",
+  ]) {
+    assert.match(envelope, new RegExp(expected, "i"), `missing Plan envelope contract: ${expected}`);
+  }
+  assert.doesNotMatch(envelope, /updated\s+`?plan\.md`?/i);
+  assert.doesNotMatch(envelope, /updated\s+`?tasks\.json`?/i);
+  assert.match(plan, /parent alone (?:writes|updates|validates)[^\n]*`plan\.md`[^\n]*`tasks\.json`/i);
+  assert.match(plan, /never write or edit[^\n]*`plan\.md`[^\n]*`tasks\.json`[^\n]*`progress\.md`[^\n]*`MEMORY\.md`[^\n]*`\.active`/i);
+  assert.match(plan, /never write or edit[^\n]*implementation files[^\n]*Git state[^\n]*dependencies/i);
+  assert.match(plan, /(?:do not|never|must not)[^\n]*(?:spawn|delegate|schedule)[^\n]*agents?/i);
+});
