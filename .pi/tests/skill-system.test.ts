@@ -536,8 +536,11 @@ test("plan writer boundary keeps canonical plan.md and tasks.json parent-owned",
   );
 
   const calls = [...planPrompt.matchAll(/Agent\(\{[\s\S]*?\n\s*\}\);/g)].map((match) => match[0]);
-  const generalCalls = calls.filter((call) => /subagent_type:\s*"general"/.test(call));
-  assert.equal(generalCalls.length, 0, "/plan must not contain a concrete subagent_type: 'general' call");
+  const nonAdvisoryCalls = calls.filter((call) => {
+    const role = call.match(/subagent_type:\s*([^,\n]+)/)?.[1].trim();
+    return !role || !/^["'](?:Plan|Explore|scout)["']$/.test(role);
+  });
+  assert.equal(nonAdvisoryCalls.length, 0, "/plan concrete calls must use literal advisory/research roles, never an implementation worker or variable role");
 });
 
 test("ship primary worker call resolves workerType and dispatches one foreground Agent", () => {
@@ -574,9 +577,8 @@ test("ship primary worker call resolves workerType and dispatches one foreground
     /^(?!\s*\/\/)\s*const\s+workerType\s*:\s*"general"\s*\|\s*"build"\s*=\s*resolvedWorkerType\s*;\s*$/m,
     "workerType must be an uncommented executable general|build union before the primary call",
   );
-  assert.match(
-    section,
-    /unresolved architecture, security, migration, scope, or approval/i,
-    "primary dispatch must stop for every unresolved decision class",
-  );
+  const unresolvedGuard = /unresolved architecture, security, migration, scope, or approval/i;
+  const guardIndex = section.search(unresolvedGuard);
+  assert.notEqual(guardIndex, -1, "primary dispatch must stop for every unresolved decision class");
+  assert.ok(guardIndex < section.indexOf("```"), "unresolved-decision guard must occur before the dispatch code fence");
 });
