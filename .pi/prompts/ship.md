@@ -30,7 +30,9 @@ When this prompt says to spawn, delegate to, or use an agent, invoke the pi-suba
 
 ### Primary Worker Dispatch
 
-If any unresolved architecture, security, migration, scope, or approval question remains, stop before worker selection. Otherwise, the parent resolves `workerType` to the closed set `general|build`. If it cannot resolve one of those two roles, stop before invocation. For one selected task, invoke the resolved worker in the foreground with the existing complete ship-worker envelope:
+If any unresolved architecture, security, migration, scope, or approval question remains, stop before worker selection.
+
+Otherwise, the parent resolves `workerType` to the closed set `general|build`. If it cannot resolve one of those two roles, stop before invocation. For one selected task, invoke the resolved worker in the foreground with the existing complete ship-worker envelope:
 
 ```typescript
 const workerType: "general" | "build" = resolvedWorkerType;
