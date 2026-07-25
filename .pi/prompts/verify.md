@@ -172,13 +172,7 @@ Output:
 5. **Blocking issues** to fix before shipping
 6. **Next step**: `/ship $ARGUMENTS` if ready, or list fixes needed
 
-Record significant findings in context files:
-
-```bash
-# Append to .pi/artifacts/MEMORY.md:
-#   - YYYY-MM-DD: [scope] [key finding] — [what, impact, resolution]
-# Put under the Decisions or Gotchas section as appropriate
-```
+Record attempt-scoped verification findings in the active `progress.md`. Hindsight automatic retain captures ordinary durable session deltas; use `hindsight_retain` only for raw, high-value facts or decisions that require immediate persistence, never to duplicate the progress log.
 
 ## Related Commands
 

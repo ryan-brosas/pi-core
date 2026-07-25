@@ -131,14 +131,7 @@ Synthesize the root `AGENTS.md`; do not copy the scaffold verbatim and never bli
 
 ### Phase 4: Create tech-stack.md
 
-Write detected values to `.pi/tech-stack.md`. Then persist:
-
-```markdown
-# Append to .pi/artifacts/MEMORY.md (under Decisions section):
-## YYYY-MM-DD Project initialized — [tech stack summary]
-
-Core setup completed: AGENTS.md, tech-stack.md created for [language/framework] project.
-```
+Write detected values to `.pi/tech-stack.md`. Hindsight automatic retain captures ordinary session deltas. Because validated project setup is high-value context that should be available immediately, call `hindsight_retain` once with the raw detected values and their source paths; do not retain a duplicate summary.
 
 ### Phase 5: Setup Optional Workflows
 

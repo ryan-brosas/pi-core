@@ -66,6 +66,7 @@ Every planning child receives a resolved, self-contained **planning envelope** c
 - **Acceptance criteria:** what must be true for the advisory to be complete
 - **Discovery level cap:** 0–3, set by the parent
 - **Research state:** resolved research, remaining gaps, and questions that must return to the parent
+- **Parent-provided task-relevant Hindsight context:** include only relevant prior decisions. If context is missing, return the context gap to the parent instead of broadening memory access.
 - **Privacy and data minimization:** include only task-relevant evidence. Never include credentials, secrets, private conversation, or unrelated user data.
 - **Expected chat-only advisory:** one primary recommendation expressed as an advisory plan draft, proposed task-graph delta, validation findings, risks, assumptions, and open decisions
 - **Stop conditions:** scope thresholds, ambiguity limits, missing evidence, or approval gates
@@ -100,13 +101,7 @@ Before touching the PRD or planning anything, load what the codebase already kno
 
 ### Step 1: Search project context
 
-Search `.pi/artifacts/MEMORY.md` for: bugfixes, existing plans, prior decisions.
-
-```bash
-rg -n "topic" .pi/artifacts/MEMORY.md
-```
-
-If relevant context found: incorporate it directly into the plan. Don't re-solve solved problems.
+Use automatically recalled Hindsight project context first for bugfixes, existing plans, and prior decisions. If a material gap remains, call `hindsight_recall` with a topic-bounded query; use `hindsight_reflect` only when synthesis across memories is required. Incorporate relevant context directly and do not re-solve settled problems.
 
 ### Step 2: Mine git history
 

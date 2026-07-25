@@ -575,3 +575,129 @@ test("deep module design requires an enabling point for a test seam", () => {
     /An interface becomes a test seam only when an enabling point can select one behavior or a real alternative\./i,
   );
 });
+
+test("Hindsight runtime policy is project-only and non-redundant", () => {
+  const config = JSON.parse(readRequired(".pi/hindsight.json")) as {
+    setupComplete?: boolean;
+    scope?: { mode?: string };
+    agentUse?: string;
+    banks?: {
+      project?: { enabled?: boolean; derive?: string; bankId?: string };
+      user?: { enabled?: boolean };
+    };
+    userRetain?: { mode?: string };
+    recall?: { enabled?: boolean };
+    retain?: { enabled?: boolean };
+    mentalModels?: { inject?: boolean };
+  };
+
+  assert.equal(config.setupComplete, true);
+  assert.equal(config.scope?.mode, "domain-tagged");
+  assert.equal(config.agentUse, "coding");
+  assert.deepEqual(config.banks?.project, { enabled: true, derive: "manual", bankId: "pi-coding" });
+  assert.equal(config.banks?.user?.enabled, false);
+  assert.equal(config.userRetain?.mode, "explicit-only");
+  assert.equal(config.recall?.enabled, true);
+  assert.equal(config.retain?.enabled, true);
+  assert.equal(config.mentalModels?.inject, false, "automatic mental-model injection must be disabled");
+});
+
+function retiredMemoryMarkers(): string[] {
+  const filename = ["MEMORY", ".md"].join("");
+  return [filename, [".opencode", "artifacts", filename].join("/")];
+}
+
+function assertNoRetiredMemory(path: string, text: string): void {
+  for (const marker of retiredMemoryMarkers()) {
+    assert.equal(text.includes(marker), false, `${path} still references retired file memory: ${marker}`);
+  }
+}
+
+test("parent lifecycle memory policy uses Hindsight", () => {
+  const surfaces = {
+    "AGENTS.md": readRequired("AGENTS.md"),
+    "development lifecycle": readRequired(".pi/skills/development-lifecycle/SKILL.md"),
+  };
+
+  for (const [path, text] of Object.entries(surfaces)) {
+    assert.match(text, /Hindsight/i, `${path} must name the durable memory authority`);
+    assert.match(text, /automatic(?:ally)?[^\n]*recall/i, `${path} must use automatic recall first`);
+    assert.match(text, /automatic(?:ally)?[^\n]*retain/i, `${path} must define automatic retain`);
+    assertNoRetiredMemory(path, text);
+  }
+
+  assert.match(surfaces["AGENTS.md"], /hindsight_recall/i);
+  assert.match(surfaces["AGENTS.md"], /hindsight_reflect/i);
+  assert.match(surfaces["development lifecycle"], /progress\.md[^\n]*(?:attempt|evidence)|(?:attempt|evidence)[^\n]*progress\.md/i);
+});
+
+test("Fabric child Hindsight context is parent-owned", () => {
+  const surfaces = {
+    "AGENTS.md": readRequired("AGENTS.md"),
+    "plan prompt": readRequired(".pi/prompts/plan.md"),
+    "ship prompt": readRequired(".pi/prompts/ship.md"),
+  };
+
+  for (const [path, text] of Object.entries(surfaces)) {
+    assert.match(text, /parent[- ]provided[^\n]*task-relevant[^\n]*Hindsight context|parent[^\n]*task-relevant[^\n]*Hindsight context/i, path);
+    assert.match(text, /(?:missing context|context gap)[^\n]*(?:report|return)[^\n]*parent|(?:report|return)[^\n]*(?:missing context|context gap)[^\n]*parent/i, path);
+  }
+
+  assert.match(
+    Object.values(surfaces).join("\n"),
+    /credentials[^\n]*secrets[^\n]*private conversation[^\n]*unrelated user data/i,
+    "delegation context must preserve the privacy boundary",
+  );
+});
+
+test("orchestration surfaces use Hindsight without file memory", () => {
+  const contextPaths = [
+    ".pi/prompts/create.md",
+    ".pi/prompts/plan.md",
+    ".pi/prompts/research.md",
+    ".pi/prompts/ship.md",
+  ];
+  const retentionPaths = [
+    ".pi/prompts/init.md",
+    ".pi/prompts/ship.md",
+    ".pi/prompts/verify.md",
+  ];
+
+  for (const path of new Set([...contextPaths, ...retentionPaths])) {
+    assertNoRetiredMemory(path, readRequired(path));
+  }
+  for (const path of contextPaths) {
+    const text = readRequired(path);
+    assert.match(text, /Hindsight/i, path);
+    assert.match(text, /automatic(?:ally)?[^\n]*recall/i, path);
+    assert.match(text, /hindsight_recall/i, path);
+  }
+  for (const path of retentionPaths) {
+    const text = readRequired(path);
+    assert.match(text, /Hindsight/i, path);
+    assert.match(text, /automatic(?:ally)?[^\n]*retain/i, path);
+    assert.match(text, /hindsight_retain/i, path);
+  }
+});
+
+test("Hindsight configuration and runtime state are protected", () => {
+  for (const path of [".pi/prompts/gc.md", ".pi/workflows/garbage-collection.md"]) {
+    const text = readRequired(path);
+    assert.match(text, /\.pi\/hindsight\.json/i, path);
+    assert.match(text, /\.pi\/hindsight\//i, path);
+    assert.match(text, /runtime-managed/i, path);
+    assertNoRetiredMemory(path, text);
+  }
+
+  const techStack = readRequired(".pi/templates/tech-stack.md");
+  assert.match(techStack, /Hindsight/i);
+  assertNoRetiredMemory(".pi/templates/tech-stack.md", techStack);
+});
+
+test("legacy file memory is absent", () => {
+  const artifactPath = [".pi", "artifacts", ["MEMORY", ".md"].join("")].join("/");
+  const skillPath = [".pi", "skills", "memory", "SKILL.md"].join("/");
+  assert.equal(existsSync(artifactPath), false, `retired memory artifact remains: ${artifactPath}`);
+  assert.equal(existsSync(skillPath), false, `retired memory skill remains: ${skillPath}`);
+  assert.equal(manifestSkillNames().includes("memory"), false, "retired memory skill remains in manifest");
+});

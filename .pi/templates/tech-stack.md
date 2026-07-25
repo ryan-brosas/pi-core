@@ -82,4 +82,4 @@ This file is automatically injected into ALL AI prompts via `opencode.json` inst
 ---
 
 _Update this file when tech stack or constraints change._
-_AI will capture architecture, conventions, and gotchas in `.opencode/artifacts/MEMORY.md` as it works._
+_AI uses project Hindsight to recall and retain durable architecture, conventions, and gotchas; this file remains the authoritative tech-stack record._

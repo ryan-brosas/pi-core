@@ -52,11 +52,7 @@ Use `agents.run({...})` inside `fabric_exec` only when delegation saves more con
 
 ### Context Search
 
-Search `.pi/artifacts/MEMORY.md` for: prior decisions, similar work.
-
-```bash
-rg -n "topic" .pi/artifacts/MEMORY.md
-```
+Use automatically recalled Hindsight project context first for prior decisions and similar work. If a material gap remains, call `hindsight_recall` with a topic-bounded query; use `hindsight_reflect` only when synthesis across memories is required. Do not query memory speculatively.
 
 ### Existing Work Check
 

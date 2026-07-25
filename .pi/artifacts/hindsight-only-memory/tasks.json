@@ -1,0 +1,351 @@
+{
+  "version": 2,
+  "slug": "hindsight-only-memory",
+  "title": "Hindsight-Only Memory",
+  "status": "complete",
+  "execution": {
+    "mode": "dependency-waves",
+    "max_concurrent_agents": 1,
+    "reason": "Tasks 2, 3, 5, and 6 edit disjoint surfaces while task 4 verifies the intentionally removed project-agent layer; serialize execution to preserve unrelated dirty hunks and defer destructive deletion until all references are gone."
+  },
+  "tasks": [
+    {
+      "status": "passed",
+      "passes": true,
+      "attempt": 1,
+      "evidence_refs": [
+        {
+          "kind": "test",
+          "ref": "progress.md#evidence-task-1-attempt-1",
+          "attempt": 1
+        }
+      ],
+      "conflicts_with": [],
+      "id": "task-1",
+      "category": "test",
+      "title": "Lock Hindsight-Only Contracts",
+      "parallel": false,
+      "description": "Focused tests express the runtime policy, live-reference ban, parent/subagent context boundary, lifecycle retention semantics, and protected runtime state, reaching RED only on the intended missing behavior.",
+      "depends_on": [],
+      "files": [
+        ".pi/tests/skill-system.test.ts"
+      ],
+      "acceptance_criteria": [
+        "Tests assert the effective project-only pi-coding Hindsight policy and mentalModels.inject=false.",
+        "Tests assert the retired memory file and skill are absent and the manifest remains exact.",
+        "Tests reject live file-memory references without scanning historical artifacts or runtime state.",
+        "Tests require parent-owned sanitized Hindsight context for fresh subagents.",
+        "Tests distinguish active progress evidence, Hindsight configuration, and runtime-managed sidecars.",
+        "Existing assertions and unrelated appended tests are preserved."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test .pi/tests/skill-system.test.ts",
+        "git diff --check -- .pi/tests/skill-system.test.ts"
+      ],
+      "expected_verification_state": "red"
+    },
+    {
+      "status": "passed",
+      "passes": true,
+      "attempt": 1,
+      "evidence_refs": [
+        {
+          "kind": "test",
+          "ref": "progress.md#evidence-task-2-attempt-1",
+          "attempt": 1
+        }
+      ],
+      "conflicts_with": [],
+      "id": "task-2",
+      "category": "config",
+      "title": "Make the Hindsight Runtime Policy Explicit",
+      "parallel": true,
+      "description": "The project configuration resolves to project-only pi-coding recall and retain with the user bank off and automatic mental-model injection off.",
+      "depends_on": [
+        "task-1"
+      ],
+      "files": [
+        ".pi/hindsight.json"
+      ],
+      "acceptance_criteria": [
+        "The supported Hindsight control plane is dry-run before applying the project patch.",
+        "setupComplete, domain-tagged scope, coding agent use, manual pi-coding project bank, and project-only behavior remain explicit.",
+        "Recall and retain remain enabled, user bank remains disabled, and user retain remains explicit-only.",
+        "mentalModels.inject is explicitly false while server-side mental models are not changed.",
+        "The existing base URL and status style are preserved."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test --test-name-pattern=\"Hindsight runtime policy\" .pi/tests/skill-system.test.ts",
+        "node -e 'const a=require(\"node:assert/strict\"),c=require(\"./.pi/hindsight.json\");a.equal(c.mentalModels.inject,false);a.equal(c.recall.enabled,true);a.equal(c.retain.enabled,true);a.equal(c.banks.user.enabled,false)'",
+        "git diff --check -- .pi/hindsight.json"
+      ],
+      "expected_verification_state": "green"
+    },
+    {
+      "status": "passed",
+      "passes": true,
+      "attempt": 1,
+      "evidence_refs": [
+        {
+          "kind": "test",
+          "ref": "progress.md#evidence-task-3-attempt-1",
+          "attempt": 1
+        }
+      ],
+      "conflicts_with": [],
+      "id": "task-3",
+      "category": "policy",
+      "title": "Replace Parent Lifecycle Memory Policy",
+      "parallel": true,
+      "description": "Repository authority and lifecycle guidance consistently use Hindsight for durable cross-feature context while retaining active attempt evidence in progress.md.",
+      "depends_on": [
+        "task-1"
+      ],
+      "files": [
+        "AGENTS.md",
+        ".pi/skills/development-lifecycle/SKILL.md"
+      ],
+      "acceptance_criteria": [
+        "The evidence hierarchy treats injected Hindsight context and bounded explicit Hindsight lookup as memory inputs.",
+        "Durable cross-feature memory belongs to the project Hindsight bank, not an artifact file.",
+        "Active task state and attempt evidence remain exclusively in tasks.json and progress.md.",
+        "Ordinary session deltas rely on automatic retain; explicit retain is reserved for raw high-value content.",
+        "Existing unrelated dirty hunks are preserved exactly."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test --test-name-pattern=\"parent lifecycle memory policy\" .pi/tests/skill-system.test.ts",
+        "git diff --check -- AGENTS.md .pi/skills/development-lifecycle/SKILL.md"
+      ],
+      "expected_verification_state": "green"
+    },
+    {
+      "status": "passed",
+      "passes": true,
+      "attempt": 4,
+      "evidence_refs": [
+        {
+          "kind": "verification",
+          "ref": "progress.md#evidence-task-4-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "verification",
+          "ref": "progress.md#evidence-task-4-attempt-2",
+          "attempt": 2
+        },
+        {
+          "kind": "verification",
+          "ref": "progress.md#evidence-task-4-attempt-4",
+          "attempt": 4
+        }
+      ],
+      "conflicts_with": [],
+      "id": "task-4",
+      "category": "integration",
+      "title": "Honor the Removed Project-Agent Surface",
+      "parallel": false,
+      "description": "The intentionally removed project-specific agent definitions remain untouched while parent Fabric delegation surfaces carry sanitized Hindsight context and gap-reporting rules.",
+      "depends_on": [
+        "task-1",
+        "task-3",
+        "task-5"
+      ],
+      "files": [],
+      "acceptance_criteria": [
+        "The staged deletion of project-specific agent definitions and .pi/subagents.json remains untouched and owner-attributed.",
+        "No Hindsight-only task recreates or edits a deleted project agent file.",
+        "Parent policy and delegation prompts provide only task-relevant Hindsight context to Fabric children.",
+        "Fabric children report missing context to the parent instead of broadening memory access.",
+        "Credentials, secrets, private conversation, and unrelated user data remain excluded from child envelopes."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test --test-name-pattern=\"legacy Pi-subagent project configuration is absent|Fabric child Hindsight context is parent-owned\" .pi/tests/skill-system.test.ts",
+        "git diff --cached --name-status -- .pi/agents .pi/subagents.json"
+      ],
+      "expected_verification_state": "green"
+    },
+    {
+      "status": "passed",
+      "passes": true,
+      "attempt": 5,
+      "evidence_refs": [
+        {
+          "kind": "test",
+          "ref": "progress.md#evidence-task-5-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "test",
+          "ref": "progress.md#evidence-task-5-attempt-2",
+          "attempt": 2
+        },
+        {
+          "kind": "test",
+          "ref": "progress.md#evidence-task-5-attempt-4",
+          "attempt": 4
+        },
+        {
+          "kind": "test",
+          "ref": "progress.md#evidence-task-5-attempt-5",
+          "attempt": 5
+        }
+      ],
+      "conflicts_with": [],
+      "id": "task-5",
+      "category": "prompts",
+      "title": "Replace Command Memory Workflows",
+      "parallel": true,
+      "description": "Create, init, plan, research, ship, and verify use automatic Hindsight context and retention with bounded explicit operations only when needed.",
+      "depends_on": [
+        "task-1"
+      ],
+      "files": [
+        ".pi/prompts/create.md",
+        ".pi/prompts/init.md",
+        ".pi/prompts/plan.md",
+        ".pi/prompts/research.md",
+        ".pi/prompts/ship.md",
+        ".pi/prompts/verify.md"
+      ],
+      "acceptance_criteria": [
+        "Create, plan, research, and ship treat automatic Hindsight recall as existing context and query only material gaps.",
+        "Research uses bounded Hindsight context to avoid repeated work and records uncertainty rather than inventing history.",
+        "Init and ship do not append duplicate closing summaries; explicit retain is limited to raw high-value durable facts or decisions.",
+        "Verify keeps execution evidence in active progress.md and does not create a second memory record.",
+        "Prompt routing, artifact authority, and unrelated concurrent additions remain unchanged."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test --test-name-pattern=\"orchestration surfaces use Hindsight\" .pi/tests/skill-system.test.ts",
+        "git diff --check -- .pi/prompts/create.md .pi/prompts/init.md .pi/prompts/plan.md .pi/prompts/research.md .pi/prompts/ship.md .pi/prompts/verify.md"
+      ],
+      "expected_verification_state": "green"
+    },
+    {
+      "status": "passed",
+      "passes": true,
+      "attempt": 1,
+      "evidence_refs": [
+        {
+          "kind": "test",
+          "ref": "progress.md#evidence-task-6-attempt-1",
+          "attempt": 1
+        }
+      ],
+      "conflicts_with": [],
+      "id": "task-6",
+      "category": "docs",
+      "title": "Replace Memory Ownership Documentation",
+      "parallel": true,
+      "description": "Cleanup and tech-stack guidance classify Hindsight configuration and runtime state correctly and no longer promise a file-memory write.",
+      "depends_on": [
+        "task-1"
+      ],
+      "files": [
+        ".pi/prompts/gc.md",
+        ".pi/templates/tech-stack.md",
+        ".pi/workflows/garbage-collection.md"
+      ],
+      "acceptance_criteria": [
+        "Garbage-collection surfaces classify .pi/hindsight.json as configuration.",
+        "Garbage-collection surfaces identify .pi/hindsight/ as runtime-managed and outside cleanup scope.",
+        "The tech-stack template describes Hindsight-backed durable context without promising a file append.",
+        "No cleanup rule authorizes mutation of Hindsight banks, sidecars, or historical artifacts."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test --test-name-pattern=\"Hindsight configuration and runtime state are protected\" .pi/tests/skill-system.test.ts",
+        "git diff --check -- .pi/prompts/gc.md .pi/templates/tech-stack.md .pi/workflows/garbage-collection.md"
+      ],
+      "expected_verification_state": "green"
+    },
+    {
+      "status": "passed",
+      "passes": true,
+      "attempt": 2,
+      "evidence_refs": [
+        {
+          "kind": "test",
+          "ref": "progress.md#evidence-task-7-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "test",
+          "ref": "progress.md#evidence-task-7-attempt-2",
+          "attempt": 2
+        }
+      ],
+      "conflicts_with": [],
+      "id": "task-7",
+      "category": "cleanup",
+      "title": "Remove the File-Memory Store and Skill",
+      "parallel": false,
+      "description": "After live references are gone and the deletion gate is satisfied, the old memory artifact and skill are absent and the manifest matches remaining skill directories.",
+      "depends_on": [
+        "task-2",
+        "task-3",
+        "task-4",
+        "task-5",
+        "task-6"
+      ],
+      "files": [
+        ".pi/artifacts/MEMORY.md",
+        ".pi/skills/memory/SKILL.md",
+        ".pi/skills/manifest.json"
+      ],
+      "approval_gate": "Before deletion, show exact commands and paths, receive first written confirmation, refresh preflight, and receive a second immediate written confirmation.",
+      "acceptance_criteria": [
+        "No content from .pi/artifacts/MEMORY.md is imported, summarized, or explicitly retained.",
+        ".pi/artifacts/MEMORY.md is absent.",
+        ".pi/skills/memory/SKILL.md is absent.",
+        "The memory entry is absent from .pi/skills/manifest.json.",
+        "Manifest-to-directory parity passes.",
+        "The deletion audit is recorded in progress.md with both authorizations and post-operation status."
+      ],
+      "verification": [
+        "test ! -e .pi/artifacts/MEMORY.md && test ! -e .pi/skills/memory/SKILL.md",
+        "node --experimental-strip-types --test --test-name-pattern=\"manifest has exact|legacy file memory is absent\" .pi/tests/skill-system.test.ts",
+        "git diff --check -- .pi/skills/manifest.json"
+      ],
+      "expected_verification_state": "green"
+    },
+    {
+      "status": "passed",
+      "passes": true,
+      "attempt": 3,
+      "evidence_refs": [
+        {
+          "kind": "verification",
+          "ref": "progress.md#evidence-task-8-attempt-3",
+          "attempt": 3
+        }
+      ],
+      "conflicts_with": [],
+      "id": "task-8",
+      "category": "verify",
+      "title": "Verify Hindsight-Only Integration",
+      "parallel": false,
+      "description": "The complete suite, artifact graphs, live-reference scan, fresh-session runtime checks, and scoped diff review all pass without mutating Hindsight data or unrelated work.",
+      "depends_on": [
+        "task-7"
+      ],
+      "files": [],
+      "acceptance_criteria": [
+        "Focused and retained test suites pass with zero failures.",
+        "Every artifact graph validates and cross-artifact frontier reporting leaves .active unchanged.",
+        "No live file-memory reference remains outside historical artifacts and runtime state.",
+        "Fresh-session status reports pi-coding project recall and retain on, user bank off, and mental-model injection off.",
+        "Explicit reflection remains available and existing mental models remain present.",
+        "The .pi/hindsight and .pi/state/session-summary.md status matches the recorded pre-implementation baseline.",
+        "Only the sixteen declared implementation paths and this feature lifecycle artifacts are owned by the change."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test .pi/tests/skill-system.test.ts",
+        "node --experimental-strip-types --test .pi/tests/*.test.ts",
+        "for f in .pi/artifacts/*/tasks.json; do node --experimental-strip-types .pi/scripts/task-graph.ts validate \"$f\"; done",
+        "! rg -n --hidden --glob '!**/.git/**' --glob '!.pi/artifacts/**' --glob '!.pi/state/**' 'MEMORY(\\\\?\\.md)|\\.opencode/artifacts/MEMORY' AGENTS.md .pi/prompts .pi/skills .pi/templates .pi/workflows .pi/tests",
+        "git diff --check -- AGENTS.md .pi/hindsight.json .pi/prompts/create.md .pi/prompts/gc.md .pi/prompts/init.md .pi/prompts/plan.md .pi/prompts/research.md .pi/prompts/ship.md .pi/prompts/verify.md .pi/skills/development-lifecycle/SKILL.md .pi/skills/manifest.json .pi/templates/tech-stack.md .pi/tests/skill-system.test.ts .pi/workflows/garbage-collection.md .pi/artifacts/hindsight-only-memory",
+        "Run read-only hindsight_status and project hindsight_config action=get in a fresh Pi session; record results in progress.md."
+      ],
+      "expected_verification_state": "green"
+    }
+  ]
+}

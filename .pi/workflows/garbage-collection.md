@@ -46,7 +46,8 @@ Grade each domain by scanning findings:
 | Plugin layer | `.pi/extensions/*.ts` | Fallow + structural check |
 | Command layer | `.pi/prompts/*.md` | Manual assessment |
 | Skills layer | `.pi/skills/*/SKILL.md` | Fallow |
-| Documentation | `.pi/artifacts/MEMORY.md` | Manual + link checker |
+| Hindsight config | `.pi/hindsight.json` | Manual config validation |
+| Hindsight runtime | `.pi/hindsight/` | Runtime-managed; inspect only, never clean |
 
 For each domain, assign grade:
 - **A** — No issues, well-maintained

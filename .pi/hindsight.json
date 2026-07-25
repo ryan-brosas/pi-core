@@ -1,0 +1,35 @@
+{
+  "setupComplete": true,
+  "scope": {
+    "mode": "domain-tagged"
+  },
+  "agentUse": "coding",
+  "banks": {
+    "project": {
+      "enabled": true,
+      "derive": "manual",
+      "bankId": "pi-coding"
+    },
+    "user": {
+      "enabled": false
+    }
+  },
+  "userRetain": {
+    "mode": "explicit-only"
+  },
+  "recall": {
+    "enabled": true
+  },
+  "retain": {
+    "enabled": true
+  },
+  "status": {
+    "style": "emoji"
+  },
+  "hindsight": {
+    "baseUrl": "http://localhost:8888"
+  },
+  "mentalModels": {
+    "inject": false
+  }
+}

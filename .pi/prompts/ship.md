@@ -54,6 +54,8 @@ During `/ship`, use `fabric_exec` as the orchestration boundary and `agents.run`
 
 Every implementation or fix child receives a resolved **ship-worker envelope** containing the task ID and attempt, goal, dependencies, exact files and transient neighborhood, non-goals, acceptance criteria, explicit tools, verification commands, stop conditions, approval constraints, and expected result fields. Never send unresolved placeholders.
 
+- **Parent-provided task-relevant Hindsight context:** include only relevant prior decisions. If context is missing, the child returns the context gap to the parent instead of broadening memory access.
+
 Children must not spawn or delegate to another agent, schedule siblings, mutate `.active`, `tasks.json`, `progress.md`, or other lifecycle state, or commit, merge, integrate, or publish work. The `/ship` parent owns `tasks.json` and `progress.md` updates—graph transitions and progress recording—as normal operation; these are not child operations and are not gated by the child approval checkpoints. Mutating `.active` is an exceptional operation that requires explicit approval even for the parent.
 
 Explicit approval is required before branch or worktree creation; commit, merge, or integration; dependency installation or new file creation; `.active` or unrelated active-artifact mutation; push or deploy; and destructive operations. When required approval is absent, stop at a checkpoint and preserve the verified work.
@@ -87,11 +89,7 @@ read(".pi/skills/verification-before-completion/SKILL.md");
 
 ### Context Search
 
-Search `.pi/artifacts/MEMORY.md` for: failed approaches to avoid repeating.
-
-```bash
-rg -n "topic" .pi/artifacts/MEMORY.md
-```
+Use automatically recalled Hindsight project context first for failed approaches and prior decisions. If a material gap remains, call `hindsight_recall` with a topic-bounded query; use `hindsight_reflect` only when synthesis across memories is required.
 
 ### Plan Validation
 
@@ -315,7 +313,7 @@ return fixResult.text;
 Same-file or dependent fixes stay foreground and sequential. At most three disjoint fixes may run with `Promise.all` and `worktree: true` only after explicit worktree approval; integrate that shard before later sequential shards.
 
 - After **any** code fix → inspect changes and re-run Phase 4 verification before proceeding.
-- Minor issues → note them in the active `progress.md`; append only durable cross-feature learnings to `.pi/artifacts/MEMORY.md`
+- Minor issues → note them in the active `progress.md`. Hindsight automatic retain captures ordinary session deltas; use `hindsight_retain` only for raw, high-value facts or decisions that require immediate persistence.
 
 If review finds critical issues that require architectural decisions → stop → present options to user.
 
@@ -446,7 +444,7 @@ If confirmed:
 
 Update `.pi/artifacts/$(cat .pi/artifacts/.active)/tasks.json` when present, and append the completion summary to the active `progress.md`.
 
-After closing, append significant cross-feature learnings to `.pi/artifacts/MEMORY.md` after checking for duplicates.
+After closing, rely on Hindsight automatic retain for ordinary session deltas. Use `hindsight_retain` only for raw, high-value facts or decisions that require immediate persistence, and never retain a duplicate completion summary.
 
 ## Output
 

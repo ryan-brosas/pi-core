@@ -19,7 +19,7 @@ tools: [read, write, edit, grep, bash]
 | `tasks.json` | Authoritative persisted work graph and task status | `/create`, `/plan`, `/ship`, `/verify` |
 | `progress.md` | Attempt-scoped execution, review, verification, and blocker evidence | `/research`, `/ship`, `/verify` |
 
-Durable cross-feature knowledge belongs in `.pi/artifacts/MEMORY.md`, outside the active slug.
+Durable cross-feature knowledge belongs in project Hindsight. Automatically recalled Hindsight context is used first, and automatic Hindsight retain captures ordinary durable session deltas. Active attempt evidence remains in the active slug.
 
 When `/research` has no demonstrably related active slug, it writes `.pi/artifacts/<research-slug>/research.md` without changing `.active`. This is a standalone report, not a fifth active-work artifact.
 
@@ -75,7 +75,7 @@ At a pause, session boundary, or child integration point, append a compact hando
 2. **Resolve `.active` first** — all feature-specific reads and writes use `.pi/artifacts/$(cat .pi/artifacts/.active)/`. `/research` must verify topic relevance before using it and otherwise write a standalone report without changing `.active`.
 3. **`tasks.json` is the authoritative work graph** — `/create` emits version 2, `/plan` refines the same IDs, and displayed waves are derived snapshots only.
 4. **`progress.md` is the evidence log** — attempts, failures, reviews, and current-attempt verification evidence go there.
-5. **Durable decisions go to `MEMORY.md`** — only cross-feature learnings belong outside the active slug.
+5. **Hindsight is the durable memory authority** — use automatic recall first, bounded `hindsight_recall` or `hindsight_reflect` only for material gaps, automatic retain for ordinary session deltas, and `hindsight_retain` only for raw high-value content requiring immediate persistence.
 6. **`/verify` is non-negotiable** — every "done" claim cites evidence.
 
 ## Red Flags

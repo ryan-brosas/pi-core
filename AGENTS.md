@@ -156,11 +156,12 @@ Compatibility is contract-driven, not automatic. Preserve documented compatibili
 
 Use this evidence order:
 
-1. local code, tests, configuration, active artifacts, and `.pi/artifacts/MEMORY.md`;
-2. official documentation, specifications, and release notes for the exact version;
-3. maintained upstream source and tests;
-4. maintainer examples;
-5. dated community material with explicit caveats.
+1. local code, tests, configuration, active artifacts, and automatically recalled Hindsight project context;
+2. for a material memory gap, topic-bounded `hindsight_recall`; use `hindsight_reflect` only when synthesis across memories is required;
+3. official documentation, specifications, and release notes for the exact version;
+4. maintained upstream source and tests;
+5. maintainer examples;
+6. dated community material with explicit caveats.
 
 Rules:
 
@@ -188,7 +189,7 @@ Each active slug uses four canonical files:
 
 Additional rules:
 
-- Durable cross-feature decisions belong in `.pi/artifacts/MEMORY.md`.
+- Durable cross-feature context belongs in project Hindsight. Automatic Hindsight retain captures ordinary session deltas; use `hindsight_retain` only for raw, high-value facts or decisions that require immediate persistence.
 - `tasks.json`, not prose waves, determines readiness, dependencies, conflicts, and task state.
 - Validate the graph before scheduling. Execute only ready, dependency-satisfied, conflict-free nodes.
 - Recompute the frontier after each state transition or integration.
@@ -214,6 +215,7 @@ When delegation is useful, use Pi Fabric `agents.run({...})` inside `fabric_exec
 | Visual/UI analysis | Read-only visual evidence | explicit visual tools only |
 
 - Prefer direct execution for clear, surgical work.
+- Parent-provided task-relevant Hindsight context is the only memory context sent to Fabric children. If context is missing, children report the context gap to the parent instead of broadening memory access. Never include credentials, secrets, private conversation, or unrelated user data.
 - Await one foreground `agents.run` when the next decision depends on the result.
 - Run only genuinely independent, disjoint tasks concurrently using at most three `agents.run` calls in one `Promise.all`; process overflow in sequential shards.
 - For small read-only discovery or research, prefer `openai-codex/gpt-5.6-luna` with `thinking: "medium"` when an explicit override is useful.

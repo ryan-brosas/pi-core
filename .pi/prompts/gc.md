@@ -54,7 +54,8 @@ Update `.pi/QUALITY.md` with grades per domain:
 | Plugins | `.pi/extensions/*.ts` | A–D |
 | Commands | `.pi/prompts/*.md` | A–D |
 | Skills | `.pi/skills/` | A–D |
-| Docs | `.pi/artifacts/MEMORY.md` | A–D |
+| Hindsight config | `.pi/hindsight.json` | A–D |
+| Hindsight runtime | `.pi/hindsight/` | Runtime-managed; excluded from cleanup |
 
 ## Phase 4: Open Cleanup PRs (if findings warrant)
 

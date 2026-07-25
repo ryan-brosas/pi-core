@@ -76,7 +76,7 @@ search-conversations supports multiple modes and filters. Run --help for details
 ```markdown
 # [ ] BAD: Repeat workflow details
 
-When searching, call `agents.run({ name: "authoritative-source-search", task: "[self-contained query and citation contract]", tools: ["context7.resolve-library-id", "context7.query-docs"] })` inside `fabric_exec`...
+When searching, call `await agents.run({ name: "authoritative-source-search", task: "[self-contained query and citation contract]", tools: ["context7.resolve-library-id", "context7.query-docs"] })` inside `fabric_exec`...
 [20 lines of repeated instructions]
 
 # [x] GOOD: Reference other skill

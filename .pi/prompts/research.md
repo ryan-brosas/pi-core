@@ -112,11 +112,7 @@ If `.pi/artifacts/.active` resolves to a valid, related slug, read its `spec.md`
 
 #### Context Search (Required)
 
-Search `.pi/artifacts/MEMORY.md` for existing findings. Use them to: skip already-answered questions, narrow scope to gaps only, avoid contradicting prior decisions without justification.
-
-```bash
-rg -n "topic" .pi/artifacts/MEMORY.md
-```
+Use automatically recalled Hindsight project context first to skip answered questions, narrow research to genuine gaps, and avoid contradicting prior decisions without justification. If a material gap remains, call `hindsight_recall` with a topic-bounded query; use `hindsight_reflect` only when synthesis across memories is required.
 
 ### Phase 2: Research
 
