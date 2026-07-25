@@ -585,3 +585,73 @@ test("ship primary worker call resolves workerType and dispatches one foreground
   assert.notEqual(guardIndex, -1, "primary dispatch must stop for every unresolved decision class");
   assert.ok(guardIndex < section.indexOf("```"), "unresolved-decision guard must occur before the dispatch code fence");
 });
+
+
+test("planning boundaries and testability contract is conditional", () => {
+  const fencedTemplate = (document: string, heading: string, opener: string, closer: string): string => {
+    const sectionStart = document.indexOf(heading);
+    assert.notEqual(sectionStart, -1, `missing template section: ${heading}`);
+    const start = document.indexOf(opener, sectionStart);
+    assert.notEqual(start, -1, `missing template opener after: ${heading}`);
+    const end = document.indexOf(closer, start + opener.length);
+    assert.notEqual(end, -1, `missing template closer after: ${heading}`);
+    return document.slice(start + opener.length, end);
+  };
+
+  const surfaces = {
+    "plan prompt": {
+      text: fencedTemplate(readRequired(".pi/prompts/plan.md"), "### Required Plan Header", "````markdown", "````"),
+      heading: /^### Boundaries and Testability \(conditional\)$/m,
+    },
+    "planning skill": {
+      text: fencedTemplate(readRequired(".pi/skills/planning-and-task-breakdown/SKILL.md"), "## Plan Template", "```", "```"),
+      heading: /^## Boundaries and Testability \(conditional\)$/m,
+    },
+  };
+
+  for (const [label, { text, heading }] of Object.entries(surfaces)) {
+    assert.equal((text.match(/Boundaries and Testability/g) ?? []).length, 1, `${label} must contain the section exactly once`);
+    assert.match(text, heading, `${label} must use its template-level heading`);
+    assert.match(
+      text,
+      /only when[^\n]*introduces or changes[^\n]*module boundary[^\n]*omit it otherwise/i,
+      `${label} must make the section conditional`,
+    );
+    assert.match(text, /black-box and gray-box are verification perspectives, not module-design categories/i);
+    assert.match(text, /substitution need/i);
+    assert.match(text, /enabling point/i);
+    assert.match(text, /real alternative implementation/i);
+    assert.match(text, /if any[^\n]*missing[^\n]*(?:do not|must not) add[^\n]*seam/i);
+    assert.match(text, /gray-box exceptions?/i);
+    assert.match(text, /internal knowledge/i);
+    assert.match(text, /why externally observable behavior is insufficient/i);
+    assert.match(text, /gray-box knowledge does not justify mocking internals/i);
+  }
+});
+
+test("PRD success criteria describe externally observable behavior", () => {
+  const prd = readRequired(".pi/templates/prd.md");
+  const section = (heading: string): string => {
+    const start = prd.indexOf(heading);
+    assert.notEqual(start, -1, `missing PRD section: ${heading}`);
+    const rest = prd.slice(start + heading.length);
+    const next = rest.indexOf("\n## ");
+    return rest.slice(0, next === -1 ? undefined : next);
+  };
+
+  assert.match(section("## Success Criteria"), /externally observable behavior/i);
+  assert.doesNotMatch(
+    `${section("## Proposed Solution")}\n${section("## Technical Context")}`,
+    /externally observable behavior|black-box|gray-box/i,
+    "observable-behavior policy must remain scoped to Success Criteria",
+  );
+});
+
+test("deep module design requires an enabling point for a test seam", () => {
+  const skill = readRequired(".pi/skills/deep-module-design/SKILL.md");
+  assert.doesNotMatch(skill, /The interface IS the test seam/i);
+  assert.match(
+    skill,
+    /An interface becomes a test seam only when an enabling point can select one behavior or a real alternative\./i,
+  );
+});

@@ -93,6 +93,8 @@ Brief description of what must be true.
 
 ## Success Criteria
 
+Each criterion must describe externally observable behavior; implementation detail belongs in Proposed Solution or Technical Context.
+
 - [ ] [Specific, measurable criterion 1]
   - Verify: `[command or manual check]`
 - [ ] [Specific, measurable criterion 2]

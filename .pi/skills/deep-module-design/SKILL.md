@@ -70,7 +70,7 @@ Depth = (impl size) / (interface size)
 
 ## Test Seams via Interface
 
-The interface IS the test seam. Test the interface, not the implementation. If your test needs to mock an internal call, the internal is leaking.
+An interface becomes a test seam only when an enabling point can select one behavior or a real alternative. Test the interface, not the implementation. If your test needs to mock an internal call, the internal is leaking.
 
 ```ts
 // GOOD: test the interface

@@ -76,6 +76,32 @@ The parent verifies worker evidence and resolves conflicts. The parent alone wri
 ## Non-goals
 [explicit exclusions]
 
+## Boundaries and Testability (conditional)
+
+Include this section only when the feature introduces or changes a module boundary; omit it otherwise. Black-box and gray-box are verification perspectives, not module-design categories.
+
+### Module Boundaries
+
+| Boundary | Hidden decision | Public behavior |
+| -------- | --------------- | --------------- |
+| [Boundary] | [Decision hidden behind it] | [Externally visible contract] |
+
+### Proposed Seams
+
+| Seam | Substitution need | Enabling point | Real alternative implementation |
+| ---- | ----------------- | -------------- | ------------------------------- |
+| [Seam] | [Volatile dependency or decision] | [Where selection occurs] | [Alternative that will exist] |
+
+A proposed seam must name all three fields. If any of them is missing, do not add the seam.
+
+### Gray-Box Exceptions
+
+| Verification | Internal knowledge used | Why externally observable behavior is insufficient |
+| ------------ | ----------------------- | -------------------------------------------------- |
+| [Check] | [Implementation knowledge] | [Evidence gap at the public boundary] |
+
+Gray-box knowledge does not justify mocking internals.
+
 ## Slices (ordered)
 1. <slice> — verify: <cmd> — risk: <what>
 2. ...
