@@ -91,3 +91,97 @@ This alternative is safer than reusing `general`, but still adds latency, contex
 8. `/home/ryan/.local/lib/node_modules/@earendil-works/pi-coding-agent/docs/prompt-templates.md:3-17,31-33`
 9. `/home/ryan/.local/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/subagent/README.md:79-97`
 10. `/home/ryan/.local/lib/node_modules/@earendil-works/pi-coding-agent/docs/extensions.md` (installed Pi 0.82.0)
+
+---
+
+## Research update: Outcome-sized execution and Fabric Prewalk
+
+**Date:** 2026-07-25
+**Execution mode:** Complex deep-research workflow — two independent scouts, one dependent review, and parent source verification
+**Status:** Complete; research only, no workflow implementation or deletion performed
+
+### Question
+
+Should serial `/ship` execution stop spawning a fresh `general` or `build` child for every microtask, use outcome-sized artifacts with internal phases, and hand a grounded Main trajectory to a Fabric Prewalk executor instead?
+
+### Executive summary
+
+**Yes, as the default serial path and as a measured pilot—not as a proven universal optimization. Confidence: medium-high.**
+
+The user's category-level claim is accurate: Fabric Prewalk, `build`, and `general` all involve a child agent. The material difference is context transfer. Current `build` and `general` calls are fresh role sessions with `inherit_context: false` and `prompt_mode: replace`; they receive a reconstructed task envelope rather than Main's working trajectory. Fabric Prewalk launches a new one-shot Pi child agent over a real fork of Main's persisted session branch, then appends the exact finalized outer `fabric_exec` result. It preserves stored messages, tool calls, and persisted thinking blocks. It does not preserve provider-private reasoning that was never stored.
+
+In precise Fabric terminology, Prewalk is a **one-shot agent**, not a persistent **actor**. In the user's broader sense—“it is still another agent”—the answer is **yes**.
+
+The recommended unit model is:
+
+- **Artifact:** one independently verifiable and reversible user/system outcome.
+- **Phase:** an internal execution or feedback transition inside that outcome.
+- **Persisted task node:** only a real scheduling, ownership, parallelism, checkpoint, or selective-recovery boundary.
+- **Step:** a transient implementation checklist item, not another child-agent boundary.
+
+### Questions and confidence
+
+| Question | Answer | Confidence |
+| --- | --- | --- |
+| Is Prewalk still an agent handoff? | Yes. Fabric spawns a new one-shot Pi child recorded as `kind: "agent"`; it is not a persistent actor. | High |
+| Is it equivalent to `build`/`general`? | Same broad child-agent category, different handoff semantics. Cold workers get an explicit envelope; Prewalk gets a native session-branch trajectory. | High |
+| Does stored thinking transfer? | Persisted `ThinkingContent` and thinking-level settings do; hidden provider reasoning that Pi never stored does not. | High |
+| Do the original 97% / 41%-cheaper / 1.9× claims apply to Fabric? | No. They motivate a test but cannot validate Fabric's coarser mechanism. | High |
+| Does arXiv prove this exact Pi design? | No. It supports simpler/selective decomposition and trajectory coherence only indirectly. | High |
+| Should `build` and `general` be deleted now? | No. Remove them from the automatic serial path first; retain them for isolation, parallelism, deliberate fresh context, and specialized restrictions while measuring. | High |
+
+### Verified findings
+
+1. **Current `/ship` hard-codes cold per-task dispatch.** `.pi/prompts/ship.md:26-44,122-133` selects `general|build`, makes one foreground call per selected task, and rebuilds a complete ship-worker envelope. `.pi/agents/build.md:1-32` and `.pi/agents/general.md:1-33` both use `prompt_mode: replace` and `inherit_context: false`. This is cold only with respect to Main's conversation/trajectory; the workers still receive project rules and their explicit envelope.
+
+2. **Fabric Prewalk is trajectory-preserving delegation.** Installed `pi-fabric` 0.28.1 snapshots or forks Main's active branch through the assistant entry containing the sole top-level `fabric_exec`, synchronizes model/thinking settings, appends the exact finalized outer tool result, and spawns a Pi child recorded as `kind: "agent"`. Upstream tests show the child has a different session ID while `buildSessionContext()` retains prior user/assistant messages, stored thinking, the native tool call, and its exact result.
+
+3. **Fabric's handoff boundary is coarser than original Prewalk.** A successful `pi.edit`, `pi.write`, or `schema.commit` marks the outer Fabric invocation. All later nested calls still run; handoff starts only after that whole `fabric_exec` completes. Therefore, a giant mutation-and-verification call may leave little useful work for the executor. The frontier call should be bounded if the intent is to hand off after grounding and an initial implementation move.
+
+4. **Original Prewalk is evidence for the hypothesis, not Fabric's effect size.** Can Bölük's benchmark reports 97% of frontier performance, 41% lower cost, and 1.9× faster on its tested SWE-Bench Pro arms. Its implementation performs an in-place model switch after a TODO-gated first edit/write and adds hidden plan/verification nudges. Fabric instead forks a new child at the outer `fabric_exec` boundary and explicitly documents the different mechanism. No Fabric-specific benchmark was found.
+
+5. **Academic evidence favors selective, coherent decomposition—not a universal topology.** AGENTLESS arXiv v2 reports 32.00% (96 fixes) at $0.70 with a simple localization → repair → validation pipeline. A 120-trajectory/2,822-interaction study analyzes coherence and feedback integration as whole trajectories. A single-agent/multi-agent comparison reports diminishing multi-agent benefit with stronger models and gains from selective cascading. A fault-localization study finds function-level context best in one controlled setup but explicitly says optimal granularity is task-dependent. SWE-Cycle reports a sharp drop when isolated phases become an end-to-end cycle because cross-phase dependencies are difficult. None directly compares Pi cold workers with Fabric Prewalk.
+
+6. **Local lifecycle state shows churn, not causal token proof.** The completed agent-utilization graph has four tasks with recorded attempt counters totaling 23. Current `/ship` revalidates, records evidence, reconstructs context, and re-dispatches at every task boundary. This establishes repeated orchestration boundaries; it does not by itself measure tokens or prove that Prewalk will be cheaper.
+
+### Recommended operating model
+
+For one coherent serial outcome:
+
+1. Main/frontier remains the implementation owner: ground in the repository, resolve the design, define proof, and make the first bounded implementation move.
+2. Fabric Prewalk hands the persisted trajectory to one executor to continue implementation and focused verification in the same workspace.
+3. Main resumes canonical lifecycle ownership for diff inspection, independent review where risk warrants it, evidence recording, and final verification.
+4. Keep internal phases—localize, RED, GREEN, refactor, verify—as phases/checklists unless one is independently schedulable or recoverable.
+
+Keep cold `build`/`general` workers only when a fresh boundary adds value: disjoint worktree parallelism, security/trust isolation, unrelated outcomes, a deliberately fresh perspective, explicit persona/tool restrictions, or a trajectory too polluted/long to continue safely. Independent `review`, `scout`, and `Explore` roles remain useful because their value is separation, not implementation continuity.
+
+Do **not** physically delete `.pi/agents/build.md` or `.pi/agents/general.md` during the pilot. Existing prompt, workflow, and `.pi/tests/skill-system.test.ts` contracts explicitly depend on both names. First test removal from automatic serial routing; any later deletion requires a coordinated migration and separate explicit path approval.
+
+### Required pilot evidence
+
+Compare matched serial changes under:
+
+- **Baseline:** current fresh `general|build` worker per task.
+- **Treatment:** one grounded Main → Fabric Prewalk trajectory per coherent outcome.
+
+Capture total input/output/cache tokens, wall time, repeated file reads, child count, fix attempts, verification pass rate, review defects, and manual recovery. Reject or narrow the change if quality or recoverability regresses even when token use improves. Published Stencil percentages are not acceptance criteria.
+
+### Contradictions and uncertainties
+
+- Earlier research in this file recommended `general|build` as the serial `/ship` default because it evaluated role routing without Fabric trajectory handoff. This update **supersedes that serial default only**; the earlier isolation/parallel-worker conclusions remain valid.
+- “Prewalk keeps the same agent” is false as process identity but directionally true as trajectory continuity.
+- “Thinking transfers” applies only to model-visible content persisted in Pi's session format.
+- No direct paper or local run proves the expected savings. The final routing decision must be evidence from the Pi Core pilot.
+
+### Sources
+
+1. `.pi/prompts/ship.md:26-60,114-141`
+2. `.pi/agents/build.md:1-51`; `.pi/agents/general.md:1-52`
+3. Installed `pi-fabric` 0.28.1: `dist/agents/handoff.js`, `dist/prewalk/handoff.js`, `dist/providers/agents-provider.js`
+4. https://github.com/monotykamary/pi-fabric/blob/main/docs/agents.md
+5. https://github.com/monotykamary/pi-fabric/blob/main/tests/handoff.test.ts
+6. https://stencil.so/blog/prewalk and https://github.com/can1357/oh-my-pi/blob/c0d0ad76/packages/coding-agent/test/agent-session-prewalk.test.ts
+7. https://arxiv.org/abs/2407.01489
+8. https://arxiv.org/abs/2506.18824
+9. https://arxiv.org/abs/2505.18286
+10. https://arxiv.org/abs/2604.00167 and https://arxiv.org/abs/2605.13139

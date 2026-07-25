@@ -1,0 +1,135 @@
+{
+  "version": 2,
+  "slug": "artifact-progression-graph",
+  "title": "Artifact Progression Graph",
+  "status": "prepared",
+  "depends_on": [
+    "research-enforcement-extension"
+  ],
+  "execution": {
+    "mode": "dependency-waves",
+    "max_concurrent_agents": 1,
+    "reason": "Graph and lifecycle contracts share focused tests and must land serially."
+  },
+  "tasks": [
+    {
+      "id": "task-1",
+      "category": "test",
+      "title": "Lock Project Progression Contracts",
+      "description": "Focused failing tests define artifact schema, project validation, completion, readiness, activation, compatibility, and read-only lifecycle behavior.",
+      "status": "pending",
+      "passes": false,
+      "attempt": 0,
+      "evidence_refs": [],
+      "depends_on": [],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [
+        ".pi/tests/task-graph.test.ts",
+        ".pi/tests/skill-system.test.ts"
+      ],
+      "acceptance_criteria": [
+        "Tests cover missing, duplicate, self, slug-mismatch, and cyclic artifact dependencies.",
+        "Tests cover version-2 completion, version-1 migration requirements, empty graphs, current verification evidence, exact blockers, and active-lock eligibility.",
+        "Tests prove project reporting and inactive preparation preserve .active byte-for-byte."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test --test-name-pattern=\"artifact progression|project artifact graph|prepared artifact\" .pi/tests/task-graph.test.ts .pi/tests/skill-system.test.ts",
+        "git diff --check -- .pi/tests/task-graph.test.ts .pi/tests/skill-system.test.ts"
+      ],
+      "expected_verification_state": "red"
+    },
+    {
+      "id": "task-2",
+      "category": "graph",
+      "title": "Implement Artifact Dependency Semantics",
+      "description": "The task-graph module validates whole-artifact dependencies and emits deterministic completion and activation readiness without mutating project files.",
+      "status": "pending",
+      "passes": false,
+      "attempt": 0,
+      "evidence_refs": [],
+      "depends_on": [
+        "task-1"
+      ],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [
+        ".pi/scripts/task-graph.ts",
+        ".pi/tests/task-graph.test.ts"
+      ],
+      "acceptance_criteria": [
+        "Optional root artifact dependencies decode independently from task dependencies.",
+        "Project validation returns stable issue codes and deterministic artifact cycles.",
+        "Project frontier derives completion, dependency readiness, activation eligibility, and exact blockers.",
+        "Existing local APIs and version-1 readability remain compatible."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test --test-name-pattern=\"artifact progression|project artifact graph\" .pi/tests/task-graph.test.ts",
+        "node --experimental-strip-types --check .pi/scripts/task-graph.ts",
+        "git diff --check -- .pi/scripts/task-graph.ts .pi/tests/task-graph.test.ts"
+      ]
+    },
+    {
+      "id": "task-3",
+      "category": "lifecycle",
+      "title": "Wire Prepared-Artifact Progression",
+      "description": "Create, plan, ship, research, and lifecycle guidance consistently support prepared inactive artifacts while preserving explicit activation and single-active execution.",
+      "status": "pending",
+      "passes": false,
+      "attempt": 0,
+      "evidence_refs": [],
+      "depends_on": [
+        "task-2"
+      ],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [
+        ".pi/prompts/create.md",
+        ".pi/prompts/plan.md",
+        ".pi/prompts/ship.md",
+        ".pi/prompts/research.md",
+        ".pi/skills/development-lifecycle/SKILL.md",
+        ".pi/tests/skill-system.test.ts"
+      ],
+      "acceptance_criteria": [
+        "Create and plan can target a prepared inactive artifact without changing .active.",
+        "Ship refuses ineligible progression and requests immediate approval before an eligible pointer change.",
+        "Research can report graph gaps but cannot select, activate, or dispatch work.",
+        "The lifecycle continues to define exactly one active artifact and four canonical active-work files."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test --test-name-pattern=\"artifact progression|prepared artifact\" .pi/tests/skill-system.test.ts",
+        "git diff --check -- .pi/prompts/create.md .pi/prompts/plan.md .pi/prompts/ship.md .pi/prompts/research.md .pi/skills/development-lifecycle/SKILL.md .pi/tests/skill-system.test.ts"
+      ]
+    },
+    {
+      "id": "task-4",
+      "category": "verification",
+      "title": "Verify Integrated Project Progression",
+      "description": "The complete feature passes focused and retained checks while proving project reporting is read-only and the current active artifact remains unchanged.",
+      "status": "pending",
+      "passes": false,
+      "attempt": 0,
+      "evidence_refs": [],
+      "depends_on": [
+        "task-3"
+      ],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [],
+      "acceptance_criteria": [
+        "Focused graph and lifecycle tests pass.",
+        "Every retained artifact graph validates.",
+        "Project frontier leaves .active byte-for-byte unchanged.",
+        "The retained suite has no newly introduced failures and owned diffs are clean."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test .pi/tests/task-graph.test.ts .pi/tests/skill-system.test.ts",
+        "node --experimental-strip-types --test .pi/tests/*.test.ts",
+        "for f in .pi/artifacts/*/tasks.json; do node --experimental-strip-types .pi/scripts/task-graph.ts validate \"$f\"; done",
+        "before=$(sha256sum .pi/artifacts/.active); node --experimental-strip-types .pi/scripts/task-graph.ts frontier --all .pi/artifacts >/dev/null; test \"$before\" = \"$(sha256sum .pi/artifacts/.active)\"",
+        "git diff --check -- .pi/scripts/task-graph.ts .pi/tests/task-graph.test.ts .pi/tests/skill-system.test.ts .pi/prompts/create.md .pi/prompts/plan.md .pi/prompts/ship.md .pi/prompts/research.md .pi/skills/development-lifecycle/SKILL.md .pi/artifacts/artifact-progression-graph"
+      ]
+    }
+  ]
+}
