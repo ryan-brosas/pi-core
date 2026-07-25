@@ -410,6 +410,8 @@ test("plan agent output is chat-only and canonical-state safe", () => {
   }
   assert.doesNotMatch(envelope, /updated\s+`?plan\.md`?/i);
   assert.doesNotMatch(envelope, /updated\s+`?tasks\.json`?/i);
+  assert.match(envelope, /include only task-relevant evidence/i);
+  assert.match(envelope, /never include[^\n]*credentials[^\n]*secrets[^\n]*private conversation[^\n]*unrelated user data/i);
   assert.match(plan, /parent alone (?:writes|updates|validates)[^\n]*`plan\.md`[^\n]*`tasks\.json`/i);
   assert.match(plan, /never write or edit[^\n]*`plan\.md`[^\n]*`tasks\.json`[^\n]*`progress\.md`[^\n]*`MEMORY\.md`[^\n]*`\.active`/i);
   assert.match(plan, /never write or edit[^\n]*implementation files[^\n]*Git state[^\n]*dependencies/i);
