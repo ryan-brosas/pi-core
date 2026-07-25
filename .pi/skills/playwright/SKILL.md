@@ -4,7 +4,6 @@ description: Use when running automated browser tests, taking screenshots, valid
 version: 1.0.0
 tags: [automation, mcp, testing]
 dependencies: []
-agent_types: [Plan, general, review]
 tools: []
 ---
 

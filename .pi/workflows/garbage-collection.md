@@ -5,25 +5,24 @@ Scans the codebase for drift from quality standards and opens targeted cleanup P
 > **Pattern:** Fallow analysis → review findings → file issues → optional auto-fix PRs
 > **Trigger:** Manual via `/gc` command or scheduled cadence
 
-## Pi Subagent Execution
+## Fabric Agent Execution
 
-Use the pi-subagents `Agent` tool, not Fabric agents, actors, or mesh:
+Run one-shot children with `agents.run({...})` inside `fabric_exec`; there are no named project agent profiles:
 
 ```typescript
-Agent({
-  subagent_type: "<configured name>",
-  description: "<short task label>",
-  prompt: `<self-contained phase prompt with resolved inputs and output contract>`,
-  run_in_background: true, // only for independent concurrent calls
+const result = await agents.run({
+  name: "bounded-worker",
+  task: "[resolved self-contained phase goal, context, non-goals, output, stop conditions, and verification]",
+  tools: ["read", "grep", "find", "ls"],
 });
+return result.text;
 ```
 
-- Concurrency 1: omit `run_in_background`, consume the foreground result, then continue.
-- A concurrent wave contains at most three independent calls. Issue those together with `run_in_background: true`; let smart join return the group. Process additional work in sequential shards and do not poll.
+- Await one foreground run when its result is required by the next phase.
+- A concurrent wave contains at most three genuinely independent `agents.run` calls issued together with `Promise.all`; process additional work in sequential shards.
 - Do not start a dependent phase until upstream results are available.
-- Omit `model` and `thinking`; scoped agent definitions own those settings.
-- The parent resolves placeholders before dispatch, synthesizes results, inspects child changes, and runs verification itself.
-
+- Use an explicit `tools` allowlist per phase. External research adds only the required configured network source tools; add `bash`, `edit`, or `write` only for approved modifying work.
+- The parent resolves placeholders, synthesizes results, inspects child changes, and runs verification itself.
 ## Phase 1: Fallow Scan
 
 Run full structural analysis:
@@ -71,13 +70,13 @@ Update `.pi/QUALITY.md` with current grades.
 Partition independent P0/P1 findings into ordered, non-overlapping waves of at most three. Issue only the current wave together:
 
 ```typescript
-Agent({
-  subagent_type: "general",
-  description: "Fix [finding]",
-  prompt: "[self-contained finding, exact file scope, acceptance criteria, and verification]",
-  run_in_background: true,
-  isolation: "worktree",
-});
+const fixes = await Promise.all(currentWave.map((finding) => agents.run({
+  name: `gc-fix-${finding.id}`,
+  task: buildGcFixTask(finding),
+  tools: ["read", "grep", "find", "ls", "bash", "edit", "write"],
+  worktree: true,
+})));
+return fixes.map((result) => result.text);
 ```
 
 Keep dependent or same-file findings foreground and sequential. After each joined wave, the parent inspects every result, reruns verification, and integrates accepted fixes before continuing later sequential shards. Each child applies and verifies exactly one fix in its isolated worktree and reports the branch/commit. Children must not switch the shared workspace branch or open PRs concurrently.

@@ -6,17 +6,16 @@ description: Run garbage collection — Fallow analysis, quality grading, and cl
 
 Run structural analysis, update quality grades, and open cleanup PRs.
 
-## Pi Subagent Routing
+## Fabric Agent Routing
 
-When this prompt says to spawn, delegate to, or use an agent, invoke the pi-subagents `Agent` tool; an agent name is not itself a tool. This is not Fabric agent orchestration.
+Use `agents.run({...})` inside `fabric_exec` only when delegation saves more context or time than it costs. Direct parent work is the default; there are no named project agent profiles.
 
-- `Explore`: internal codebase discovery
-- `scout`: external documentation and research
-- `review`: correctness, security, and regression review
-- `general`: small independent implementation
-- `Plan`: architecture and executable planning
-- Use a foreground call when the next step depends on the result. For independent parallel work, issue all calls together with `run_in_background: true`.
-- Omit `model` and `thinking`; agent definitions and scoped-model settings own those choices.
+- Encode the task role, exact goal, context, non-goals, output contract, stop conditions, approval constraints, and verification in `task`.
+- Supply an explicit `tools` allowlist. Local discovery, planning, and review default to `["read", "grep", "find", "ls"]`. External research adds only the required configured network tools; add mutation tools only for approved implementation work.
+- Await one foreground `agents.run` when the next decision depends on its result.
+- For genuinely independent questions, issue at most three `agents.run` calls in one `Promise.all`; process overflow in sequential shards.
+- For small read-only discovery or research, prefer `model: "openai-codex/gpt-5.6-luna"` with `thinking: "medium"` when an explicit override is useful.
+- The parent resolves placeholders, inspects child output and changes, synthesizes results, and runs verification itself.
 ## Load Skills
 
 ```typescript
@@ -62,16 +61,16 @@ Update `.pi/QUALITY.md` with grades per domain:
 For each P0/P1 finding from Fallow:
 
 ```typescript
-Agent({
-  subagent_type: "general",
-  description: "Fix [finding type]",
-  prompt: `Fix only this Fallow finding: [detail]. Stay within [exact files]. Run verification and report the worktree branch/commit, changed files, and command output.`,
-  run_in_background: true,
-  isolation: "worktree",
-});
+const fixes = await Promise.all(currentWave.map((finding) => agents.run({
+  name: `gc-fix-${finding.id}`,
+  task: buildGcFixTask(finding),
+  tools: ["read", "grep", "find", "ls", "bash", "edit", "write"],
+  worktree: true,
+})));
+return fixes.map((result) => result.text);
 ```
 
-The parent partitions independent P0/P1 findings into ordered, non-overlapping waves of at most three. Issue only the current wave together, let smart join return it, then the parent inspects each isolated branch/commit and reruns verification before continuing with later sequential shards. Same-file or dependent findings stay foreground and sequential. Children must not switch the shared workspace branch or open PRs concurrently.
+The parent partitions independent P0/P1 findings into ordered, non-overlapping waves of at most three. After explicit worktree approval, issue only the current wave with `Promise.all`; then the parent inspects each isolated branch/commit and reruns verification before continuing with later sequential shards. Same-file or dependent findings stay foreground and sequential. Children must not switch the shared workspace branch or open PRs concurrently.
 
 ## Phase 5: Report
 

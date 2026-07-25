@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "enabled": true,
   "providers": [
     {
@@ -33,14 +33,6 @@
       "fabricRefs": ["extensions.xai_grok_web_search"],
       "authoritative": true,
       "independentForHigh": true
-    },
-    {
-      "category": "scout",
-      "label": "Scout",
-      "directToolNames": ["Agent"],
-      "fabricRefs": [],
-      "authoritative": true,
-      "independentForHigh": false
     }
   ],
   "authoritativeSourceIdentifiers": [],

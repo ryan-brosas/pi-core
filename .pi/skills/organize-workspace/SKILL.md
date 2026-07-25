@@ -4,7 +4,6 @@ description: Use when organizing, cleaning, moving, archiving, or deleting files
 version: 1.0.0
 tags: [workflow, safety, filesystem]
 dependencies: []
-agent_types: [general]
 tools: [read, grep, find, bash]
 ---
 

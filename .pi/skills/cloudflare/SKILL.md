@@ -4,7 +4,6 @@ description: Use when deploying to or configuring ANY Cloudflare service — Wor
 version: 1.0.0
 tags: [integration, devops]
 dependencies: []
-agent_types: [Plan, general, review]
 tools: []
 ---
 

@@ -4,7 +4,6 @@ description: Use when auditing UI components or pages for accessibility complian
 version: 1.0.0
 tags: [ui, code-quality]
 dependencies: []
-agent_types: [Plan, general, review]
 tools: []
 ---
 

@@ -3,7 +3,6 @@ name: development-lifecycle
 description: Use when starting, planning, shipping, or verifying a work session — describes how `/create`, `/plan`, `/ship`, `/verify`, and `/research` interact with the 4 canonical artifact files at `.pi/artifacts/`.
 version: 2.0.0
 tags: [workflow, artifacts, planning, work-sessions]
-agent_types: [Plan, general, review, scout]
 tools: [read, write, edit, grep, bash]
 ---
 
@@ -53,19 +52,19 @@ When `/research` has no demonstrably related active slug, it writes `.pi/artifac
 | `/verify` | Before "done" claim, always | Never skip |
 | `/research` | Open-ended question, no answer path | The answer is in the code or docs already |
 
-## Pi Subagent Routing
+## Fabric Agent Routing
 
-Skills are available to configured pi-subagents because the agent definitions enable skill loading. Route bounded work with `Agent`, never Fabric agents/actors/mesh:
+Direct parent work is the default. Route bounded task shapes through `agents.run` inside `fabric_exec` with a self-contained task and explicit tool allowlist:
 
-| Need | `subagent_type` | Parent responsibility |
+| Need | Fabric task shape | Parent responsibility |
 |---|---|---|
-| Local discovery | `Explore` | Validate file:line evidence |
-| External research | `scout` | Check citations and versions |
-| Independent review | `review` | Run gates and verify findings |
-| Small implementation | `general` | Inspect changes and test |
-| Architecture/plan | `Plan` | Resolve decisions and own final plan |
+| Local discovery | Read-only local evidence | Validate file:line evidence |
+| External research | Read-only source research | Check citations and versions |
+| Independent review | Read-only scoped review | Run gates and verify findings |
+| Small implementation | Surgical bounded edit | Inspect changes and test |
+| Architecture/plan | Advisory blueprint | Resolve decisions and own final plan |
 
-Foreground for dependencies; independent calls may be issued together with `run_in_background: true`. Omit `model` and `thinking` so scoped definitions apply.
+Keep dependencies foreground and sequential. For genuinely independent work, run at most three calls in one `Promise.all` wave and process overflow in sequential shards. Small read-only discovery or research should prefer `openai-codex/gpt-5.6-luna` with `thinking: "medium"` when available. The parent inspects child output and verifies all results.
 
 ## Compact Handoff
 

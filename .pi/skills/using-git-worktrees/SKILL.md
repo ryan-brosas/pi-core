@@ -4,7 +4,6 @@ description: Use when starting feature work that needs isolation from current wo
 version: 1.0.0
 tags: [git, workflow]
 dependencies: []
-agent_types: [Plan, general, review]
 tools: []
 ---
 

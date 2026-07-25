@@ -4,7 +4,6 @@ description: Use when making code changes that need safe git hygiene, atomic com
 version: 1.0.0
 tags: [git, workflow, shipping]
 dependencies: []
-agent_types: [Plan, general, review]
 tools: [bash]
 ---
 

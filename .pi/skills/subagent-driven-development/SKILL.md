@@ -1,19 +1,19 @@
 ---
 name: subagent-driven-development
-description: Use when executing implementation plans with independent tasks in the current session - dispatches fresh subagent for each task with code review between tasks, enabling fast iteration with quality gates
+description: Use when executing implementation plans with independent tasks in the current session - dispatches fresh Fabric children for bounded tasks with parent-owned review and verification gates
 version: 1.0.0
 tags: [workflow, agent-coordination]
 dependencies: [planning-and-task-breakdown, code-review-and-quality, shipping-and-launch]
 ---
 
-# Subagent-Driven Development
+# Fabric-Agent-Driven Development
 
-> **Replaces** monolithic single-agent implementation sessions that grow stale — dispatches fresh subagents per task with code review gates between them
+> **Replaces** monolithic implementation sessions that grow stale by dispatching fresh, bounded Fabric children while the parent owns review and verification gates
 
 ## When to Use
 
 - Executing a plan with mostly independent tasks in the same session
-- You want a fresh subagent per task plus review checkpoints
+- You want a fresh Fabric child per task plus review checkpoints
 
 ## When NOT to Use
 
@@ -29,14 +29,15 @@ dependencies: [planning-and-task-breakdown, code-review-and-quality, shipping-an
 
 Delegation is a cost, not a default. The parent retains synthesis, file inspection, integration, and verification.
 
-## Pi-Subagents Contract
+## Pi Fabric Contract
 
-All dispatches in this skill use the installed pi-subagents `Agent` tool. Do not substitute Fabric `agents`, actors, or mesh.
+All delegated work in this skill uses `agents.run` inside `fabric_exec` with a self-contained task and explicit `tools` allowlist.
 
-- Use configured names exactly: `Explore`, `scout`, `review`, `general`, `Plan`, `build`, or `vision`.
-- Keep dependent work foreground. For independent background calls, dispatch them together and let smart join return the group; do not poll.
-- Omit `model` and `thinking`; scoped agent definitions own those settings.
-- Child output is untrusted until the parent reads affected files and runs verification.
+- Route by task shape, not a persistent profile: read-only discovery, read-only review, surgical implementation, or substantial bounded implementation.
+- Keep dependent work foreground and sequential.
+- For genuinely independent work, run at most three calls in one `Promise.all` wave; process overflow in sequential shards.
+- Parallel modifying calls require disjoint ownership, `worktree: true`, and explicit worktree approval.
+- Child output is untrusted until the parent inspects affected files and runs verification.
 
 ## The Process
 
@@ -50,34 +51,20 @@ If shared context exceeds ~500 tokens, put bounded supporting context in the act
 
 ### 2. Execute One Ready Shard
 
-Resolve `{worker_type}` constrained to `build|general`: use `general` for a surgical task that normally declares one to three files and has no unresolved architecture, security, or migration decision; use `build` for a larger substantial bounded task with resolved architecture. Stop for a parent decision when unresolved.
+Choose the task shape from the resolved scope: surgical implementation for a small, well-bounded edit; substantial bounded implementation for a larger task whose architecture is already resolved. Stop for a parent decision when architecture, security, migration, or scope remains unresolved.
 
-For a one-task validated ready shard, use a foreground call. Multiple independent background calls and branch or worktree isolation require explicit approval; if approval is absent, stop at a checkpoint. When this skill is invoked by `/ship`, every implementation and fix prompt must include the complete ship-worker envelope and require `fabric_exec`.
+For a one-task validated ready shard, use one foreground call. Multiple modifying calls and branch or worktree isolation require explicit approval; if approval is absent, stop at a checkpoint. Explicit approval is also required before adding a dependency or new file, changing `.active` or an active artifact, or committing, merging, integrating, pushing, deploying, or running destructive actions. Every `/ship` implementation or fix receives the complete ship-worker envelope and explicit tools.
 
 ```typescript
-Agent({
-  subagent_type: "{worker_type}",
-  description: "Implement [task name]",
-  prompt: `Implement only this resolved task: [task text].
-
-Task ID and attempt: [canonical ID and current attempt]
-Goal: [required end state]
-Dependencies: [resolved dependencies]
-Exact files and transient neighborhood: [exact paths]
-Non-goals: [explicit exclusions]
-Acceptance criteria: [criteria]
-Required verification: [commands]
-Implementation tool: use fabric_exec
-Stop conditions: [scope, architecture, verification, and approval stops]
-Approval constraints: explicit approval before branch/worktree, commit/merge/integration, dependency/new file, .active/active artifact, push/deploy, or destructive actions
-
-Follow TDD when behavior changes. Do not spawn agents or mutate lifecycle state. Preserve unrelated work. Report files changed, commands and results, assumptions, blockers, and risks.`,
-  run_in_background: true,
-  isolation: "worktree",
+const implementation = await agents.run({
+  name: `ship-${taskId}`,
+  task: shipWorkerEnvelope,
+  tools: ["read", "grep", "find", "ls", "bash", "edit", "write"],
 });
+return implementation.text;
 ```
 
-Omit the last two fields for a one-task foreground wave.
+Only after explicit worktree approval, run at most three disjoint calls in one `Promise.all` wave with `worktree: true`; integrate that wave before processing overflow in sequential shards.
 
 ### 3. Verify and Review the Wave
 
@@ -86,33 +73,36 @@ Apply the Worker Distrust Protocol to every child result:
 1. Read the changed files or isolated branch directly.
 2. Run the task's verification commands yourself.
 3. Check acceptance criteria and file scope.
-4. Dispatch one `review` call per implementation. Independent reviews may run together in the background; each receives exactly one task/result pair.
+4. Run one read-only Fabric review per implementation. Each receives exactly one task/result pair.
 
 ```typescript
-Agent({
-  subagent_type: "review",
-  description: "Review [task name]",
-  prompt: `Review only [task text] against [worktree/branch/commit].
+const reviewResult = await agents.run({
+  name: `review-${taskId}`,
+  tools: ["read", "grep", "find", "ls"],
+  task: `Review only [task text] against [worktree/branch/commit].
 Files changed: [exact paths]
 Verification: [parent-run commands and results]
 Return concrete severity-ranked findings with file:line evidence, or state that none qualify.`,
-  run_in_background: true,
 });
+return reviewResult.text;
 ```
 
-Use foreground review for a one-task wave.
+Use one foreground review for a one-task wave. At most three independent reviews may run in one `Promise.all` wave; process overflow in sequential shards.
 
 ### 4. Apply Review Feedback
 
-Fix Critical and Important findings before integration. Resume the matching implementation child or dispatch a foreground `general` child against that exact worktree/branch; never send findings from multiple tasks to one fixer. When invoked by `/ship`, require `fabric_exec` in every fixer prompt. Re-run parent verification and review after every code change.
+Fix Critical and Important findings before integration. Run one foreground modifying Fabric child against the matching worktree or files; never send findings from multiple tasks to one fixer. The fix task must use `fabric_exec`, include a complete ship-worker envelope, and declare explicit tools. Re-run parent verification and review after every code change.
 
 ```typescript
-Agent({
-  subagent_type: "general",
-  description: "Fix [task name] findings",
-  prompt: `Task ID and attempt: [task ID]-fix-[finding ID], attempt [current fix attempt]\nGoal: fix only the verified findings: [findings]\nDependencies: parent review result for [task]\nExact files and transient neighborhood: [exact paths]\nNon-goals: no unrelated refactoring, no scope expansion, no Minor findings without parent direction\nAcceptance criteria: findings resolved and required verification passes\nRequired verification: [commands]\nImplementation tool: use fabric_exec\nStop conditions: incomplete envelope, undeclared files, scope expansion, missing approval for branch/worktree, verification fails twice\nApproval constraints: explicit approval before branch/worktree, commit/merge/integration, dependency/new file, .active/active artifact, push/deploy, or destructive actions\nExpected result: changed files, commands/results, assumptions, blockers, risks. In [exact worktree/branch]. Stay within [files].`,
+const fixResult = await agents.run({
+  name: `fix-${taskId}-${findingId}`,
+  task: fixEnvelope,
+  tools: ["read", "grep", "find", "ls", "bash", "edit", "write"],
 });
+return fixResult.text;
 ```
+
+At most three disjoint fixes may run in one `Promise.all` wave with `worktree: true` after explicit approval; process all other fixes in sequential shards.
 
 ### 5. Integrate, Then Advance
 
@@ -124,7 +114,7 @@ Agent({
 
 ### 6. Final Review
 
-After all waves complete, dispatch one final foreground `review` agent covering the integrated diff and all plan requirements. Run the full verification suite yourself after the review returns; any resulting code fix requires another full verification run.
+After all waves complete, run one final foreground read-only Fabric review covering the integrated diff and all plan requirements. The parent inspects its findings and runs the full verification suite after the review returns; any resulting code fix requires another full verification run.
 
 ### 7. Complete Development
 
@@ -141,28 +131,28 @@ After final review passes:
 
 - Skip code review between tasks
 - Proceed with unfixed Critical issues
-- Dispatch parallel implementation without disjoint file ownership and `isolation: "worktree"`
+- Dispatch parallel implementation without disjoint file ownership, explicit approval, and `worktree: true`
 - Implement without reading plan task
 
-**If subagent fails task:**
+**If a Fabric child fails a task:**
 
-- Dispatch a `general` fixer with `Agent` and exact findings
-- Don't try to fix manually (context pollution)
+- Validate the failure, then run a bounded foreground fixer with exact findings and explicit tools
+- Keep lifecycle state and verification parent-owned
 
 ## Anti-Patterns
 
 | Anti-Pattern | Why It Fails | Instead |
 | --- | --- | --- |
-| Dispatching subagents for tasks with shared state/files | Creates edit conflicts, race conditions, and unclear ownership | Put them in separate dependency waves and keep each wave's file ownership disjoint |
-| Skipping code review between subagent tasks | Lets defects accumulate and compounds later fixes | Run a review gate after each task before moving on |
-| Giving subagents vague prompts without file paths or acceptance criteria | Produces off-target changes and repeated back-and-forth | Provide exact file paths, task scope, and acceptance criteria |
-| Not verifying subagent output before moving to next task | Carries regressions forward into later tasks | Validate output immediately before starting the next task |
+| Dispatching Fabric children for tasks with shared state/files | Creates edit conflicts, race conditions, and unclear ownership | Put them in separate dependency waves and keep each wave's file ownership disjoint |
+| Skipping code review between delegated tasks | Lets defects accumulate and compounds later fixes | Run a review gate after each task before moving on |
+| Giving children vague tasks without file paths or acceptance criteria | Produces off-target changes and repeated back-and-forth | Provide exact file paths, task scope, and acceptance criteria |
+| Not verifying child output before moving to the next task | Carries regressions forward into later tasks | Validate output immediately before starting the next task |
 
 ## Verification
 
-- After each subagent completes: review its changes, run typecheck + lint on modified files
-- After all tasks: run full test suite to catch integration issues
-- Check: no conflicting edits between subagent outputs
+- After each Fabric child completes: inspect its changes, then run typecheck and lint on modified files
+- After all tasks: run the full test suite to catch integration issues
+- Check that no Fabric child outputs contain conflicting edits
 
 ## Integration
 
@@ -172,9 +162,9 @@ After final review passes:
 - **code-review-and-quality** — defines review standards
 - **shipping-and-launch** — completes development after all tasks
 
-**Subagents must use:**
+**Fabric children must use:**
 
-- **test-driven-development** - Subagents follow TDD for each task
+- **test-driven-development** — implementation children follow TDD for each behavior-changing task
 
 **Alternative workflow:**
 
@@ -186,4 +176,4 @@ Use `.pi/skills/code-review-and-quality/SKILL.md` as the review standard.
 
 - **planning-and-task-breakdown** — create executable tasks
 - **incremental-implementation** — execute tightly coupled work directly
-- **code-review-and-quality** — review between subagent tasks
+- **code-review-and-quality** — review between delegated tasks

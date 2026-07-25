@@ -4,7 +4,6 @@ description: Use when auditing an existing design system for consistency — tok
 version: 2.0.0
 tags: [design, audit, ui]
 dependencies: []
-agent_types: [Plan, general, review]
 tools: []
 ---
 

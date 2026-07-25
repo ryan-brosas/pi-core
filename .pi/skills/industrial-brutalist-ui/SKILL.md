@@ -4,7 +4,6 @@ description: Use INSTEAD OF design-taste-frontend when user requests brutalist, 
 version: 1.0.0
 tags: [workflow]
 dependencies: []
-agent_types: [Plan, general, review]
 tools: []
 ---
 

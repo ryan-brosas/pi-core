@@ -4,7 +4,6 @@ description: Use when setting up CI/CD pipelines, GitHub Actions workflows, auto
 version: 1.0.0
 tags: [devops, workflow]
 dependencies: []
-agent_types: [Plan, general, review]
 tools: []
 ---
 

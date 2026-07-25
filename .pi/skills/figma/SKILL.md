@@ -4,7 +4,6 @@ description: Use when implementing UI from Figma designs, extracting design toke
 version: 1.0.0
 tags: [design, mcp, integration]
 dependencies: []
-agent_types: [Plan, general, review]
 tools: []
 ---
 

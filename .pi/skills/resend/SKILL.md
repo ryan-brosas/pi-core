@@ -4,7 +4,6 @@ description: MUST load before sending transactional emails, creating React Email
 version: 1.0.0
 tags: [integration, mcp]
 dependencies: []
-agent_types: [Plan, general, review]
 tools: []
 ---
 

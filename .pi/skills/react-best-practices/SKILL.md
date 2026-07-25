@@ -4,7 +4,6 @@ description: MUST load when writing, reviewing, or refactoring React/Next.js cod
 version: 1.0.0
 tags: [ui, code-quality]
 dependencies: []
-agent_types: [Plan, general, review]
 tools: []
 ---
 

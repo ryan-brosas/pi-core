@@ -1,10 +1,9 @@
 ---
 name: code-review-and-quality
-description: Use before merge, after subagent work, or when asked for a code review. Bloat Review mode hunts over-engineering only (delete-list with tagged findings).
+description: Use before merge, after delegated work, or when asked for a code review. Bloat Review mode hunts over-engineering only (delete-list with tagged findings).
 version: 1.0.0
 tags: [review, code-quality, verification]
 dependencies: [verification-before-completion]
-agent_types: [review]
 tools: [grep, find, read, bash]
 ---
 
@@ -33,19 +32,20 @@ For AI-generated code, after a refactor, or when scope may have crept. Output a 
 5. **Mark dead** — unused exports, dead branches, ownerless TODOs, restating comments.
 6. **Verify in one pass** — typecheck + lint + relevant test.
 
-## Pi Subagent Review
+## Fabric Review
 
-When the parent needs an independent review, use a foreground pi-subagents call (not Fabric orchestration):
+Direct parent review is the default. When an independent read-only review materially improves confidence, call one foreground Fabric child through `agents.run` inside `fabric_exec`:
 
 ```typescript
-Agent({
-  subagent_type: "review",
-  description: "Review scoped changes",
-  prompt: `Review [requirements/spec path] against [exact changed files or SHAs]. Include verification already run. Return only severity-ranked findings with file:line evidence; say explicitly if none qualify.`,
+const reviewResult = await agents.run({
+  name: "scoped-review",
+  tools: ["read", "grep", "find", "ls"],
+  task: `Review [requirements/spec path] against [exact changed files or SHAs]. Include verification already run. Return only severity-ranked findings with file:line evidence; say explicitly if none qualify.`,
 });
+return reviewResult.text;
 ```
 
-Do not recursively dispatch another reviewer when already running as the `review` subagent. The parent validates findings and runs gates itself.
+For genuinely independent review angles, run at most three calls in one `Promise.all` wave and process overflow in sequential shards. Children do not recursively dispatch reviewers. The parent validates findings, inspects affected files, and runs verification gates itself.
 
 ## Delete-List Categories
 

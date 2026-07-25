@@ -4,7 +4,6 @@ description: Use when writing or changing tests, adding mocks, or tempted to add
 version: 1.0.0
 tags: [testing, code-quality]
 dependencies: []
-agent_types: [Plan, general, review]
 tools: []
 ---
 

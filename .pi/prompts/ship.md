@@ -8,54 +8,51 @@ Execute spec tasks, verify each passes, run review, mark complete.
 
 > **Workflow:** `/create` → **`/ship`**
 
-## Pi Subagent Routing
+## Fabric Agent Routing
 
-When this prompt says to spawn, delegate to, or use an agent, invoke the pi-subagents `Agent` tool; an agent name is not itself a tool. This is not Fabric agent orchestration.
+Use `agents.run({...})` inside `fabric_exec` only when delegation saves more context or time than it costs. Direct parent work is the default; there are no named project agent profiles.
 
-- `Explore`: internal codebase discovery
-- `scout`: external documentation and research
-- `review`: correctness, security, and regression review
-- `general`: surgical one-to-three-file implementation and review fixes
-- `build`: larger substantial bounded implementation
-- `Plan`: architecture and executable planning
-- Use a foreground call when the next step depends on the result. For independent parallel work, issue all calls together with `run_in_background: true`.
-- Omit `model` and `thinking`; agent definitions and scoped-model settings own those choices.
-
+- Encode the task role, exact goal, context, non-goals, output contract, stop conditions, approval constraints, and verification in `task`.
+- Supply an explicit `tools` allowlist. Local discovery, planning, and review default to `["read", "grep", "find", "ls"]`. External research adds only the required configured network tools; add mutation tools only for approved implementation work.
+- Await one foreground `agents.run` when the next decision depends on its result.
+- For genuinely independent questions, issue at most three `agents.run` calls in one `Promise.all`; process overflow in sequential shards.
+- For small read-only discovery or research, prefer `model: "openai-codex/gpt-5.6-luna"` with `thinking: "medium"` when an explicit override is useful.
+- The parent resolves placeholders, inspects child output and changes, synthesizes results, and runs verification itself.
 ### Implementation Worker Routing
 
-- Route a surgical task that normally declares one to three files and has no unresolved architecture, security, or migration decision to `general`.
-- Route a larger substantial but still bounded task with resolved architecture to `build`.
-- Stop for a parent decision when architecture, security, migration, scope, or approval is unresolved; do not hide that decision in worker selection.
-- One selected task uses one foreground Pi `Agent` call to the resolved worker. Two or three disjoint tasks may use the parent-selected batch workflow; process overflow in sequential shards.
+- Use a surgical Fabric task envelope for work that normally declares one to three files and has no unresolved architecture, security, or migration decision.
+- Use a larger substantial but still bounded task envelope only after architecture is resolved.
+- Stop for a parent decision when architecture, security, migration, scope, or approval is unresolved; do not hide that decision in tool selection.
+- One selected task uses one foreground `agents.run` call. Two or three disjoint tasks may use the parent-selected batch workflow after explicit isolation approval; process overflow in sequential shards.
 
 ### Primary Worker Dispatch
 
 If any unresolved architecture, security, migration, scope, or approval question remains, stop before worker selection.
 
-Otherwise, the parent resolves `workerType` to the closed set `general|build`. If it cannot resolve one of those two roles, stop before invocation. For one selected task, invoke the resolved worker in the foreground with the existing complete ship-worker envelope:
+Otherwise, the parent resolves the smallest sufficient tool allowlist for the bounded task. For one selected task, invoke one foreground Fabric worker with the complete ship-worker envelope:
 
 ```typescript
-const workerType: "general" | "build" = resolvedWorkerType;
-
-Agent({
-  subagent_type: workerType,
-  description: `Implement ${taskId}`,
-  prompt: shipWorkerEnvelope,
+const workerTools = ["read", "grep", "find", "ls", "bash", "edit", "write"];
+const implementation = await agents.run({
+  name: `ship-${taskId}`,
+  task: shipWorkerEnvelope,
+  tools: workerTools,
 });
+return implementation.text;
 ```
 
 ## Implementation Tooling
 
-During `/ship`, use `fabric_exec` for code-mode implementation and batched tool execution. Fabric is the required implementation tool here—not the subagent orchestrator.
+During `/ship`, use `fabric_exec` as the orchestration boundary and `agents.run` for bounded child execution.
 
-- Spawn every child through the pi-subagents `Agent` tool.
-- Never use Fabric agents, actors, mesh, or Fabric subagents.
-- Use `fabric_exec` for every implementation phase. Native Pi tools may still handle guards, review, and verification outside implementation.
-- Review, smart join, and child lifecycle remain owned by `@tintinweb/pi-subagents`.
+- Await one foreground child by default.
+- Issue at most three approved, disjoint Fabric runs together with `Promise.all`; process overflow in sequential shards.
+- Give each child an explicit task-specific tool allowlist and no speculative recursive or worktree capability.
+- Parent review, lifecycle state, integration decisions, and verification remain parent-owned.
 
 ### Ship-Worker Envelope
 
-Every implementation or fix child receives a resolved **ship-worker envelope** containing the task ID and attempt, goal, dependencies, exact files and transient neighborhood, non-goals, acceptance criteria, required `fabric_exec` use, verification commands, stop conditions, approval constraints, and expected result fields. Never send unresolved placeholders.
+Every implementation or fix child receives a resolved **ship-worker envelope** containing the task ID and attempt, goal, dependencies, exact files and transient neighborhood, non-goals, acceptance criteria, explicit tools, verification commands, stop conditions, approval constraints, and expected result fields. Never send unresolved placeholders.
 
 Children must not spawn or delegate to another agent, schedule siblings, mutate `.active`, `tasks.json`, `progress.md`, or other lifecycle state, or commit, merge, integrate, or publish work. The `/ship` parent owns `tasks.json` and `progress.md` updates—graph transitions and progress recording—as normal operation; these are not child operations and are not gated by the child approval checkpoints. Mutating `.active` is an exceptional operation that requires explicit approval even for the parent.
 
@@ -71,21 +68,20 @@ read(".pi/skills/verification-before-completion/SKILL.md");
 
 - **Be certain**: Only ship if all tasks pass verification
 - **Don't skip gates**: Build, test, lint, typecheck are non-negotiable
-- **Run the review**: Always spawn review agent before closing
+- **Run the review**: Always run an independent read-only Fabric review before closing
 - **Verify goals**: Tasks completing ≠ goals achieved (use goal-backward verification)
 - **Approval before Git actions**: Per-task commit, merge, and integration occur only after explicit approval; otherwise stop at a checkpoint
 - **Ask before closing**: Never close without user confirmation
 
 ## Available Tools
 
-| Tool                 | Use When                                  |
-| -------------------- | ----------------------------------------- |
-| `Explore`            | Finding patterns in codebase, prior art   |
-| `scout`              | External research, best practices         |
-| `lsp`                | Finding symbol definitions, references    |
-| `grep`               | Finding code patterns                     |
-| `Agent`              | Spawning pi-subagents                     |
-| `fabric_exec`         | Required code-mode implementation/batching |
+| Tool or Fabric surface | Use When                                      |
+| ---------------------- | --------------------------------------------- |
+| `agents.run`           | Bounded planning, research, review, or edits |
+| `Promise.all`          | At most three independent Fabric runs       |
+| `lsp`                  | Finding symbol definitions and references   |
+| `grep`                 | Finding code patterns                       |
+| `fabric_exec`          | Parent orchestration and batched execution  |
 
 ## Phase 1: Guards
 
@@ -121,7 +117,7 @@ If `plan.md` exists, compare its task IDs with the authoritative graph. Any task
 
 1. Run `task-graph frontier` with `node --experimental-strip-types .pi/scripts/task-graph.ts frontier "$GRAPH"`.
 2. Handle no-ready states exactly: `complete` proceeds to verification; `running` reports active work; `blocked` reports unmet dependency reasons; `intervention_required` reports failed, blocked, or stale IDs; `invalid` stops.
-3. Execute only the returned conflict-free `selected` shard. One selected task is delegated through a foreground Pi `Agent` call to the resolved `general` or `build` worker; two or three disjoint tasks may use the parent-selected batch workflow after any required isolation approval. Never exceed three.
+3. Execute only the returned conflict-free `selected` shard. One selected task uses one foreground `agents.run` call with a complete task envelope and explicit tools; two or three disjoint tasks may use the parent-selected batch workflow after required isolation approval. Never exceed three.
 4. Before editing each selected task, derive a bounded transient code/test neighborhood from declared files, imports and references, nearby tests, public contracts, and relevant git history. Append the discovered paths to `progress.md`. If declared files and neighborhood evidence materially disagree, stop for focused discovery; do not persist a repository graph.
 5. After every start, pass, failure, invalidation, or integration transition, revalidate and recompute the frontier. Never fall back to list order or an old plan wave.
 6. Continue with the fresh selected shard until the graph is complete or a blocker requires intervention.
@@ -130,7 +126,7 @@ The batch workflow receives only the parent-selected ready shard and returns con
 
 ### Per-Task Execution
 
-Use the resolved ship-worker envelope for every implementation or code-fix step. The worker uses `fabric_exec`, stays inside declared files, automates checkpoints first, and verifies with at most two fix attempts. The parent inspects and verifies the result, then commits or integrates only with explicit approval before appending task state and evidence to `progress.md`.
+Use the resolved ship-worker envelope for every implementation or code-fix step. The worker uses only its supplied Fabric tools, stays inside declared files, automates checkpoints first, and verifies with at most two fix attempts. The parent inspects and verifies the result, then commits or integrates only with explicit approval before appending task state and evidence to `progress.md`.
 
 ### Attempt-Scoped State Transitions
 
@@ -259,7 +255,7 @@ HEAD_SHA=$(git rev-parse HEAD)
 | Condition | Mode |
 |---|---|
 | Routine change, low risk | Standard Review (below) |
-| High-risk feature, explicit user request for quality gating, or the build agent flagged the feature as requiring iterative quality gating | Iterative Quality Loop |
+| High-risk feature, explicit user request for quality gating, or an implementation result flags iterative quality gating | Iterative Quality Loop |
 
 When using Standard Review mode, apply the UI Quality Gate then the parallel review. When using Iterative Loop mode, apply the UI Quality Gate first (before entering the loop), then run the scored loop flow.
 
@@ -290,21 +286,34 @@ If any UI files changed:
 
 ### Standard Review Mode
 
-Default to one foreground `review` agent covering security/correctness, performance/architecture, type-safety/tests, conventions/patterns, and simplicity/completeness. For high-risk changes only, split those concerns into at most three non-overlapping bundles: `security-correctness`, `performance-architecture`, and `types-tests-conventions-simplicity`. Dispatch the current bundle wave together with `run_in_background: true`; process any additional review work in sequential shards.
+Default to one foreground read-only Fabric review covering security/correctness, performance/architecture, type-safety/tests, conventions/patterns, and simplicity/completeness. For high-risk changes only, split those concerns into at most three non-overlapping bundles: `security-correctness`, `performance-architecture`, and `types-tests-conventions-simplicity`. Issue the current bundle wave together with `Promise.all`; process any additional review work in sequential shards.
 
 ```typescript
-Agent({
-  subagent_type: "review",
-  description: "Review [focus bundle]",
-  prompt: `Review only [resolved focus bundle] for {WHAT_WAS_IMPLEMENTED} against {PLAN_OR_REQUIREMENTS}. Diff: {BASE_SHA}...{HEAD_SHA}. Return severity-ranked findings with file:line evidence, or explicitly report none.`,
+const reviewResult = await agents.run({
+  name: "ship-review-[focus]",
+  tools: ["read", "grep", "find", "ls"],
+  task: `Review only [resolved focus bundle] for {WHAT_WAS_IMPLEMENTED} against {PLAN_OR_REQUIREMENTS}. Diff: {BASE_SHA}...{HEAD_SHA}. Return severity-ranked findings with file:line evidence, or explicitly report none.`,
 });
+return reviewResult.text;
 ```
 
 Resolve placeholders before dispatch. The parent validates every finding and retains synthesis and verification.
 
 **Auto-fix rule:**
 
-- Critical and Important issues → dispatch `Agent({ subagent_type: "general", description: "Fix [finding]", prompt: "Task ID and attempt: [task ID]-fix-[finding ID], attempt [current fix attempt]\nGoal: fix only the verified finding [finding]\nDependencies: parent review result for [task]\nExact files and transient neighborhood: [exact paths]\nNon-goals: no unrelated refactoring, no scope expansion, no Minor findings without parent direction\nAcceptance criteria: finding resolved and required verification passes\nRequired verification: [commands]\nImplementation tool: use fabric_exec\nStop conditions: incomplete envelope, undeclared files, scope expansion, missing approval for branch/worktree, verification fails twice\nApproval constraints: explicit approval before branch/worktree, commit/merge/integration, dependency/new file, .active/active artifact, push/deploy, or destructive actions\nExpected result: changed files, commands/results, assumptions, blockers, risks." })`. Use `run_in_background: true` plus `isolation: "worktree"` only for a disjoint shard of at most three files/findings; integrate it before later sequential shards. Otherwise use foreground sequential calls.
+- Critical and Important issues receive a complete modifying **ship-worker envelope**: task ID and attempt, verified finding, dependencies, exact files and transient neighborhood, non-goals, acceptance criteria, required verification, explicit tools, stop conditions, approval constraints, and expected result.
+
+```typescript
+const fixResult = await agents.run({
+  name: `ship-fix-${findingId}`,
+  task: fixEnvelope,
+  tools: ["read", "grep", "find", "ls", "bash", "edit", "write"],
+});
+return fixResult.text;
+```
+
+Same-file or dependent fixes stay foreground and sequential. At most three disjoint fixes may run with `Promise.all` and `worktree: true` only after explicit worktree approval; integrate that shard before later sequential shards.
+
 - After **any** code fix → inspect changes and re-run Phase 4 verification before proceeding.
 - Minor issues → note them in the active `progress.md`; append only durable cross-feature learnings to `.pi/artifacts/MEMORY.md`
 
@@ -312,7 +321,7 @@ If review finds critical issues that require architectural decisions → stop �
 
 ### Iterative Quality Loop Mode
 
-Score-gated feedback loop for high-risk features. Replaces the standard parallel review with a structured iteration cycle.
+Score-gated feedback loop for high-risk features. Replaces the standard review with a structured iteration cycle.
 
 #### Setup
 
@@ -341,54 +350,32 @@ Repeat steps 2-8 until exit or escalation:
 | Step | Action |
 |---|---|
 | **1. EXECUTE** | Implement per spec/plan (already done in Phase 3) |
-| **2. REVIEW** | Spawn **one review subagent** (`subagent_type: "review"`) with spec + current diff + `review-state.json`. Returns: score (X/5), findings array (severity + file:line + suggestion), suggested next action |
-| **3. GATE** | Score ≥ 5 → mark done (`status: "passed"`), exit loop, proceed to Goal-Backward Verification. Score 4 → ask user if they want to proceed or loop. Score <4 → continue |
-| **4. STALL?** | If `sameScoreCount ≥ 2` → escalate: surface accumulated findings, present to user with a recommendation |
-| **5. MAX?** | If `rounds ≥ maxRounds` → escalate with full finding log |
-| **6. FILTER** | Split findings into categories and handle each: |
-| | • **Actionable** (code-level, clear fix) → proceed to fix |
-| | • **Informational** (note, no code change) → log to progress.md with `[info]` |
-| | • **Architecture/Design** → stop loop, present to user for decision |
-| **7. FIX** | Dispatch `Agent({ subagent_type: "general", description: "Fix [finding]", prompt: "Task ID and attempt: [task ID]-fix-[finding ID], attempt [current fix attempt]\nGoal: fix only the verified finding [finding]\nDependencies: parent review result for [task]\nExact files and transient neighborhood: [exact paths]\nNon-goals: no unrelated refactoring, no scope expansion, no Minor findings without parent direction\nAcceptance criteria: finding resolved and required verification passes\nRequired verification: [commands]\nImplementation tool: use fabric_exec\nStop conditions: incomplete envelope, undeclared files, scope expansion, missing approval for branch/worktree, verification fails twice\nApproval constraints: explicit approval before branch/worktree, commit/merge/integration, dependency/new file, .active/active artifact, push/deploy, or destructive actions\nExpected result: changed files, commands/results, assumptions, blockers, risks." })`. Same-file/dependent fixes stay foreground and sequential; at most three disjoint fixes may run in the current shard with `run_in_background: true` and `isolation: "worktree"`, followed by later sequential shards |
-| **8. VERIFY + RE-REVIEW** | Integrate accepted fixes, inspect files, re-run Phase 4 verification, update `review-state.json`, then go to step 2 |
+| **2. REVIEW** | Run one foreground read-only `agents.run` task with the spec, current diff, and `review-state.json`. Return score, severity-ranked findings, and a suggested next action. |
+| **3. GATE** | Score ≥ 5 → mark passed and continue to Goal-Backward Verification. Score 4 → ask the user whether to proceed or loop. Score <4 → continue. |
+| **4. STALL?** | If `sameScoreCount ≥ 2`, surface accumulated findings and escalate. |
+| **5. MAX?** | If `rounds ≥ maxRounds`, escalate with the full finding log. |
+| **6. FILTER** | Actionable findings proceed to fix; informational findings go to `progress.md`; architecture/design findings stop for a user decision. |
+| **7. FIX** | Run a foreground modifying `agents.run` with a complete fix envelope and explicit tools. Up to three disjoint approved worktree fixes may run with `Promise.all`; process overflow in sequential shards. |
+| **8. VERIFY + RE-REVIEW** | Inspect accepted fixes, re-run Phase 4 verification, update `review-state.json`, then return to step 2. |
 
 #### Loop State Updates
 
 After each round, update `review-state.json`:
 
-**`sameScoreCount` rule:**
-- If new score === `lastScore` → increment `sameScoreCount`
-- If new score !== `lastScore` → reset `sameScoreCount` to 0
+- If the new score equals `lastScore`, increment `sameScoreCount`; otherwise reset it to `0`.
+- Stall detected → `status: "stalled"`, append accumulated findings to `progress.md`.
+- Max rounds reached → `status: "maxed"`, append the full finding log.
+- Score ≥ 5 → `status: "passed"`, proceed to Goal-Backward Verification.
 
-**Example after round 1 (score: 3):**
-
-```json
-{
-  "rounds": 1,
-  "lastScore": 3,
-  "sameScoreCount": 0,
-  "findingsResolved": 2,
-  "findingsRemaining": 1,
-  "status": "active"
-}
-```
-
-**Status transitions:**
-
-- Stall detected (`sameScoreCount ≥ 2`) → `status: "stalled"`, append accumulated findings to progress.md
-- Max rounds reached → `status: "maxed"`, append full finding log to progress.md
-- Pass (score ≥ 5) → `status: "passed"`, proceed to Goal-Backward Verification
-
-#### Review Subagent Prompt
-
-Spawn with a foreground pi-subagents call:
+#### Fabric Review Task
 
 ```typescript
-Agent({
-  subagent_type: "review",
-  description: "Score implementation quality",
-  prompt: `Review the original spec/slug, the complete current diff since Phase 3, and review-state.json. Return { score: number, findings: Array<{severity:"critical"|"important"|"minor", file:string, line:number, suggestion:string, type:"actionable"|"informational"|"architecture"}>, nextAction: string }.`,
+const scoredReview = await agents.run({
+  name: "ship-quality-score",
+  tools: ["read", "grep", "find", "ls"],
+  task: `Review the original spec/slug, the complete current diff since Phase 3, and review-state.json. Return { score: number, findings: Array<{severity:"critical"|"important"|"minor", file:string, line:number, suggestion:string, type:"actionable"|"informational"|"architecture"}>, nextAction: string }.`,
 });
+return scoredReview.text;
 ```
 
 The parent validates findings and owns loop state.

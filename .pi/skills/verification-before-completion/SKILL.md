@@ -4,7 +4,6 @@ description: Use when about to claim work is complete, fixed, or passing, before
 version: 1.0.0
 tags: [workflow, code-quality]
 dependencies: []
-agent_types: [Plan, general, review]
 tools: []
 ---
 
@@ -67,9 +66,9 @@ Lower levels (prose, code review) are inspection, not verification.
 | "CI will catch it" | That's the failure mode. |
 | "No time" | You have time to be wrong. |
 
-## Subagent Evidence Rule
+## Fabric Child Evidence Rule
 
-A pi-subagents `review` result can identify what to verify, but it cannot satisfy this gate by itself. The parent must inspect affected files and run the named commands. Never treat a child summary, Fabric agent result, or claimed exit code as completion evidence without direct verification.
+A Fabric child result from `agents.run` inside `fabric_exec` can identify what to verify, but it cannot satisfy this gate by itself. Use one foreground call by default; for genuinely independent evidence angles, run at most three calls in one `Promise.all` wave and process overflow in sequential shards. The parent must inspect affected files and run the named commands. Never treat a child summary or claimed exit code as completion evidence without direct parent verification.
 
 ## Completion Pattern
 

@@ -22,8 +22,7 @@ export type ProviderCategory =
   | "context7"
   | "exa"
   | "codex-search"
-  | "xai-web-search"
-  | "scout";
+  | "xai-web-search";
 
 export type CorrectionStatus =
   | "eligible"
@@ -109,10 +108,9 @@ const CANONICAL_CATEGORIES: ProviderCategory[] = [
   "exa",
   "codex-search",
   "xai-web-search",
-  "scout",
 ];
 
-const CONFIG_VERSION = 1;
+const CONFIG_VERSION = 2;
 const STANDARD_CATEGORY_COUNT = 1;
 const HIGH_CATEGORY_COUNT = 2;
 const MAX_CORRECTIONS = 1;
@@ -120,7 +118,7 @@ const LABEL_MAX = 64;
 const REF_MAX = 128;
 const IDENT_MAX = 128;
 const MAX_IDENTIFIERS = 64;
-const EXPECTED_PROVIDER_COUNT = 5;
+const EXPECTED_PROVIDER_COUNT = 4;
 const MAX_TOOLS_PER_PROVIDER = 16;
 const MAX_REFS_PER_PROVIDER = 16;
 
@@ -161,14 +159,6 @@ function buildCanonicalConfig(): ResearchEnforcementConfig {
         authoritative: true,
         independentForHigh: true,
       },
-      {
-        category: "scout",
-        label: "Scout",
-        directToolNames: ["Agent"],
-        fabricRefs: [],
-        authoritative: true,
-        independentForHigh: false,
-      },
     ],
     authoritativeSourceIdentifiers: [],
     standardCategoryCount: STANDARD_CATEGORY_COUNT,
@@ -182,7 +172,7 @@ export function defaultConfig(): ResearchEnforcementConfig {
 }
 
 // ============================================================
-// Strict configuration parsing (all-or-nothing V1)
+// Strict configuration parsing (all-or-nothing V2)
 // ============================================================
 
 const TOP_LEVEL_KEYS = new Set([
@@ -474,10 +464,10 @@ export function classifyTurn(prompt: string): TurnClassification {
 /**
  * Map an observed direct tool call to a provider category.
  *
- * Matching is exact against configured `directToolNames`. The generic `Agent`
- * tool counts as `scout` only when `input.subagent_type === "scout"`; other
- * subagent types and an absent subtype never match. `context7.resolve-library-id`
- * is routing/setup activity and does not match any evidence category.
+ * Matching is exact against configured `directToolNames`. Orchestration tools
+ * such as `fabric_exec`, `agents.run`, and the removed `Agent` tool are not
+ * provider evidence. `context7.resolve-library-id` is routing/setup activity and
+ * does not match any evidence category.
  */
 export function categorizeDirectTool(
   config: ResearchEnforcementConfig,
@@ -485,21 +475,9 @@ export function categorizeDirectTool(
 ): ProviderCategory | null {
   const toolName = observation?.toolName;
   if (typeof toolName !== "string" || toolName.length === 0) return null;
-  const input = observation?.input;
   for (const provider of config.providers) {
     if (!Array.isArray(provider.directToolNames)) continue;
-    if (!provider.directToolNames.includes(toolName)) continue;
-    if (toolName === "Agent") {
-      if (
-        input &&
-        typeof input === "object" &&
-        (input as Record<string, unknown>).subagent_type === "scout"
-      ) {
-        return provider.category;
-      }
-      continue;
-    }
-    return provider.category;
+    if (provider.directToolNames.includes(toolName)) return provider.category;
   }
   return null;
 }
@@ -557,8 +535,8 @@ function matchFabricRef(
  * "succeeded"`, structurally valid operations) contributes, and only exact
  * operations whose own `outcome === "succeeded"` and whose `ref` matches a
  * configured `fabricRefs` entry exactly. Operation arguments, results, and
- * error prose are never inspected. The ambiguous nested `extensions.Agent`
- * ref has no matching category and never counts.
+ * error prose are never inspected. Fabric agent lifecycle operations and the
+ * removed `extensions.Agent` ref have no matching category and never count.
  */
 export function extractFabricCategories(
   config: ResearchEnforcementConfig,
@@ -598,8 +576,8 @@ export function extractFabricCategories(
  * requires at least `standardCategoryCount` distinct authoritative provider
  * categories and a standard-valid citation. `high` requires at least
  * `highCategoryCount` distinct categories that are independent for high and a
- * high-valid citation. Duplicate categories deduplicate to one. Scout is
- * authoritative for standard but not independent for high.
+ * high-valid citation. Duplicate categories deduplicate to one. Fabric
+ * orchestration itself never contributes a provider category.
  */
 export function evaluateCompliance(
   config: ResearchEnforcementConfig,

@@ -7,18 +7,16 @@ argument-hint: "[path|all] [--quick] [--full] [--fix] [--no-cache]"
 
 Check implementation against PRD before shipping.
 
-## Pi Subagent Routing
+## Fabric Agent Routing
 
-When this prompt says to spawn, delegate to, or use an agent, invoke the pi-subagents `Agent` tool; an agent name is not itself a tool. This is not Fabric agent orchestration.
+Use `agents.run({...})` inside `fabric_exec` only when delegation saves more context or time than it costs. Direct parent work is the default; there are no named project agent profiles.
 
-- `Explore`: internal codebase discovery
-- `scout`: external documentation and research
-- `review`: correctness, security, and regression review
-- `general`: small independent implementation
-- `Plan`: architecture and executable planning
-- Use a foreground call when the next step depends on the result. For independent parallel work, issue all calls together with `run_in_background: true`.
-- Omit `model` and `thinking`; agent definitions and scoped-model settings own those choices.
-
+- Encode the task role, exact goal, context, non-goals, output contract, stop conditions, approval constraints, and verification in `task`.
+- Supply an explicit `tools` allowlist. Local discovery, planning, and review default to `["read", "grep", "find", "ls"]`. External research adds only the required configured network tools; add mutation tools only for approved implementation work.
+- Await one foreground `agents.run` when the next decision depends on its result.
+- For genuinely independent questions, issue at most three `agents.run` calls in one `Promise.all`; process overflow in sequential shards.
+- For small read-only discovery or research, prefer `model: "openai-codex/gpt-5.6-luna"` with `thinking: "medium"` when an explicit override is useful.
+- The parent resolves placeholders, inspects child output and changes, synthesizes results, and runs verification itself.
 ## Load Skills
 
 ```typescript
@@ -149,7 +147,7 @@ CURRENT_STAMP=$(compute_verification_stamp)
 echo "$CURRENT_STAMP $(date -u +%Y-%m-%dT%H:%M:%SZ) PASS" >> .pi/artifacts/verify.log
 ```
 
-For `--full` verification or a change spanning more than 20 files, call one foreground `review` subagent with the spec path, exact changed-file list, and gate output. Treat its report as review evidence, not a replacement for parent-run gates.
+For `--full` verification or a change spanning more than 20 files, run one foreground read-only Fabric review with the spec path, exact changed-file list, and gate output. Treat its report as review evidence, not a replacement for parent-run gates.
 
 ## Phase 4: Coherence (skip with --quick)
 

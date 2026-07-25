@@ -47,7 +47,7 @@ Use words Claude would search for:
 **Use active voice, verb-first:**
 
 - [x] `creating-skills` not `skill-creation`
-- [x] `testing-skills-with-subagents` not `subagent-skill-testing`
+- [x] `testing-skills-with-fabric-children` not `agent-skill-testing`
 
 ## 4. Token Efficiency (Critical)
 
@@ -76,12 +76,12 @@ search-conversations supports multiple modes and filters. Run --help for details
 ```markdown
 # [ ] BAD: Repeat workflow details
 
-When searching, dispatch with `Agent({ subagent_type: "scout", description: "Search authoritative sources", prompt: "[self-contained query and citation contract]" })`...
+When searching, call `agents.run({ name: "authoritative-source-search", task: "[self-contained query and citation contract]", tools: ["context7.resolve-library-id", "context7.query-docs"] })` inside `fabric_exec`...
 [20 lines of repeated instructions]
 
 # [x] GOOD: Reference other skill
 
-Always use subagents (50-100x context savings). REQUIRED: Use [other-skill-name] for workflow.
+Use bounded Fabric children only when delegation saves context. REQUIRED: Use [other-skill-name] for workflow.
 ```
 
 **Compress examples:**
@@ -97,7 +97,7 @@ You: I'll search past conversations for React Router authentication patterns.
 
 Partner: "How did we handle auth errors in React Router?"
 You: Searching...
-[Dispatch subagent → synthesis]
+[Run Fabric child → parent synthesis]
 ```
 
 **Eliminate redundancy:**

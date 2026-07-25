@@ -10,37 +10,48 @@ Create a detailed implementation plan with TDD steps. Optional deep-planning bet
 >
 > **When to use:** Complex tasks where spec verification steps aren't enough guidance. Skip for simple tasks.
 
-## Pi Subagent Routing
+## Fabric Agent Routing
 
-When this prompt says to spawn, delegate to, or use an agent, invoke the pi-subagents `Agent` tool; an agent name is not itself a tool. This is not Fabric agent orchestration.
+Use `agents.run({...})` inside `fabric_exec` only when delegation saves more context or time than it costs. Direct parent work is the default; there are no named project agent profiles.
 
-- `Explore`: internal codebase discovery
-- `scout`: external documentation and research
-- `review`: correctness, security, and regression review
-- `general`: small independent implementation
-- `Plan`: architecture and executable planning
-- Use a foreground call when the next step depends on the result. For independent parallel work, issue all calls together with `run_in_background: true`.
-- Omit `model` and `thinking`; agent definitions and scoped-model settings own those choices.
-
+- Encode the task role, exact goal, context, non-goals, output contract, stop conditions, approval constraints, and verification in `task`.
+- Supply an explicit `tools` allowlist. Local discovery, planning, and review default to `["read", "grep", "find", "ls"]`. External research adds only the required configured network tools; add mutation tools only for approved implementation work.
+- Await one foreground `agents.run` when the next decision depends on its result.
+- For genuinely independent questions, issue at most three `agents.run` calls in one `Promise.all`; process overflow in sequential shards.
+- For small read-only discovery or research, prefer `model: "openai-codex/gpt-5.6-luna"` with `thinking: "medium"` when an explicit override is useful.
+- The parent resolves placeholders, inspects child output and changes, synthesizes results, and runs verification itself.
 ### Planning Worker Routing
 
 `/plan` remains parent-owned synthesis. The parent plans inline by default.
 
-Invoke one foreground `Plan` advisory only when an independent blueprint materially reduces risk:
+Invoke one foreground planning-advisory Fabric run only when an independent blueprint materially reduces risk:
 
 - **Material ambiguity:** requirements or acceptance boundaries remain unresolved after institutional and local evidence is loaded.
 - **Architectural trade-off:** two or more viable structures have meaningfully different long-term costs.
 - **Cross-subsystem sequencing:** ordering spans multiple contracts or ownership boundaries and a second planning pass reduces integration risk.
-- For complex planning that skips `Plan`, record a brief skip rationale instead of silently declining delegation.
+- For complex planning that skips delegation, record a brief skip rationale instead of silently declining it.
 
 Route missing evidence separately:
 
-- Route **local codebase patterns, file structure, and test discovery** to `Explore`.
-- Route **external docs, library comparisons, and ecosystem evidence** to `scout`.
-- Stop for a parent decision when the right worker is unclear; do not hide that decision in worker selection.
-- One selected input uses one foreground Pi `Agent` call. Two or three genuinely independent questions may run together with `run_in_background: true` and smart join; never exceed three.
+- Use a read-only local-discovery task for codebase patterns, file structure, and test discovery.
+- Use a read-only external-research task for docs, library comparisons, and ecosystem evidence.
+- Stop for a parent decision when the right task shape is unclear; do not hide that decision in worker selection.
+- Await one foreground run when the next parent decision depends on it. Route independent evidence fan-out under the general Fabric routing policy outside this advisory call.
 
-Use a foreground Plan call because the next parent decision depends on its advisory result. Do not make specialist planning a mandatory prelude to implementation and review.
+After constructing the resolved planning envelope below, use this foreground call:
+
+```typescript
+const planningResult = await agents.run({
+  name: "planning-advisor",
+  model: "openai-codex/gpt-5.6-luna",
+  thinking: "medium",
+  task: planningEnvelope,
+  tools: ["read", "grep", "find", "ls"],
+});
+return planningResult.text;
+```
+
+Do not make delegated planning a mandatory prelude to implementation and review.
 
 ### Planning Envelope
 
@@ -60,21 +71,7 @@ Every planning child receives a resolved, self-contained **planning envelope** c
 - **Stop conditions:** scope thresholds, ambiguity limits, missing evidence, or approval gates
 - **Approval constraints:** read-only inspection only; identify actions requiring parent approval without performing them
 
-Never send unresolved placeholders. Children must not spawn other agents, schedule sibling work, mutate `.active`, `tasks.json`, `progress.md`, or other lifecycle state, implement production code, or write files. The parent verifies worker evidence and resolves conflicts. The parent alone writes or validates canonical `plan.md` and `tasks.json`. Never hand Plan advisory output to `general` to render or write canonical `plan.md` or `tasks.json`.
-
-### Foreground Plan Advisory
-
-After required evidence is available, pass the resolved planning envelope to one foreground Plan child:
-
-```typescript
-Agent({
-  subagent_type: "Plan",
-  description: `Advise on ${featureSlug} planning decision`,
-  prompt: planningEnvelope,
-});
-```
-
-Omit `model` and `thinking`; agent definitions and scoped-model settings own those choices. Treat the response as untrusted advisory input until the parent checks its cited evidence.
+Never send unresolved placeholders. Children must not spawn other agents, schedule sibling work, mutate `.active`, `tasks.json`, `progress.md`, or other lifecycle state, implement production code, or write files. The parent verifies worker evidence and resolves conflicts. The parent alone writes or validates canonical `plan.md` and `tasks.json`. Never hand planning advisory output to a child to render or write canonical `plan.md` or `tasks.json`.
 
 ## Load Skills
 
@@ -131,13 +128,15 @@ Look for:
 - How similar features were implemented before
 - Any "fix:", "revert:", "hotfix:" commits near your scope (footgun zones)
 
-### Step 3: Spawn learnings-researcher (if Level 2-3 work)
+### Step 3: Run local-discovery task (if Level 2-3 work)
 
 ```typescript
-Agent({
-  subagent_type: "Explore",
-  description: "Search codebase for patterns related to this work",
-  prompt: `Search the codebase for patterns, conventions, and existing implementations related to: [FEATURE].
+const localEvidence = await agents.run({
+  name: "planning-local-evidence",
+  model: "openai-codex/gpt-5.6-luna",
+  thinking: "medium",
+  tools: ["read", "grep", "find", "ls"],
+  task: `Search the codebase for patterns, conventions, and existing implementations related to: [FEATURE].
 
   Run these searches:
   - grep for relevant function names and patterns
@@ -147,6 +146,7 @@ Agent({
 
   Return: existing patterns to follow, files to be aware of, and any gotchas.`,
 });
+return localEvidence.text;
 ```
 
 **Only after completing Phase 0** do you proceed to planning. The research phases must use this context.
@@ -179,8 +179,8 @@ Before research, determine discovery level based on PRD:
 | ----- | -------------------- | ----------------------------------------------------------------- | ------------------------------------------- |
 | **0** | Skip                 | Pure internal work, existing patterns only (grep confirms)        | Skip research, proceed to decomposition     |
 | **1** | Quick (2-5 min)      | Single known library, confirming syntax/version                   | `context7 resolve-library-id + query-docs`  |
-| **2** | Standard (15-30 min) | Choosing between 2-3 options, new external integration            | Spawn `scout` for research                 |
-| **3** | Deep (1+ hour)       | Architectural decision, novel problem, multiple external services | Full research with parallel `scout` agents |
+| **2** | Standard (15-30 min) | Choosing between 2-3 options, new external integration            | One foreground Fabric external-research run |
+| **3** | Deep (1+ hour)       | Architectural decision, novel problem, multiple external services | Parallel distinct Fabric research runs      |
 
 **Depth indicators:**
 
@@ -198,7 +198,7 @@ question({
       options: [
         {
           label: "Deep (Recommended for complex work)",
-          description: "Level 2-3: spawn scout + explore agents",
+          description: "Level 2-3: run external-research and local-discovery tasks",
         },
         { label: "Standard", description: "Level 1: quick doc lookup" },
         { label: "Skip research", description: "Level 0: I know the codebase" },
@@ -216,14 +216,14 @@ Read the PRD and extract tasks, success criteria, affected files, scope.
 
 Gather only the implementation context required by the selected level:
 
-| Agent     | Purpose                                                              |
-| --------- | -------------------------------------------------------------------- |
-| `Explore` | Codebase patterns, affected file structure, test patterns, conflicts |
-| `scout`   | Best practices, common patterns, pitfalls                            |
+| Fabric task role  | Purpose                                                              |
+| ----------------- | -------------------------------------------------------------------- |
+| Local discovery   | Codebase patterns, affected file structure, test patterns, conflicts |
+| External research | Best practices, common patterns, pitfalls                            |
 
-- **Level 2:** Use one foreground `scout` call with the exact external question because planning depends on its answer.
-- **Level 3:** The parent first defines distinct `{angle}` values (for example: ecosystem precedent, security constraints, operational risk, migration path). Dispatch at most three resolved angles in the current wave with `run_in_background: true`, then join and inspect the results. Process additional questions in later sequential shards before synthesis. Never repeat the same broad prompt across scouts.
-- Local discovery uses a separate `Explore` call with a bounded file/symbol question. The parent joins research, resolves conflicts, and writes the plan.
+- **Level 2:** Use one foreground external-research `agents.run` call with the exact question because planning depends on its answer.
+- **Level 3:** The parent first defines distinct `{angle}` values (for example: ecosystem precedent, security constraints, operational risk, migration path). Issue at most three resolved Fabric runs in the current wave with `Promise.all`, then inspect the results. Process additional questions in later sequential shards before synthesis. Never repeat the same broad task across children.
+- Local discovery uses a separate read-only Fabric run with a bounded file/symbol question. The parent joins research, resolves conflicts, and writes the plan.
 
 ## Phase 4: Goal-Backward Analysis
 

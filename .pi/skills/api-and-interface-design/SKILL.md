@@ -4,7 +4,6 @@ description: Use when designing REST/GraphQL APIs, SDK interfaces, or public mod
 version: 1.0.0
 tags: [architecture, code-quality]
 dependencies: []
-agent_types: [Plan, general, review]
 tools: []
 ---
 

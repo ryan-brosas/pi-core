@@ -4,7 +4,6 @@ description: Use when implementing any feature or bugfix, before writing impleme
 version: 1.0.0
 tags: [testing, workflow]
 dependencies: []
-agent_types: [Plan, general, review]
 tools: []
 ---
 

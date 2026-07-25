@@ -4,7 +4,6 @@ description: Use when implementing any feature, refactor, or change touching mor
 version: 1.0.0
 tags: [workflow, implementation, safety]
 dependencies: [verification-before-completion]
-agent_types: [general]
 tools: [grep, find, read, bash, edit, write]
 ---
 

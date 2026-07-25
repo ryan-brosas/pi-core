@@ -4,7 +4,6 @@ description: Use when needing to interact with web pages, test frontends, or use
 version: 1.0.0
 tags: [browser, automation, testing]
 dependencies: []
-agent_types: [Plan, general, review]
 tools: []
 ---
 

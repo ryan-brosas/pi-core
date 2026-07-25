@@ -4,7 +4,6 @@ description: Use this skill when the user requests Vercel deployment actions suc
 version: "1.0.0"
 tags: [devops, integration]
 dependencies: []
-agent_types: [Plan, general, review]
 tools: []
 ---
 

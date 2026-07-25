@@ -4,8 +4,7 @@ description: Use when using unfamiliar libraries, external APIs, framework behav
 version: 1.0.0
 tags: [research, implementation, verification]
 dependencies: []
-agent_types: [scout, Plan, general]
-tools: [context7, websearch, web_fetch, webclaw_scrape, grepsearch]
+tools: [context7.resolve-library-id, context7.query-docs, exa.web_search_exa, exa.web_fetch_exa, codex_search]
 ---
 
 # Source-Driven Development
@@ -50,19 +49,22 @@ Higher-ranked sources win on conflicts.
 7. Cite URLs or source refs in the recommendation.
 8. Mark unresolved uncertainty explicitly.
 
-## Pi Subagent Research
+## Fabric Research
 
-Use direct source tools for a surgical lookup. For a bounded question needing specialist judgment, call one foreground `scout` through the installed pi-subagents `Agent` tool. For genuinely independent questions, dispatch at most three distinct scouts in the current wave with `run_in_background: true`; let smart join return the group, then process overflow in later sequential shards. Omit `model` and `thinking`; scoped agent definitions own those choices:
+Use direct source tools for a surgical lookup. For a bounded external question needing isolated judgment, call one foreground Fabric child through `agents.run` inside `fabric_exec`. Small read-only research tasks should prefer `openai-codex/gpt-5.6-luna` with `thinking: "medium"` when available:
 
 ```typescript
-Agent({
-  subagent_type: "scout",
-  description: "Verify external API behavior",
-  prompt: `[exact question, project/library version, source hierarchy, required citation format, and stop condition]`,
+const researchResult = await agents.run({
+  name: "external-api-research",
+  model: "openai-codex/gpt-5.6-luna",
+  thinking: "medium",
+  tools: ["read", "grep", "find", "ls", "context7.resolve-library-id", "context7.query-docs"],
+  task: `[exact question, project/library version, source hierarchy, required citation format, and stop condition]`,
 });
+return researchResult.text;
 ```
 
-For a current shard of two or three independent questions, add `run_in_background: true` to each resolved call and issue only that shard together. The parent verifies citations, resolves source conflicts, and owns the recommendation before any later sequential shard. Do not use Fabric agent orchestration.
+For genuinely independent questions, run at most three resolved calls in one `Promise.all` wave and process overflow in sequential shards. An `agents.run` lifecycle operation does not count as provider evidence; the parent directly calls a configured provider or source tool to verify citations, resolves source conflicts, inspects relevant local constraints, and owns the recommendation.
 
 ## Common Rationalizations
 

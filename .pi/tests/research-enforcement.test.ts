@@ -323,14 +323,13 @@ const HIGH_CITATION_MARKER_ONLY = [
 /** A config input that matches the built-in default exactly. */
 function validConfigInput(): unknown {
   return {
-    version: 1,
+    version: 2,
     enabled: true,
     providers: [
       { category: "context7", label: "Context7", directToolNames: ["context7.query-docs"], fabricRefs: ["mcp.context7.query-docs"], authoritative: true, independentForHigh: true },
       { category: "exa", label: "Exa", directToolNames: ["exa.web_search_exa", "exa.web_fetch_exa"], fabricRefs: ["mcp.exa.web_search_exa", "mcp.exa.web_fetch_exa"], authoritative: true, independentForHigh: true },
       { category: "codex-search", label: "Codex Search", directToolNames: ["codex_search"], fabricRefs: ["extensions.codex_search"], authoritative: true, independentForHigh: true },
       { category: "xai-web-search", label: "xAI Web Search", directToolNames: ["xai_grok_web_search"], fabricRefs: ["extensions.xai_grok_web_search"], authoritative: true, independentForHigh: true },
-      { category: "scout", label: "Scout", directToolNames: ["Agent"], fabricRefs: [], authoritative: true, independentForHigh: false },
     ],
     authoritativeSourceIdentifiers: [],
     standardCategoryCount: 1,
@@ -542,7 +541,7 @@ test("research enforcement classification: explicit do not browse remains opted 
 
 test("research enforcement config: default config defines exact provider categories and refs", () => {
   const config = defaultConfig();
-  assert.equal(config.version, 1);
+  assert.equal(config.version, 2);
   assert.equal(config.enabled, true);
   assert.equal(config.standardCategoryCount, 1);
   assert.equal(config.highCategoryCount, 2);
@@ -572,21 +571,17 @@ test("research enforcement config: default config defines exact provider categor
   assert.deepEqual([...xai.directToolNames], ["xai_grok_web_search"]);
   assert.deepEqual([...xai.fabricRefs], ["extensions.xai_grok_web_search"]);
 
-  const scout = byCategory.get("scout");
-  assert.ok(scout);
-  assert.deepEqual([...scout.directToolNames], ["Agent"]);
-  assert.deepEqual([...scout.fabricRefs], []);
-  assert.equal(scout.independentForHigh, false);
+  assert.equal(byCategory.has("scout"), false);
 });
 
-test("research enforcement config: valid version one config parses with exact providers", () => {
+test("research enforcement config: valid version two config parses with exact providers", () => {
   const config = parseConfig(validConfigInput());
-  assert.equal(config.version, 1);
+  assert.equal(config.version, 2);
   assert.equal(config.enabled, true);
-  assert.equal(config.providers.length, 5);
+  assert.equal(config.providers.length, 4);
   assert.deepEqual(
     config.providers.map((p) => p.category),
-    ["context7", "exa", "codex-search", "xai-web-search", "scout"],
+    ["context7", "exa", "codex-search", "xai-web-search"],
   );
 });
 
@@ -661,11 +656,10 @@ test("research enforcement evidence: high requires two independent categories", 
   assert.equal(dup.compliant, false);
 });
 
-test("research enforcement evidence: scout is not independent for high", () => {
+test("research enforcement evidence: orchestration tools are not provider evidence", () => {
   const config = defaultConfig();
-  const result = evaluateCompliance(config, "high", ["scout", "context7"], validHighCitation());
-  assert.equal(result.independentCategoryCount, 1);
-  assert.equal(result.compliant, false);
+  assert.equal(categorizeDirectTool(config, directObservation("Agent", { input: { subagent_type: "scout" } })), null);
+  assert.equal(categorizeDirectTool(config, directObservation("fabric_exec")), null);
 });
 
 test("research enforcement evidence: context7 resolve-library-id does not count as evidence", () => {
@@ -678,9 +672,9 @@ test("research enforcement evidence: xai_grok_web_search counts as one category"
   assert.equal(categorizeDirectTool(config, directObservation("xai_grok_web_search")), "xai-web-search");
 });
 
-test("research enforcement evidence: Agent counts as scout only with scout subagent type", () => {
+test("research enforcement evidence: removed Agent variants never count", () => {
   const config = defaultConfig();
-  assert.equal(categorizeDirectTool(config, directObservation("Agent", { input: { subagent_type: "scout" } })), "scout");
+  assert.equal(categorizeDirectTool(config, directObservation("Agent", { input: { subagent_type: "scout" } })), null);
   assert.equal(categorizeDirectTool(config, directObservation("Agent", { input: { subagent_type: "build" } })), null);
   assert.equal(categorizeDirectTool(config, directObservation("Agent", { input: {} })), null);
 });
@@ -738,9 +732,13 @@ test("research enforcement trace: malformed successful operations do not contrib
   assert.deepEqual(extractFabricCategories(config, details), []);
 });
 
-test("research enforcement trace: ambiguous nested extensions Agent does not count", () => {
+test("research enforcement trace: Fabric orchestration refs do not count", () => {
   const config = defaultConfig();
-  const details = fabricTrace([{ ref: "extensions.Agent", outcome: "succeeded" }]);
+  const details = fabricTrace([
+    { ref: "agents.run", outcome: "succeeded" },
+    { ref: "agents.spawn", outcome: "succeeded" },
+    { ref: "extensions.Agent", outcome: "succeeded" },
+  ]);
   assert.deepEqual(extractFabricCategories(config, details), []);
 });
 

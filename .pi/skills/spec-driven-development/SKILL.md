@@ -4,7 +4,6 @@ description: Use when starting a new feature, significant change, product idea, 
 version: 1.0.0
 tags: [workflow, planning, product]
 dependencies: []
-agent_types: [Plan, scout]
 tools: [ask_user_question, TaskCreate, memory]
 ---
 

@@ -4,7 +4,6 @@ description: "Use when verifying or debugging browser behavior with live runtime
 version: 1.0.0
 tags: [browser, testing, debugging, verification]
 dependencies: [chrome-devtools, playwright]
-agent_types: [Plan, general, review]
 tools: []
 ---
 

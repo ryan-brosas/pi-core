@@ -9,17 +9,16 @@ Create a specification (PRD), set up workspace, and define executable tasks — 
 
 > **Workflow:** **`/create`** → `/ship`
 
-## Pi Subagent Routing
+## Fabric Agent Routing
 
-When this prompt says to spawn, delegate to, or use an agent, invoke the pi-subagents `Agent` tool; an agent name is not itself a tool. This is not Fabric agent orchestration.
+Use `agents.run({...})` inside `fabric_exec` only when delegation saves more context or time than it costs. Direct parent work is the default; there are no named project agent profiles.
 
-- `Explore`: internal codebase discovery
-- `scout`: external documentation and research
-- `review`: correctness, security, and regression review
-- `general`: small independent implementation
-- `Plan`: architecture and executable planning
-- Use a foreground call when the next step depends on the result. For independent parallel work, issue all calls together with `run_in_background: true`.
-- Omit `model` and `thinking`; agent definitions and scoped-model settings own those choices.
+- Encode the task role, exact goal, context, non-goals, output contract, stop conditions, approval constraints, and verification in `task`.
+- Supply an explicit `tools` allowlist. Local discovery, planning, and review default to `["read", "grep", "find", "ls"]`. External research adds only the required configured network tools; add mutation tools only for approved implementation work.
+- Await one foreground `agents.run` when the next decision depends on its result.
+- For genuinely independent questions, issue at most three `agents.run` calls in one `Promise.all`; process overflow in sequential shards.
+- For small read-only discovery or research, prefer `model: "openai-codex/gpt-5.6-luna"` with `thinking: "medium"` when an explicit override is useful.
+- The parent resolves placeholders, inspects child output and changes, synthesizes results, and runs verification itself.
 ## Parse Arguments
 
 | Argument        | Default       | Description                               |
@@ -44,10 +43,10 @@ When this prompt says to spawn, delegate to, or use an agent, invoke the pi-suba
 
 ## Available Tools
 
-| Tool      | Use When                                     |
-| --------- | -------------------------------------------- |
-| `Explore` | Finding patterns in codebase, affected files |
-| `scout`   | External research, best practices            |
+| Fabric task role   | Use When                                     |
+| ------------------ | -------------------------------------------- |
+| Local discovery    | Finding patterns in codebase, affected files |
+| External research  | Current docs, upstream source, best practices |
 
 ## Phase 1: Duplicate Check
 
@@ -100,27 +99,27 @@ question({
 
 Reuse relevant research already completed in the current session before spawning. Based on the selected depth, dispatch only distinct missing inputs; the parent inspects evidence, resolves conflicts, and verifies the resulting PRD.
 
-**If Deep (at most three agents):**
+**If Deep (at most three Fabric runs):**
 
-- 1x `Explore` for local patterns, tests, and dependencies
-- Up to 2 distinct `Explore` or `scout` specialist inputs for unresolved risks
-- Process any additional questions in later sequential shards
-- Run a dependent foreground `review` only after research joins, and only when feature risk warrants it
+- 1x read-only local-discovery task for patterns, tests, and dependencies
+- Up to 2 distinct local-discovery or external-research tasks for unresolved risks
+- Issue the independent current wave with `Promise.all` and process additional questions in later sequential shards
+- Run a dependent foreground read-only review only after research joins, and only when feature risk warrants it
 
-**If Standard (at most two agents):**
+**If Standard (at most two Fabric runs):**
 
-- 1x `Explore` for local patterns and tests
-- Optionally 1x `scout` for one unresolved external question
+- 1x read-only local-discovery task for patterns and tests
+- Optionally 1x external-research task for one unresolved question
 
 **If Minimal:**
 
-- 0–1 `Explore` call for a bounded gap
+- 0–1 read-only local-discovery run for a bounded gap
 
 **If Skip:**
 
 - No agents; use existing AGENTS.md and current-session evidence
 
-**While agents run**, ask clarifying questions if the description lacks scope or expected outcome. For bugs, also ask for reproduction steps and expected vs actual behavior.
+**While independent Fabric runs execute**, ask clarifying questions if the description lacks scope or expected outcome. For bugs, also ask for reproduction steps and expected vs actual behavior.
 
 ## Phase 5: Initialize Plan
 
@@ -194,8 +193,8 @@ Copy and fill the PRD template (lite or full) using context from Phase 4.
 | Scope (In/Out)    | User input + codebase exploration                          | Always            |
 | Proposed Solution | Codebase patterns + user intent                            | Always            |
 | Success Criteria  | User verification + test commands (must include `Verify:`) | Always            |
-| Technical Context | Explore agent findings                                     | Always            |
-| Affected Files    | Explore agent findings (real paths from Phase 4)           | Always            |
+| Technical Context | Verified local-discovery findings                            | Always            |
+| Affected Files    | Verified local-discovery findings (real paths from Phase 4) | Always            |
 | Tasks             | Derived from scope + solution                              | Always            |
 | Risks             | Codebase exploration                                       | Feature/epic only |
 | Open Questions    | Unresolved items from Phase 4                              | If any exist      |

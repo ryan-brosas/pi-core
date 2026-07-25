@@ -4,7 +4,6 @@ description: Use when extracting text, images, tables, or metadata from PDF file
 version: 1.0.0
 tags: [research, integration]
 dependencies: []
-agent_types: [Plan, general, review]
 tools: []
 ---
 

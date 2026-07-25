@@ -4,7 +4,6 @@ description: Use when tests fail, builds break, behavior is unexpected, or multi
 version: 1.0.0
 tags: [debugging, workflow, verification]
 dependencies: [test-driven-development, verification-before-completion]
-agent_types: [general, review]
 tools: [bash, grep, find, read]
 ---
 

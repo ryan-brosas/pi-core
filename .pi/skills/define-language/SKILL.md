@@ -4,7 +4,6 @@ description: Use when a project has overloaded, conflicting, or implicit domain 
 version: 1.0.0
 tags: [architecture, documentation, domain-modeling]
 dependencies: []
-agent_types: [Plan, general]
 tools: [read, grep, find]
 ---
 

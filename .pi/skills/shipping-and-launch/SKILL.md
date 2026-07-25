@@ -4,7 +4,6 @@ description: Use when preparing to merge, deploy, release, or declare a developm
 version: 1.0.0
 tags: [shipping, workflow, release]
 dependencies: [verification-before-completion, documentation-and-adrs]
-agent_types: [Plan, review]
 tools: [bash, ask_user_question, memory]
 ---
 

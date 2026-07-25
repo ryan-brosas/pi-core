@@ -4,7 +4,6 @@ description: Use when upgrading an existing website or app's visual design to pr
 version: 1.0.0
 tags: [workflow]
 dependencies: []
-agent_types: [Plan, general, review]
 tools: []
 ---
 

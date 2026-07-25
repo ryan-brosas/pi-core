@@ -2,25 +2,24 @@
 
 Execute only a parent-selected ready shard from the authoritative task graph. Each task result is reviewed, then merged. The workflow never schedules from a whole static plan and never changes `.active`.
 
-## Pi Subagent Execution
+## Fabric Agent Execution
 
-Use the pi-subagents `Agent` tool, not Fabric agents, actors, or mesh:
+Run one-shot children with `agents.run({...})` inside `fabric_exec`; there are no named project agent profiles:
 
 ```typescript
-Agent({
-  subagent_type: "<configured name>",
-  description: "<short task label>",
-  prompt: `<self-contained phase prompt with resolved inputs and output contract>`,
-  run_in_background: true, // only for independent concurrent calls
+const result = await agents.run({
+  name: "bounded-worker",
+  task: "[resolved self-contained phase goal, context, non-goals, output, stop conditions, and verification]",
+  tools: ["read", "grep", "find", "ls"],
 });
+return result.text;
 ```
 
-- Concurrency 1: omit `run_in_background`, consume the foreground result, then continue.
-- A concurrent wave contains at most three independent calls. Issue those together with `run_in_background: true`; let smart join return the group. Process additional work in sequential shards and do not poll.
+- Await one foreground run when its result is required by the next phase.
+- A concurrent wave contains at most three genuinely independent `agents.run` calls issued together with `Promise.all`; process additional work in sequential shards.
 - Do not start a dependent phase until upstream results are available.
-- Omit `model` and `thinking`; scoped agent definitions own those settings.
-- The parent resolves placeholders before dispatch, synthesizes results, inspects child changes, and runs verification itself.
-
+- Use an explicit `tools` allowlist per phase. External research adds only the required configured network source tools; add `bash`, `edit`, or `write` only for approved modifying work.
+- The parent resolves placeholders, synthesizes results, inspects child changes, and runs verification itself.
 ## Args
 
 - `task_shard` (required) — The parent-selected conflict-free ready shard (one to three canonical task IDs)
@@ -30,7 +29,7 @@ Agent({
 
 ### Phase 1: plan-review
 
-- **Subagent type:** `review`
+- **Fabric task role:** `read-only-plan-review`
 - **Concurrency:** 1
 - **Prompt:**
 
@@ -52,16 +51,16 @@ Keep each task description under 100 words.
 ### Phase 2: implement
 
 - **Depends on:** Phase 1
-- **Worker type:** `{worker_type}` constrained to `build|general`
-- **Routing:** Resolve `general` for a surgical task that normally declares one to three files and has no unresolved architecture, security, or migration decision. Resolve `build` for a larger substantial bounded task with resolved architecture. Stop for a parent decision when unresolved.
-- **Concurrency:** One call per task in the current dependency wave (min 1, max 3)
-- **Dispatch:** The parent resolves Phase 1 into disjoint `{task_shard}` values and one `{worker_type}` per task. Never send the full task list to every worker. If a dependency wave has more than three tasks, run sequential shards of at most three and return control after each shard.
-- **Isolation:** A one-task wave runs foreground without isolation. Multiple background calls and branch or worktree isolation require explicit approval; if approval is absent, stop at a checkpoint.
-- **Ship-worker envelope:** Every child receives the task ID and attempt, goal, dependencies, exact files and transient neighborhood, non-goals, acceptance criteria, required `fabric_exec` use, verification commands, stop conditions, approval constraints, and expected result fields. Children must not spawn agents, schedule siblings, mutate `.active`, `tasks.json`, `progress.md`, or lifecycle state, or commit, merge, integrate, or publish work. The parent must inspect actual changes and verify every result.
+- **Fabric task role:** `bounded-implementation`
+- **Routing:** Use a surgical task envelope for work that normally declares one to three files. Use a larger substantial but still bounded envelope only after architecture is resolved. Stop for a parent decision when architecture, security, migration, scope, or approval remains unresolved.
+- **Concurrency:** One `agents.run` call per task in the current dependency wave (min 1, max 3)
+- **Dispatch:** The parent resolves Phase 1 into disjoint `{task_shard}` values and supplies one complete task envelope per call. Never send the full task list to every worker. If a dependency wave has more than three tasks, run sequential shards of at most three and return control after each shard.
+- **Isolation:** A one-task wave runs foreground without isolation. Concurrent modifying calls and branch or worktree isolation require explicit approval; if approval is absent, stop at a checkpoint.
+- **Ship-worker envelope:** Every child receives the task ID and attempt, goal, dependencies, exact files and transient neighborhood, non-goals, acceptance criteria, explicit tools, verification commands, stop conditions, approval constraints, and expected result fields. Children must not spawn agents, schedule siblings, mutate `.active`, `tasks.json`, `progress.md`, or lifecycle state, or commit, merge, integrate, or publish work. The parent must inspect actual changes and verify every result.
 - **Approval checkpoint:** Explicit approval is required before branch or worktree creation; commit, merge, or integration; dependency installation or new file creation; `.active` or active-artifact mutation; push or deploy; and destructive operations.
 - **Prompt:**
 
-Implement only this resolved task: {task_shard}. Worker type: {worker_type}. Apply the complete ship-worker envelope, use `fabric_exec` for code-mode implementation, stay within the exact files, and stop on every envelope stop condition. Do not implement sibling or dependent tasks. Return:
+Implement only this resolved task: {task_shard}. Apply the complete ship-worker envelope, use only the supplied Fabric tool allowlist, stay within the exact files, and stop on every envelope stop condition. Do not implement sibling or dependent tasks. Return:
 
 ## Task: [name]
 - **Worktree/branch or commit:** [value]
@@ -75,9 +74,9 @@ Keep the summary under 200 words.
 ### Phase 3: verify
 
 - **Depends on:** Phase 2
-- **Subagent type:** `review`
-- **Concurrency:** One call per implementation result in the completed shard (min 1, max 3)
-- **Dispatch:** Give each reviewer exactly one `{task_shard}` plus its matching `{implementation_result}` and worktree/commit. Dispatch at most three independent reviews together with `run_in_background: true`; process overflow in sequential shards.
+- **Fabric task role:** `read-only-review`
+- **Concurrency:** One `agents.run` call per implementation result in the completed shard (min 1, max 3)
+- **Dispatch:** Give each reviewer exactly one `{task_shard}` plus its matching `{implementation_result}` and worktree/commit. Issue at most three independent reviews together with `Promise.all`; process overflow in sequential shards.
 - **Prompt:**
 
 Review this task and only its matching implementation: task={task_shard}; implementation={implementation_result}. Check correctness, test coverage, edge cases, type safety, and scope. Return:

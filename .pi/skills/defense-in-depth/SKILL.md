@@ -4,7 +4,6 @@ description: Use when invalid data causes failures deep in execution, requiring 
 version: 1.0.0
 tags: [code-quality, debugging]
 dependencies: []
-agent_types: [Plan, general, review]
 tools: []
 ---
 

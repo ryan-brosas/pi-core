@@ -32,24 +32,49 @@ function manifestSkillNames(): string[] {
 const orchestrationSurfaces = [
   ".pi/prompts/audit.md",
   ".pi/prompts/create.md",
+  ".pi/prompts/fix.md",
   ".pi/prompts/gc.md",
+  ".pi/prompts/init.md",
   ".pi/prompts/plan.md",
   ".pi/prompts/research.md",
   ".pi/prompts/ship.md",
-  ".pi/prompts/init.md",
+  ".pi/prompts/verify.md",
   ".pi/workflows/audit-pattern.md",
   ".pi/workflows/batch-implement.md",
   ".pi/workflows/deep-research.md",
   ".pi/workflows/development-lifecycle-workflow.md",
   ".pi/workflows/garbage-collection.md",
-  ".pi/skills/subagent-driven-development/SKILL.md",
+  ".pi/skills/code-review-and-quality/SKILL.md",
+  ".pi/skills/development-lifecycle/SKILL.md",
+  ".pi/skills/planning-and-task-breakdown/SKILL.md",
   ".pi/skills/source-driven-development/SKILL.md",
+  ".pi/skills/subagent-driven-development/SKILL.md",
+  ".pi/skills/verification-before-completion/SKILL.md",
+  ".pi/skills/writing-skills/SKILL.md",
 ];
 
 test("manifest has exact bidirectional parity with skill directories", () => {
   const manifestNames = manifestSkillNames();
   assert.equal(new Set(manifestNames).size, manifestNames.length, "manifest contains duplicate skill names");
   assert.deepEqual(manifestNames, actualSkillNames());
+});
+
+test("skills do not retain deleted profile metadata", () => {
+  for (const name of actualSkillNames()) {
+    assert.doesNotMatch(readRequired(`${SKILLS}/${name}/SKILL.md`), /^agent_types:/m, name);
+  }
+});
+
+test("writing-skill references use Fabric children only", () => {
+  for (const path of [
+    ".pi/skills/writing-skills/references/testing-methodology.md",
+    ".pi/skills/writing-skills/references/claude-search-optimization.md",
+  ]) {
+    const text = readRequired(path);
+    assert.doesNotMatch(text, /pi-subagents|subagent_type|\bAgent\s*\(/i, path);
+    assert.match(text, /agents\.run/i, path);
+    assert.match(text, /fabric_exec/i, path);
+  }
 });
 
 test("organize-workspace is inventory-first and confirmation-gated", () => {
@@ -267,66 +292,49 @@ for (const path of orchestrationSurfaces) {
   });
 }
 
-test("subagent coordination remains Pi-native and parent-verified", () => {
+test("Fabric coordination remains direct-first and parent-verified", () => {
   for (const path of orchestrationSurfaces) {
     const text = read(path);
-    assert.match(text, /pi-subagents/i, path);
-    assert.match(text, /omit [^\n]*model[^\n]*thinking/i, path);
+    assert.match(text, /fabric_exec/i, path);
+    assert.match(text, /agents\.run/i, path);
+    assert.doesNotMatch(text, /pi-subagents|subagent_type|\bAgent\s*\(/i, path);
     assert.match(text, /parent[^\n]*(inspect|synthesi|verif)|(?:inspect|synthesi|verif)[^\n]*parent/i, path);
   }
 });
 
-function agentFrontmatter(path: string): string {
-  const match = readRequired(path).match(/^---\n([\s\S]*?)\n---/);
-  assert.ok(match, `agent frontmatter is missing: ${path}`);
-  return match[1];
-}
-
-function agentBody(path: string): string {
-  return readRequired(path).replace(/^---\n[\s\S]*?\n---\n?/, "");
-}
-
-test("GLM ship workers expose Fabric", () => {
-  const build = agentFrontmatter(".pi/agents/build.md");
-  const general = agentFrontmatter(".pi/agents/general.md");
-  for (const [path, frontmatter] of [["build", build], ["general", general]] as const) {
-    assert.match(frontmatter, /^model: makora\/zai-org\/GLM-5\.2-NVFP4$/m, path);
-    assert.match(frontmatter, /^extensions: true$/m, path);
+test("legacy Pi-subagent project configuration is absent", () => {
+  for (const path of [
+    ".pi/agents/Explore.md",
+    ".pi/agents/Plan.md",
+    ".pi/agents/build.md",
+    ".pi/agents/general.md",
+    ".pi/agents/review.md",
+    ".pi/agents/scout.md",
+    ".pi/agents/vision.md",
+    ".pi/subagents.json",
+  ]) {
+    assert.equal(existsSync(path), false, `legacy Pi-subagent artifact remains: ${path}`);
   }
-  assert.match(build, /^enabled: true$/m);
+  const fabric = JSON.parse(readRequired(".pi/fabric.json")) as { agents?: { enabled?: boolean } };
+  assert.equal(fabric.agents?.enabled, true, "Fabric agents must be enabled");
 });
 
-test("GLM ship workers are bounded executors", () => {
-  const build = agentBody(".pi/agents/build.md");
-  const general = agentBody(".pi/agents/general.md");
-  for (const [path, body] of [["build", build], ["general", general]] as const) {
-    assert.match(body, /(?:do not|never|must not)[^\n]*(?:spawn|delegate)[^\n]*agent/i, path);
-    assert.match(body, /(?:do not|never|must not)[^\n]*(?:\.active|task graph|tasks\.json|progress\.md|lifecycle)/i, path);
-    assert.match(body, /(?:undeclared|outside)[^\n]*files?[^\n]*(?:stop|report)|(?:stop|report)[^\n]*(?:undeclared|outside)[^\n]*files?/i, path);
-    assert.match(body, /explicit approval[^\n]*(?:branch|worktree|commit|merge|dependency|new file)/i, path);
-  }
-  assert.doesNotMatch(build, /you are[^\n]*orchestrator/i);
-  assert.doesNotMatch(build, /\.pi\/artifacts\/TODO\.md/i);
-});
-
-test("ship routes GLM Fabric workers with self-contained contracts", () => {
+test("ship routes bounded Fabric workers with self-contained contracts", () => {
   const ship = readRequired(".pi/prompts/ship.md");
   const batch = readRequired(".pi/workflows/batch-implement.md");
   const delegation = readRequired(".pi/skills/subagent-driven-development/SKILL.md");
-  assert.match(ship, /(?:larger|substantial)[^\n]*`build`|`build`[^\n]*(?:larger|substantial)/i);
-  assert.match(ship, /(?:surgical|one[- ]to[- ]three)[^\n]*`general`|`general`[^\n]*(?:surgical|one[- ]to[- ]three)/i);
-  assert.match(batch, /worker_type[\s\S]*build\|general/i);
-  assert.match(delegation, /worker_type[\s\S]*build\|general/i);
   for (const [path, text] of [["ship", ship], ["batch", batch], ["delegation", delegation]] as const) {
+    assert.match(text, /agents\.run/i, path);
     assert.match(text, /ship-worker envelope/i, path);
     assert.match(text, /task (?:ID|id)[^\n]*attempt|attempt[^\n]*task (?:ID|id)/i, path);
     assert.match(text, /exact files|files in scope/i, path);
     assert.match(text, /non-goals/i, path);
     assert.match(text, /acceptance criteria/i, path);
-    assert.match(text, /fabric_exec/i, path);
+    assert.match(text, /tools/i, path);
     assert.match(text, /verification/i, path);
     assert.match(text, /stop conditions/i, path);
     assert.match(text, /parent[^\n]*(?:inspect|verify)|(?:inspect|verify)[^\n]*parent/i, path);
+    assert.doesNotMatch(text, /subagent_type|\bAgent\s*\(/i, path);
   }
 });
 
@@ -346,101 +354,21 @@ test("ship honors project approval gates", () => {
   assert.doesNotMatch(ship, /Commit before close[^\n]*required/i);
 });
 
-test("plan agent preserves detailed voice and exact runtime contract", () => {
-  const frontmatter = agentFrontmatter(".pi/agents/Plan.md");
-  for (const expected of [
-    "description: Planning agent for architecture, decomposition, and executable implementation plans",
-    "tools: read, bash, grep, find, ls",
-    "extensions: true",
-    "skills: true",
-    "model: openai-codex/gpt-5.6-sol",
-    "thinking: high",
-    "max_turns: 12",
-    "prompt_mode: replace",
-    "inherit_context: false",
-  ]) {
-    assert.ok(frontmatter.split("\n").includes(expected), `missing exact Plan frontmatter line: ${expected}`);
-  }
-
-  const plan = agentBody(".pi/agents/Plan.md");
-  const orderedMarkers = [
-    "# Planning Guidelines",
-    "## Architecture as Ritual",
-    "## Clarity Through Constraint",
-    "## Simplicity First",
-    "**Ground**",
-    "**Calibrate**",
-    "**Transform**",
-    "**Release**",
-    "**Reset**",
-  ];
-  let previous = -1;
-  for (const marker of orderedMarkers) {
-    const index = plan.indexOf(marker);
-    assert.ok(index > previous, `Plan marker is missing or out of order: ${marker}`);
-    previous = index;
-  }
-  assert.match(plan, /A good plan doesn't predict the future; it creates leverage for the builder\./);
-  assert.match(plan, /The body is architecture\. The breath is wiring\. The rhythm is survival\./);
-});
-
-test("plan agent output is chat-only and canonical-state safe", () => {
-  const plan = agentBody(".pi/agents/Plan.md");
-  const section = (heading: string): string => {
-    const start = plan.indexOf(heading);
-    assert.notEqual(start, -1, `missing Plan section: ${heading}`);
-    const contentStart = start + heading.length;
-    const next = plan.indexOf("\n## ", contentStart);
-    return plan.slice(contentStart, next === -1 ? undefined : next);
-  };
-
-  const envelope = section("## Required Planning Envelope");
-  for (const expected of [
-    "bounded advisory question",
-    "canonical graph and input paths",
-    "dependencies and prior decisions",
-    "resolved research",
-    "remaining gaps",
-    "chat-only advice",
-    "advisory plan draft",
-    "proposed task-graph delta",
-    "validation findings",
-  ]) {
-    assert.match(envelope, new RegExp(expected, "i"), `missing Plan envelope contract: ${expected}`);
-  }
-  assert.doesNotMatch(envelope, /updated\s+`?plan\.md`?/i);
-  assert.doesNotMatch(envelope, /updated\s+`?tasks\.json`?/i);
-  assert.match(envelope, /include only task-relevant evidence/i);
-  assert.match(envelope, /never include[^\n]*credentials[^\n]*secrets[^\n]*private conversation[^\n]*unrelated user data/i);
-
-  const workflow = section("## Workflow");
-  assert.match(workflow, /parent-provided[^\n]*`MEMORY\.md` excerpts/i);
-  assert.match(workflow, /topic-bounded[^\n]*(?:search|grep)/i);
-  assert.doesNotMatch(workflow, /read[^\n]*`MEMORY\.md`[^\n]*prior decisions/i);
-
-  const output = section("## Output");
-  assert.equal((output.match(/^### Required Handoff Schema$/gm) ?? []).length, 1);
-  assert.doesNotMatch(output, /^### (?:Advisory Response Format|Plan Artifact Structure)$/m);
-  assert.match(output, /do not write to `plan\.md`, `tasks\.json`/i);
-  assert.doesNotMatch(output, /updated\s+`?plan\.md`?/i);
-  assert.doesNotMatch(output, /updated\s+`?tasks\.json`?/i);
-
-  assert.match(plan, /parent alone (?:writes|updates|validates)[^\n]*`plan\.md`[^\n]*`tasks\.json`/i);
-  assert.match(plan, /never write or edit[^\n]*`plan\.md`[^\n]*`tasks\.json`[^\n]*`progress\.md`[^\n]*`MEMORY\.md`[^\n]*`\.active`/i);
-  assert.match(plan, /never write or edit[^\n]*implementation files[^\n]*Git state[^\n]*dependencies/i);
-  assert.match(plan, /(?:do not|never|must not)[^\n]*(?:spawn|delegate|schedule)[^\n]*agents?/i);
-});
-
-test("Plan delegation uses one foreground self-contained call", () => {
+test("planning advisory uses one foreground Fabric run", () => {
   const planPrompt = readRequired(".pi/prompts/plan.md");
-  const calls = [...planPrompt.matchAll(/Agent\(\{[\s\S]*?\n\s*\}\);/g)]
-    .map((match) => match[0])
-    .filter((call) => /subagent_type:\s*"Plan"/.test(call));
-  assert.equal(calls.length, 1, "expected exactly one concrete Plan Agent call");
+  const heading = "### Planning Worker Routing";
+  const start = planPrompt.indexOf(heading);
+  assert.notEqual(start, -1, "missing planning worker routing section");
+  const rest = planPrompt.slice(start + heading.length);
+  const next = rest.search(/\n#{2,3}\s/);
+  const section = rest.slice(0, next === -1 ? undefined : next);
+  const calls = [...section.matchAll(/agents\.run\s*\(\s*\{[\s\S]*?\}\s*\)/g)].map((match) => match[0]);
+  assert.equal(calls.length, 1, "expected one concrete foreground Fabric planning call");
   const call = calls[0];
-  assert.match(call, /description:\s*(?:`[^`]+`|"[^"]+")/);
-  assert.match(call, /prompt:\s*planningEnvelope/);
-  assert.doesNotMatch(call, /\b(?:model|thinking|run_in_background)\s*:/);
+  assert.match(call, /name:\s*["']planning-advisor["']/);
+  assert.match(call, /task:\s*planningEnvelope/);
+  assert.match(call, /tools:\s*\[[^\]]*"read"[^\]]*"grep"[^\]]*"find"[^\]]*"ls"[^\]]*\]/);
+  assert.doesNotMatch(section, /agents\.spawn|Promise\.all/);
 
   assert.match(planPrompt, /parent plans inline by default/i);
   assert.match(planPrompt, /material ambiguity/i);
@@ -449,7 +377,6 @@ test("Plan delegation uses one foreground self-contained call", () => {
   assert.match(planPrompt, /(?:skip|skips|decline)[^\n]*rationale|rationale[^\n]*(?:skip|skips|decline)/i);
   assert.match(planPrompt, /foreground[^\n]*(?:depends|dependency|next decision)|(?:depends|dependency|next decision)[^\n]*foreground/i);
   assert.match(planPrompt, /resolved[^\n]*self-contained[^\n]*envelope|self-contained[^\n]*resolved[^\n]*envelope/i);
-  assert.doesNotMatch(planPrompt, /Plan\s*(?:→|->)\s*Implement\s*(?:→|->)\s*Review/i);
 });
 
 test("plan prompt keeps canonical and lifecycle writes parent-owned", () => {
@@ -484,23 +411,24 @@ test("plan prompt keeps canonical and lifecycle writes parent-owned", () => {
   assert.doesNotMatch(handoff, /those are `?\/ship`? responsibilities/i);
 });
 
-test("planning skill conditionally routes bounded Plan advice", () => {
+test("planning skill conditionally routes bounded Fabric advice", () => {
   const skill = readRequired(".pi/skills/planning-and-task-breakdown/SKILL.md");
-  const start = skill.indexOf("## Pi Subagent Inputs");
-  assert.notEqual(start, -1, "planning skill is missing Pi Subagent Inputs");
+  const start = skill.indexOf("## Fabric Planning Inputs");
+  assert.notEqual(start, -1, "planning skill is missing Fabric Planning Inputs");
   const next = skill.indexOf("\n## ", start + 1);
   const inputs = skill.slice(start, next === -1 ? undefined : next);
 
   assert.match(inputs, /direct parent planning is the default/i);
-  const calls = [...inputs.matchAll(/Agent\(\{[^\n]*subagent_type:\s*"Plan"[^\n]*\}\);/g)];
-  assert.equal(calls.length, 1, "expected one compact Plan advisory call in the planning skill body");
+  assert.match(inputs, /agents\.run/i);
+  assert.match(inputs, /name:\s*["']planning-advisor["']/);
   assert.match(inputs, /material ambiguity/i);
   assert.match(inputs, /architectural trade-offs?/i);
   assert.match(inputs, /cross-subsystem sequencing/i);
-  assert.match(inputs, /Explore[^\n]*local evidence|local evidence[^\n]*Explore/i);
-  assert.match(inputs, /scout[^\n]*external evidence|external evidence[^\n]*scout/i);
+  assert.match(inputs, /local evidence/i);
+  assert.match(inputs, /external evidence/i);
   assert.match(inputs, /foreground[^\n]*(?:blocks|depends)|(?:blocks|depends)[^\n]*foreground/i);
   assert.match(inputs, /advisory (?:input|output|result)/i);
+  assert.doesNotMatch(inputs, /subagent_type|\bAgent\s*\(/i);
 });
 
 test("planning ownership remains with the parent", () => {
@@ -512,42 +440,45 @@ test("planning ownership remains with the parent", () => {
   assert.match(skill, /worker[^\n]*advisory (?:input|output|result)/i);
 });
 
-test("agent utilization policy distinguishes Plan, general, build, and lifecycle routing", () => {
-  // Global Agent policy must keep conditional Plan, surgical general, substantial bounded build, and lifecycle-specific routing coherent.
+test("Fabric delegation policy defines task-shaped routing", () => {
   const policy = readRequired(".pi/agent-tool-description.md");
+  assert.match(policy, /agents\.run/i);
+  assert.match(policy, /architecture|cross-subsystem/i);
+  assert.match(policy, /surgical|well-bounded|bounded implementation/i);
+  assert.match(policy, /larger|substantial/i);
+  assert.match(policy, /read-only/i);
+  assert.match(policy, /explicit[^\n]*tools|tools[^\n]*allowlist/i);
+  assert.match(policy, /direct[^\n]*default|default[^\n]*direct/i);
+  assert.match(policy, /\/ship[^\n]*(?:stricter|require|worker|routing)/i);
+  assert.match(policy, /without[^\n]*transfer|not[^\n]*transfer[^\n]*ownership|ownership[^\n]*(?:retain|unchanged|not transfer)/i);
+  assert.doesNotMatch(policy, /pi-subagents|subagent_type|\bAgent\s*\(/i);
+  assert.doesNotMatch(policy, /agents\.spawn/i, "ordinary delegation must stay awaited and parent-observable");
+});
 
-  assert.match(policy, /`?Plan`?[^\n]*(?:ambigu|architect|cross-subsystem)/i);
-  assert.match(policy, /`?general`?[^\n]*(?:surgical|well-bounded|bounded)[^\n]*(?:implementation|review|fix)/i);
-  assert.match(policy, /`?build`?[^\n]*(?:substantial|larger|bounded)/i, "build role must be defined as substantial/bounded work");
-  assert.match(policy, /`?build`?[^\n]*architect[^\n]*(?:resolved|after)/i, "build must be used after resolved architecture");
-  assert.match(policy, /direct[^\n]*default|default[^\n]*direct/i, "direct-first must remain the generic default");
-  assert.match(policy, /\/ship[^\n]*(?:stricter|require|worker|routing)/i, "lifecycle /ship worker routing must be explicit");
-  assert.match(policy, /without[^\n]*transfer|not[^\n]*transfer[^\n]*ownership|ownership[^\n]*(?:retain|unchanged|not transfer)/i, "lifecycle routing must not transfer parent ownership");
+test("Fabric research children have explicit network tools and parent-owned evidence", () => {
+  const skill = readRequired(".pi/skills/source-driven-development/SKILL.md");
+  assert.match(skill, /agents\.run/i);
+  assert.match(skill, /tools:\s*\[[^\]]*context7\.resolve-library-id[^\]]*context7\.query-docs[^\]]*\]/i);
+  assert.match(skill, /agents\.run[^\n]*(?:does not|never)[^\n]*(?:provider|research) evidence/i);
+  assert.match(skill, /parent[^\n]*direct(?:ly)?[^\n]*(?:provider|source tool)/i);
 });
 
 test("plan writer boundary keeps canonical plan.md and tasks.json parent-owned", () => {
-  // /plan must never hand Plan advisory output to general to render or write canonical plan.md or tasks.json.
   const planPrompt = readRequired(".pi/prompts/plan.md");
-
   assert.match(
     planPrompt,
-    /never hand(?:ed)?[^\n]*`?general`?[^\n]*(?:render|write)[^\n]*(?:`?plan\.md`?[^\n]*`?tasks\.json`?|`?tasks\.json`?[^\n]*`?plan\.md`?)/i,
-    "Plan advisory output must never be handed to general to render/write canonical plan.md or tasks.json",
+    /never hand(?:ed)?[^\n]*planning advisory[^\n]*(?:render|write)[^\n]*(?:`?plan\.md`?[^\n]*`?tasks\.json`?|`?tasks\.json`?[^\n]*`?plan\.md`?)/i,
+    "planning advisory output must never be handed to a child to write canonical plan.md or tasks.json",
   );
-
-  const calls = [...planPrompt.matchAll(/Agent\s*\(\s*\{[\s\S]*?\}\s*\);/g)].map((match) => match[0]);
-  const nonAdvisoryCalls = calls.filter((call) => {
-    const role = call.match(/subagent_type:\s*([^,\n]+)/)?.[1].trim();
-    return !role || !/^["'](?:Plan|Explore|scout)["']$/.test(role);
-  });
-  assert.equal(nonAdvisoryCalls.length, 0, "/plan concrete calls must use literal advisory/research roles, never an implementation worker or variable role");
+  const routingStart = planPrompt.indexOf("### Planning Worker Routing");
+  const routingEnd = planPrompt.indexOf("\n## ", routingStart);
+  const routing = planPrompt.slice(routingStart, routingEnd === -1 ? undefined : routingEnd);
+  assert.doesNotMatch(routing, /"edit"|"write"|worktree:\s*true/i, "planning advisory must remain read-only");
 });
 
-test("ship primary worker call resolves workerType and dispatches one foreground Agent", () => {
-  // /ship primary dispatch must close workerType to general|build and issue one foreground Agent call carrying the ship-worker envelope.
+test("ship primary worker dispatches one foreground Fabric run", () => {
   const ship = readRequired(".pi/prompts/ship.md");
   const heading = "### Primary Worker Dispatch";
-
   const start = ship.indexOf(heading);
   assert.notEqual(start, -1, "missing primary worker dispatch section");
   assert.equal(ship.split(heading).length - 1, 1, "primary worker dispatch heading must be unique");
@@ -556,36 +487,25 @@ test("ship primary worker call resolves workerType and dispatches one foreground
   const rest = ship.slice(contentStart);
   const nextHeading = rest.match(/\n#{1,3}\s/);
   const section = rest.slice(0, nextHeading ? nextHeading.index : rest.length);
-
   const tsBlocks = [...section.matchAll(/```(?:typescript|ts)\n([\s\S]*?)\n```/g)].map((match) => match[1]);
   assert.equal(tsBlocks.length, 1, "expected exactly one fenced TypeScript block in the primary worker dispatch section");
   const block = tsBlocks[0];
-  const executableBlock = block
-    .replace(/\/\*[\s\S]*?\*\//g, "")
-    .replace(/^\s*\/\/.*$/gm, "");
+  const calls = [...block.matchAll(/agents\.run\s*\(\s*\{[\s\S]*?\}\s*\)/g)].map((match) => match[0]);
+  assert.equal(calls.length, 1, "expected exactly one agents.run call in the primary worker dispatch block");
+  const call = calls[0];
+  assert.match(call, /name:\s*(?:`[^`]+`|"[^"]+")/);
+  assert.match(call, /task:\s*shipWorkerEnvelope/);
+  assert.match(call, /tools:\s*workerTools/);
+  assert.doesNotMatch(call, /worktree:\s*true|recursive:\s*true/);
 
-  const agentCalls = [...executableBlock.matchAll(/Agent\s*\(\s*\{[\s\S]*?\}\s*\);/g)].map((match) => match[0]);
-  assert.equal(agentCalls.length, 1, "expected exactly one Agent call in the primary worker dispatch block");
-  const call = agentCalls[0];
-
-  assert.match(call, /subagent_type:\s*workerType/, "primary call must use the resolved workerType variable");
-  assert.match(call, /description:\s*(?:`[^`]+`|"[^"]+")/, "primary call must carry a concrete description");
-  assert.match(call, /prompt:\s*shipWorkerEnvelope/, "primary call must use the shipWorkerEnvelope");
-  assert.doesNotMatch(call, /\b(?:model|thinking|run_in_background)\s*:/, "primary call must omit invocation-level model/thinking/background overrides");
-
-  const callIndex = executableBlock.indexOf(call);
-  const beforeCall = executableBlock.slice(0, callIndex);
-  assert.match(
-    beforeCall,
-    /^(?!\s*\/\/)\s*const\s+workerType\s*:\s*"general"\s*\|\s*"build"\s*=\s*resolvedWorkerType\s*;\s*$/m,
-    "workerType must be an uncommented executable general|build union before the primary call",
-  );
+  const callIndex = block.indexOf(call);
+  const beforeCall = block.slice(0, callIndex);
+  assert.match(beforeCall, /const\s+workerTools\s*=/, "worker tool allowlist must be resolved before dispatch");
   const unresolvedGuard = /^If any unresolved architecture, security, migration, scope, or approval question remains, stop before worker selection\.$/m;
   const guardIndex = section.search(unresolvedGuard);
   assert.notEqual(guardIndex, -1, "primary dispatch must stop for every unresolved decision class");
   assert.ok(guardIndex < section.indexOf("```"), "unresolved-decision guard must occur before the dispatch code fence");
 });
-
 
 test("planning boundaries and testability contract is conditional", () => {
   const fencedTemplate = (document: string, heading: string, opener: string, closer: string): string => {

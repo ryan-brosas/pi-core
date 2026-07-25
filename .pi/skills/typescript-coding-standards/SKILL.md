@@ -4,7 +4,6 @@ description: Use when writing, refactoring, or reviewing TypeScript code that ne
 version: 1.0.0
 tags: [typescript, code-quality, architecture, testing]
 dependencies: []
-agent_types: [Plan, general, review]
 tools: []
 ---
 

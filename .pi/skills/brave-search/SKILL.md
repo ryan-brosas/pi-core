@@ -4,7 +4,6 @@ description: Use when searching documentation, facts, current information, or we
 version: 1.0.0
 tags: [web-search, research]
 dependencies: []
-agent_types: [Plan, general, review]
 tools: []
 ---
 

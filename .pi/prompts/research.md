@@ -9,17 +9,16 @@ Gather information before implementation. Find answers, document findings, stop 
 
 > Research can happen at any phase when you need external information or codebase understanding.
 
-## Pi Subagent Routing
+## Fabric Agent Routing
 
-When this prompt says to spawn, delegate to, or use an agent, invoke the pi-subagents `Agent` tool; an agent name is not itself a tool. This is not Fabric agent orchestration.
+Use `agents.run({...})` inside `fabric_exec` only when delegation saves more context or time than it costs. Direct parent work is the default; there are no named project agent profiles.
 
-- `Explore`: internal codebase discovery
-- `scout`: external documentation and research
-- `review`: correctness, security, and regression review
-- `general`: small independent implementation
-- `Plan`: architecture and executable planning
-- Use a foreground call when the next step depends on the result. For independent parallel work, issue all calls together with `run_in_background: true`.
-- Omit `model` and `thinking`; agent definitions and scoped-model settings own those choices.
+- Encode the task role, exact goal, context, non-goals, output contract, stop conditions, approval constraints, and verification in `task`.
+- Supply an explicit `tools` allowlist. Local discovery, planning, and review default to `["read", "grep", "find", "ls"]`. External research adds only the required configured network tools; add mutation tools only for approved implementation work.
+- Await one foreground `agents.run` when the next decision depends on its result.
+- For genuinely independent questions, issue at most three `agents.run` calls in one `Promise.all`; process overflow in sequential shards.
+- For small read-only discovery or research, prefer `model: "openai-codex/gpt-5.6-luna"` with `thinking: "medium"` when an explicit override is useful.
+- An `agents.run` lifecycle operation is not provider evidence. The parent directly invokes configured source tools to verify citations, resolves placeholders, inspects child output, synthesizes results, and runs verification itself.
 ## Complexity Detection
 
 Before starting, analyze the research topic complexity:
@@ -64,8 +63,8 @@ If complexity is detected as complex:
 
 1. **Reuse current-session research**, then read `.pi/workflows/deep-research.md` only for unresolved gaps.
 2. **Execute bounded phases:**
-   - Phase 1: Spawn one focused `scout` for bounded work or at most three scouts for distinct angles in the current wave; process additional angles in sequential shards
-   - Phase 2: After every research shard joins, spawn one dependent foreground `review` to cross-check findings
+   - Phase 1: Run one focused external-research task for bounded work or at most three distinct angles in one `Promise.all`; process additional angles in sequential shards
+   - Phase 2: After every research shard joins, run one dependent foreground read-only review to cross-check findings
    - Final synthesis: the parent combines verified results and writes the report
 3. **Replace placeholders:**
    - `{question}` → the research topic from $ARGUMENTS
@@ -99,10 +98,10 @@ Default depth: ~30 tool calls for moderate exploration.
 
 ### Available Tools
 
-| Tool         | Use When                        |
-| ------------ | ------------------------------- |
-| `Explore`    | Codebase patterns, LSP analysis |
-| `scout`      | External docs, best practices   |
+| Tool or task role        | Use When                        |
+| ------------------------ | ------------------------------- |
+| Fabric local discovery   | Codebase patterns, LSP analysis |
+| Fabric external research | External docs, best practices   |
 | `context7`   | Official API references         |
 | `opensrc`    | Package source code inspection  |
 | `grepsearch` | GitHub code search / real-world examples |
@@ -123,7 +122,7 @@ rg -n "topic" .pi/artifacts/MEMORY.md
 
 #### Source Priority
 
-1. **Codebase patterns** — delegate to `Explore` agent for LSP analysis
+1. **Codebase patterns** — delegate a read-only Fabric local-discovery task for LSP analysis
 2. **Official docs** — `context7` for API references
 3. **Source code** — `npx opensrc <package>` when docs are insufficient
 4. **GitHub examples** — `grepsearch` for real-world patterns
@@ -131,11 +130,11 @@ rg -n "topic" .pi/artifacts/MEMORY.md
 
 #### Delegation
 
-| What              | Agent                        | When                                   |
-| ----------------- | ---------------------------- | -------------------------------------- |
-| Codebase analysis | `Explore`                    | Internal patterns, file structure, LSP |
-| External docs     | `scout` subagent             | Library APIs, best practices           |
-| Multiple domains  | Parallel `Explore` + `scout` | 3+ independent questions               |
+| What              | Fabric task role                         | When                                   |
+| ----------------- | ---------------------------------------- | -------------------------------------- |
+| Codebase analysis | Read-only local discovery                | Internal patterns, file structure, LSP |
+| External docs     | Read-only external research              | Library APIs, best practices           |
+| Multiple domains  | Parallel distinct roles via `Promise.all` | Independent questions, maximum three   |
 
 #### Confidence Levels
 

@@ -4,7 +4,6 @@ description: Use when converting UI mockups, screenshots, Figma/Sketch designs, 
 version: 1.0.0
 tags: [ui, workflow]
 dependencies: []
-agent_types: [Plan, general, review]
 tools: []
 ---
 

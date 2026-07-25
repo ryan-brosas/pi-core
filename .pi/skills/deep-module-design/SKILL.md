@@ -4,7 +4,6 @@ description: Use when designing modules, refactoring shallow structures, or revi
 version: 1.0.0
 tags: [architecture, code-quality, ousterhout]
 dependencies: []
-agent_types: [Plan, general, review]
 tools: [grep, find, read, bash]
 ---
 

@@ -4,7 +4,6 @@ description: MUST load when writing, reviewing, or optimizing Postgres queries, 
 version: 1.0.0
 tags: [integration, code-quality]
 dependencies: []
-agent_types: [Plan, general, review]
 tools: []
 ---
 

@@ -4,7 +4,6 @@ description: Use when analyzing code quality, finding dead code, detecting dupli
 version: 1.0.0
 tags: [code-quality, static-analysis, cleanup, typescript, javascript]
 dependencies: []
-agent_types: [Plan, general, review]
 tools: [bash]
 ---
 

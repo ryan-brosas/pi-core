@@ -4,7 +4,6 @@ description: Use when auditing for security vulnerabilities, implementing auth/a
 version: 1.0.0
 tags: [security, code-quality]
 dependencies: []
-agent_types: [Plan, general, review]
 tools: []
 ---
 

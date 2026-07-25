@@ -1,26 +1,25 @@
 # development-lifecycle-workflow
 
-Multi-agent workflow that chains the development lifecycle phases with parallelism. Uses specialized agents (scouts, reviewers, planners) and composes with the batch-implement workflow for parallel implementation.
+Fabric-agent workflow that chains development lifecycle phases with bounded parallelism. It uses explicit research, review, planning, and implementation task shapes and composes with the batch-implement workflow.
 
-## Pi Subagent Execution
+## Fabric Agent Execution
 
-Use the pi-subagents `Agent` tool, not Fabric agents, actors, or mesh:
+Run one-shot children with `agents.run({...})` inside `fabric_exec`; there are no named project agent profiles:
 
 ```typescript
-Agent({
-  subagent_type: "<configured name>",
-  description: "<short task label>",
-  prompt: `<self-contained phase prompt with resolved inputs and output contract>`,
-  run_in_background: true, // only for independent concurrent calls
+const result = await agents.run({
+  name: "bounded-worker",
+  task: "[resolved self-contained phase goal, context, non-goals, output, stop conditions, and verification]",
+  tools: ["read", "grep", "find", "ls"],
 });
+return result.text;
 ```
 
-- Concurrency 1: omit `run_in_background`, consume the foreground result, then continue.
-- A concurrent wave contains at most three independent calls. Issue those together with `run_in_background: true`; let smart join return the group. Process additional work in sequential shards and do not poll.
+- Await one foreground run when its result is required by the next phase.
+- A concurrent wave contains at most three genuinely independent `agents.run` calls issued together with `Promise.all`; process additional work in sequential shards.
 - Do not start a dependent phase until upstream results are available.
-- Omit `model` and `thinking`; scoped agent definitions own those settings.
-- The parent resolves placeholders before dispatch, synthesizes results, inspects child changes, and runs verification itself.
-
+- Use an explicit `tools` allowlist per phase. External research adds only the required configured network source tools; add `bash`, `edit`, or `write` only for approved modifying work.
+- The parent resolves placeholders, synthesizes results, inspects child changes, and runs verification itself.
 ## Args
 
 - `feature` (required) — The feature or change to implement
@@ -29,9 +28,9 @@ Agent({
 
 ### Phase 1: Research Approaches
 
-- **Subagent type:** `scout`
-- **Concurrency:** Dynamic (one agent per parent-defined research angle, min 1, max 3)
-- **Dispatch:** The parent defines distinct `{angle}` values such as local fit, ecosystem precedent, operational risk, or simplest viable design. Each scout receives one angle only.
+- **Fabric task role:** `external-research`
+- **Concurrency:** Dynamic (one `agents.run` call per parent-defined research angle, min 1, max 3)
+- **Dispatch:** The parent defines distinct `{angle}` values such as local fit, ecosystem precedent, operational risk, or simplest viable design. Each research child receives one angle only.
 - **Prompt:**
 
 Research this angle for implementing {feature}: {angle}. Analyze technical feasibility, trade-offs, complexity, dependencies, and constraints. Return findings in this format:
@@ -48,7 +47,7 @@ Keep each approach under 300 words.
 ### Phase 2: Validate Requirements
 
 - **Depends on:** Phase 1
-- **Subagent type:** `review`
+- **Fabric task role:** `read-only-review`
 - **Concurrency:** 1
 - **Prompt:**
 
@@ -74,7 +73,7 @@ Keep each section under 200 words.
 ### Phase 3: Create Implementation Plan
 
 - **Depends on:** Phase 2
-- **Subagent type:** `Plan`
+- **Fabric task role:** `planning-advisory`
 - **Concurrency:** 1
 - **Prompt:**
 
@@ -99,7 +98,7 @@ Keep each task description under 100 words.
 
 ### Parent Plan Gate
 
-The `Plan` result is a candidate, not the final plan. The parent checks it against the original feature request, resolved constraints, project evidence, file ownership, and verification requirements; then the parent edits or accepts the final plan before Phase 4.
+The planning child result is a candidate, not the final plan. The parent checks it against the original feature request, resolved constraints, project evidence, file ownership, and verification requirements; then the parent edits or accepts the final plan before Phase 4.
 
 ### Phase 4: Parallel Implementation
 
@@ -116,9 +115,9 @@ Execute the batch-implement workflow with the parent-approved implementation pla
 ### Phase 5: Verify Different Aspects
 
 - **Depends on:** Phase 4
-- **Subagent type:** `review`
+- **Fabric task role:** `read-only-review`
 - **Concurrency:** 3 (one per aspect: correctness, code-quality, performance-security)
-- **Dispatch:** Resolve three distinct `{aspect}` values—`correctness`, `code-quality`, and `performance-security`—and issue the three `review` calls together with `run_in_background: true`. Each call receives one aspect only.
+- **Dispatch:** Resolve three distinct `{aspect}` values—`correctness`, `code-quality`, and `performance-security`—and issue the three `agents.run` calls together with `Promise.all`. Each call receives one aspect only.
 - **Prompt:**
 
 Verify this implementation for the assigned aspect only: aspect={aspect}; implementation={phase_4_output}. Apply only the matching checklist below; do not duplicate the other reviewers.

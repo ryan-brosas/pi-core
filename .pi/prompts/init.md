@@ -10,20 +10,16 @@ Initialize project setup. Run once per project.
 > **Next step for fresh projects:** `/plan` to create first implementation plan.  
 > **Next step for existing codebases:** `/research` for deep codebase analysis, or just start describing what you want to build.
 
-## Pi Subagent Routing
+## Fabric Agent Routing
 
-When this prompt says to spawn, delegate to, or use an agent, invoke the pi-subagents `Agent` tool; an agent name is not itself a tool. This is not Fabric agent orchestration.
+Use `agents.run({...})` inside `fabric_exec` only when delegation saves more context or time than it costs. Direct parent work is the default; there are no named project agent profiles.
 
-- `Explore`: internal codebase discovery
-- `scout`: external documentation and research
-- `review`: correctness, security, and regression review
-- `general`: small independent implementation
-- `Plan`: architecture and executable planning
-- Use a foreground call when the next step depends on the result. For independent parallel work, issue all calls together with `run_in_background: true`.
-- Use at most three agents in one wave. Process overflow in sequential shards.
-- The parent must inspect and verify all delegated findings before synthesis.
-- Omit `model` and `thinking`; agent definitions and scoped-model settings own those choices.
-
+- Encode the task role, exact goal, context, non-goals, output contract, stop conditions, approval constraints, and verification in `task`.
+- Supply an explicit `tools` allowlist. Local discovery, planning, and review default to `["read", "grep", "find", "ls"]`. External research adds only the required configured network tools; add mutation tools only for approved implementation work.
+- Await one foreground `agents.run` when the next decision depends on its result.
+- For genuinely independent questions, issue at most three `agents.run` calls in one `Promise.all`; process overflow in sequential shards.
+- For small read-only discovery or research, prefer `model: "openai-codex/gpt-5.6-luna"` with `thinking: "medium"` when an explicit override is useful.
+- The parent resolves placeholders, inspects child output and changes, synthesizes results, and runs verification itself.
 ## Idempotency Rules
 
 | File | Rule |
@@ -159,19 +155,23 @@ Initialize project planning context with roadmap and state files.
 If the project has existing code (brownfield — see auto-detection above), run parallel codebase analysis:
 
 ```typescript
-Agent({
-  subagent_type: "Explore",
-  description: "Map architecture patterns",
-  prompt: `Analyze architecture and runtime flow only: entry points, data flow, dependency direction, and cross-layer wiring. Do not inventory domains. Return file:line evidence for key architectural decisions and flows.`,
-  run_in_background: true,
-});
-
-Agent({
-  subagent_type: "Explore",
-  description: "Map domain boundaries",
-  prompt: `Inventory domain boundaries only: top-level domains, module ownership, public boundaries, and cross-domain coupling. Do not repeat runtime data-flow analysis. Return file:line evidence and unresolved boundary ambiguities.`,
-  run_in_background: true,
-});
+const [architecture, domains] = await Promise.all([
+  agents.run({
+    name: "init-architecture-map",
+    model: "openai-codex/gpt-5.6-luna",
+    thinking: "medium",
+    tools: ["read", "grep", "find", "ls"],
+    task: `Analyze architecture and runtime flow only: entry points, data flow, dependency direction, and cross-layer wiring. Do not inventory domains. Return file:line evidence for key architectural decisions and flows.`,
+  }),
+  agents.run({
+    name: "init-domain-map",
+    model: "openai-codex/gpt-5.6-luna",
+    thinking: "medium",
+    tools: ["read", "grep", "find", "ls"],
+    task: `Inventory domain boundaries only: top-level domains, module ownership, public boundaries, and cross-domain coupling. Do not repeat runtime data-flow analysis. Return file:line evidence and unresolved boundary ambiguities.`,
+  }),
+]);
+return { architecture: architecture.text, domains: domains.text };
 ```
 
 If greenfield (no existing code), skip to requirements gathering.

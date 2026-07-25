@@ -2,25 +2,25 @@
 
 Fan out web searches across multiple angles on a question, cross-check sources for contradictions, and produce a cited report with confidence levels. Use when you need multi-source verification or current-events coverage.
 
-## Pi Subagent Execution
+## Fabric Agent Execution
 
-Use the pi-subagents `Agent` tool, not Fabric agents, actors, or mesh:
+Run one-shot children with `agents.run({...})` inside `fabric_exec`; there are no named project agent profiles:
 
 ```typescript
-Agent({
-  subagent_type: "<configured name>",
-  description: "<short task label>",
-  prompt: `<self-contained phase prompt with resolved inputs and output contract>`,
-  run_in_background: true, // only for independent concurrent calls
+const researchTools = ["read", "grep", "find", "ls", "exa.web_search_exa", "exa.web_fetch_exa"];
+const result = await agents.run({
+  name: "external-research-worker",
+  task: "[resolved self-contained research angle, source requirements, non-goals, output, stop conditions, and verification]",
+  tools: researchTools,
 });
+return result.text;
 ```
 
-- Concurrency 1: omit `run_in_background`, consume the foreground result, then continue.
-- A concurrent wave contains at most three independent calls. Issue those together with `run_in_background: true`; let smart join return the group. Process additional work in sequential shards and do not poll.
+- Await one foreground run when its result is required by the next phase.
+- A concurrent wave contains at most three genuinely independent `agents.run` calls issued together with `Promise.all`; process additional work in sequential shards.
 - Do not start a dependent phase until upstream results are available.
-- Omit `model` and `thinking`; scoped agent definitions own those settings.
-- The parent resolves placeholders before dispatch, synthesizes results, inspects child changes, and runs verification itself.
-
+- Use an explicit `tools` allowlist per phase. External research adds only the required configured network source tools; add `bash`, `edit`, or `write` only for approved modifying work.
+- An `agents.run` lifecycle operation is not provider evidence. The parent directly invokes configured source tools to verify cited sources, resolves placeholders, synthesizes results, and runs verification itself.
 ## Args
 
 - `question` (required) — The research question or topic
@@ -29,9 +29,9 @@ Agent({
 
 ### Phase 1: research
 
-- **Subagent type:** `scout`
-- **Concurrency:** Dynamic (one agent per parent-defined angle, min 1, max 3)
-- **Dispatch:** Before spawning, the parent defines distinct `{angle}` values and gives exactly one angle to each scout. Do not send the same broad prompt to every scout. If more than three angles remain, complete sequential shards of at most three before starting the dependent cross-check.
+- **Fabric task role:** `external-research`
+- **Concurrency:** Dynamic (one `agents.run` call per parent-defined angle, min 1, max 3)
+- **Dispatch:** Before running the wave, the parent defines distinct `{angle}` values and gives exactly one angle to each research child. Do not send the same broad task to every child. If more than three angles remain, complete sequential shards of at most three before starting the dependent cross-check.
 - **Prompt:**
 
 Research this angle only: {angle}. Question: {question}. Use authoritative sources and relevant recent developments. For each finding, include the URL and publication date. Return findings grouped by angle in this format:
@@ -47,7 +47,7 @@ Keep each finding under 200 words.
 ### Phase 2: cross-check
 
 - **Depends on:** Phase 1
-- **Subagent type:** `review`
+- **Fabric task role:** `read-only-cross-check`
 - **Concurrency:** 1
 - **Prompt:**
 

@@ -4,7 +4,6 @@ description: Use when building new SwiftUI features, refactoring existing views,
 version: 1.0.0
 tags: [apple, ui]
 dependencies: []
-agent_types: [Plan, general, review]
 tools: []
 ---
 

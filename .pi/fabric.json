@@ -1,28 +1,38 @@
 {
   "configVersion": 1,
   "executor": {
-    "runtime": "node-process"
+    "runtime": "quickjs",
+    "memoryLimitBytes": 1073741824
   },
   "agents": {
-    "enabled": false,
+    "enabled": true,
     "runner": "pi",
     "extensions": true,
     "retainRuns": false,
     "notifyOnComplete": false,
-    "transport": "auto"
+    "transport": "auto",
+    "maxConcurrent": 8,
+    "thinking": "max",
+    "model": "openai-codex/gpt-5.6-sol"
   },
   "ui": {
     "widget": "hidden",
     "enabled": true
   },
   "compaction": {
-    "engine": "pi",
+    "engine": "fabric",
     "targetContextRatio": 0.7
   },
   "mesh": {
     "enabled": true
   },
   "fullCodeMode": true,
+  "capture": {
+    "keepVisible": [
+      "fabric_exec",
+      "Agent"
+    ]
+  },
   "prewalk": {
     "alwaysRearm": false,
     "model": ""

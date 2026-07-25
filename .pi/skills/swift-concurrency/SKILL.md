@@ -4,7 +4,6 @@ description: Use when developers mention Swift Concurrency, async/await, actors,
 version: 1.0.0
 tags: [apple, code-quality]
 dependencies: []
-agent_types: [Plan, general, review]
 tools: []
 ---
 

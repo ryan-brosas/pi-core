@@ -4,7 +4,6 @@ description: Use after behavior is working but the diff is noisy, repetitive, ov
 version: 1.0.0
 tags: [refactor, code-quality, workflow]
 dependencies: [verification-before-completion]
-agent_types: [Plan, general, review]
 tools: []
 ---
 

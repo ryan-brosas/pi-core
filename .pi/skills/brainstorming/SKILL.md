@@ -4,7 +4,6 @@ description: Use when creating or developing, before writing code or implementat
 version: 1.0.0
 tags: [planning, workflow]
 dependencies: []
-agent_types: [Plan, general, review]
 tools: []
 ---
 

@@ -4,7 +4,6 @@ description: Use when a feature/change has a spec or clear goal and needs an exe
 version: 1.0.0
 tags: [workflow, planning, agent-coordination]
 dependencies: [spec-driven-development]
-agent_types: [Plan]
 tools: [TaskCreate, TaskUpdate, memory, grep, find, read]
 ---
 
@@ -14,7 +13,7 @@ tools: [TaskCreate, TaskUpdate, memory, grep, find, read]
 
 - Have a spec, PRD, ADR, or clear feature goal.
 - Implementation spans >1 file, >1 session, or >1 worker.
-- Need an executable plan a human or subagent can follow.
+- Need an executable plan a human or bounded Fabric child can follow.
 
 ## When NOT to Use
 
@@ -38,25 +37,30 @@ Before slicing, map the change evidence: entry points, direct and transitive dep
 4. **Risks + verification** — for each slice, name the verification command and the risk of getting it wrong.
 5. **Stop conditions** — for parallel work, define who stops whom on conflict.
 
-## Pi Subagent Inputs
+## Fabric Planning Inputs
 
-Direct parent planning is the default. Workers provide bounded advisory inputs; they do not own final synthesis or lifecycle state.
+Direct parent planning is the default. Fabric workers provide bounded advisory input; they do not own final synthesis or lifecycle state.
 
 Route only the evidence or judgment that is genuinely missing:
 
-- Use `Plan` for material ambiguity, architectural trade-offs, or cross-subsystem sequencing when an independent blueprint materially reduces risk.
-- Use `Explore` for local evidence such as codebase patterns, file structure, references, and tests.
-- Use `scout` for external evidence such as versioned documentation, upstream source, and ecosystem constraints.
+- Use a planning advisory task for material ambiguity, architectural trade-offs, or cross-subsystem sequencing when an independent blueprint materially reduces risk.
+- Use a local-discovery task for local evidence such as codebase patterns, file structure, references, and tests.
+- Use an external-research task for external evidence such as versioned documentation, upstream source, and ecosystem constraints.
+
+When the next planning decision depends on the answer, run one foreground call through `agents.run` inside `fabric_exec`:
 
 ```typescript
-Agent({ subagent_type: "Plan", description: "Advise on one planning decision", prompt: "[resolved self-contained advisory envelope]" });
-Agent({ subagent_type: "Explore", description: "Map local patterns", prompt: "[self-contained local question; require file:line evidence]" });
-Agent({ subagent_type: "scout", description: "Research external constraints", prompt: "[self-contained external question; require authoritative citations]" });
+const planningAdvice = await agents.run({
+  name: "planning-advisor",
+  model: "openai-codex/gpt-5.6-luna",
+  thinking: "medium",
+  tools: ["read", "grep", "find", "ls"],
+  task: "[resolved self-contained advisory envelope]",
+});
+return planningAdvice.text;
 ```
 
-Use a foreground call when the answer blocks parent synthesis. If local and external questions are genuinely independent, issue both together with `run_in_background: true` and let smart join return them.
-
-The parent verifies worker evidence and resolves conflicts. The parent alone writes canonical `plan.md` and `tasks.json`. The parent owns lifecycle state. Never delegate final synthesis.
+If local and external evidence questions are genuinely independent, run at most three calls in one `Promise.all` wave and process overflow in sequential shards. Each worker returns advisory output only. The parent verifies worker evidence, inspects cited sources, and resolves conflicts. The parent alone writes canonical `plan.md` and `tasks.json`. The parent owns lifecycle state. Never delegate final synthesis.
 
 ## Slice Quality
 

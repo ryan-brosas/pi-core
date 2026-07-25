@@ -199,27 +199,27 @@ Additional rules:
 
 ---
 
-## Pi Subagent Routing
+## Fabric Agent Routing
 
-When delegation is useful, use the Pi subagents `Agent` tool—not Fabric agents, actors, or mesh orchestration.
+When delegation is useful, use Pi Fabric `agents.run({...})` inside `fabric_exec`. Project-specific named agent profiles do not exist. Encode the role, complete task contract, and explicit tool boundary in each call.
 
-| Need | Agent |
-|---|---|
-| Local discovery | `Explore` |
-| External documentation/source research | `scout` |
-| Correctness/security/regression review | `review` |
-| Small isolated implementation | `general` |
-| Architecture and executable planning | `Plan` |
-| Build-focused implementation | `build` |
-| Visual/UI analysis | `vision` |
+| Need | Fabric task shape | Default tools |
+|---|---|---|
+| Local discovery | Read-only codebase mapping | `read`, `grep`, `find`, `ls` |
+| External documentation/source research | Read-only cited research | `read`, `grep`, `find`, `ls`; retain only required extensions |
+| Correctness/security/regression review | Read-only scoped review | `read`, `grep`, `find`, `ls` |
+| Small isolated implementation | Surgical bounded edit | inspection tools plus only required `bash`, `edit`, `write` |
+| Architecture and executable planning | Read-only advisory blueprint | `read`, `grep`, `find`, `ls` |
+| Larger resolved implementation | Substantial bounded edit | explicit task-specific allowlist |
+| Visual/UI analysis | Read-only visual evidence | explicit visual tools only |
 
 - Prefer direct execution for clear, surgical work.
-- Use foreground delegation when the next decision depends on the result.
-- Run only genuinely independent, disjoint tasks concurrently; maximum three agents per wave.
-- Concurrent implementation requires isolated worktrees and explicit file ownership.
-- Child agents may not schedule siblings, alter `.active`, integrate branches, commit, merge, push, or modify unrelated work unless the user separately approves that action.
-- The parent must inspect child changes and rerun verification. A child summary is evidence to check, not proof of completion.
-
+- Await one foreground `agents.run` when the next decision depends on the result.
+- Run only genuinely independent, disjoint tasks concurrently using at most three `agents.run` calls in one `Promise.all`; process overflow in sequential shards.
+- For small read-only discovery or research, prefer `openai-codex/gpt-5.6-luna` with `thinking: "medium"` when an explicit override is useful.
+- Concurrent implementation requires isolated worktrees, explicit approval, and disjoint file ownership.
+- Child agents may not schedule siblings, alter `.active`, own lifecycle state, integrate branches, commit, merge, push, or modify unrelated work unless the user separately approves that action.
+- The parent must inspect child changes and rerun verification. A child result is evidence to check, not proof of completion.
 ---
 
 ## Verification — EVIDENCE BEFORE CLAIMS

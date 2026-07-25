@@ -4,7 +4,6 @@ description: Use when writing technical documentation, Architecture Decision Rec
 version: 1.0.0
 tags: [workflow, code-quality]
 dependencies: []
-agent_types: [Plan, general, review]
 tools: []
 ---
 

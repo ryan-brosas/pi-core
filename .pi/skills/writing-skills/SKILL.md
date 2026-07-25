@@ -1,10 +1,9 @@
 ---
 name: writing-skills
-description: "Use when creating new skills, editing existing skills, or verifying skills work before deployment - applies TDD to process documentation by testing with subagents before writing, iterating until bulletproof against rationalization. Includes complete pressure testing methodology."
+description: "Use when creating new skills, editing existing skills, or verifying skills work before deployment - applies TDD to process documentation by testing with fresh Fabric children before writing, iterating until bulletproof against rationalization. Includes complete pressure testing methodology."
 version: 1.0.0
 tags: [documentation, workflow]
 dependencies: []
-agent_types: [Plan, general, review]
 tools: []
 ---
 
@@ -20,32 +19,32 @@ tools: []
 
 ## Why This Is Hard
 
-The "test" (run a subagent) is expensive; the rationalization is "obviously correct".
+The "test" (run a fresh Fabric child) is expensive; the rationalization is "obviously correct".
 
-## Pi-Subagents Test Harness
+## Fabric Test Harness
 
-Run RED and GREEN pressure scenarios through the installed pi-subagents `Agent` tool, not Fabric orchestration. Each result is needed before the next phase, so use foreground calls:
+Run each RED and GREEN pressure scenario through a fresh foreground `agents.run` call inside `fabric_exec`. RED must finish before GREEN, so keep those dependent calls sequential:
 
 ```typescript
-Agent({
-  subagent_type: "general",
-  description: "RED pressure test",
-  prompt: `[self-contained scenario and scoring rubric]. Do not load or mention the skill under test. Choose and act.`,
+const red = await agents.run({
+  name: "skill-red-pressure",
+  tools: ["read"],
+  task: `[self-contained scenario and scoring rubric]. Do not load or mention the skill under test. Choose and act.`,
 });
-
-Agent({
-  subagent_type: "general",
-  description: "GREEN pressure test",
-  prompt: `Read .pi/skills/[name]/SKILL.md, then execute the same scenario and return the scored rubric plus exact rationale.`,
+const green = await agents.run({
+  name: "skill-green-pressure",
+  tools: ["read"],
+  task: `Read .pi/skills/[name]/SKILL.md, then execute the same scenario and return the scored rubric plus exact rationale.`,
 });
+return { red: red.text, green: green.text };
 ```
 
-Use a fresh call for every trial. The parent compares scores and records rationalizations; a child does not decide that its own skill is bulletproof.
+For independent variants, run at most three calls in one `Promise.all` wave and process overflow in sequential shards. The parent compares scores, records rationalizations, inspects the skill, and verifies behavior; a child does not decide that its own skill is bulletproof.
 
 ## The Loop
 
 ```
-RED:      subagent WITHOUT skill — watch it fail
+RED:      fresh Fabric child WITHOUT skill — watch it fail
 GREEN:    smallest skill that flips the failure
 REFACTOR: close loopholes the test exposed
 ```
@@ -70,7 +69,7 @@ Form must match the failure. A misformed rule is noise.
 ## Workflow
 
 1. **Gap.** What skill *would have* prevented the observed bad behavior?
-2. **RED** — scenario, subagent *without* skill. Score. Record.
+2. **RED** — scenario, fresh Fabric child *without* skill. Score. Record.
 3. **GREEN** — minimum skill that flips the failure. Re-run. Iterate.
 4. **REFACTOR** — adversarial prompts. Skill must hold.
 5. **Compress.** Pass → tighten. Compressed skills that pass are load-bearing.

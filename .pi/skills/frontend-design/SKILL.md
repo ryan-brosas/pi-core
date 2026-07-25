@@ -4,7 +4,6 @@ description: MUST load when building any web UI with React-based frameworks — 
 version: 1.1.0
 tags: [ui, design]
 dependencies: []
-agent_types: [Plan, general, review]
 tools: []
 ---
 

@@ -138,7 +138,7 @@ function persistedSnapshot(turn: RuntimeTurn): Record<string, unknown> {
 }
 
 function isCategory(value: unknown): value is ProviderCategory {
-  return ["context7", "exa", "codex-search", "xai-web-search", "scout"].includes(
+  return ["context7", "exa", "codex-search", "xai-web-search"].includes(
     value as ProviderCategory,
   );
 }

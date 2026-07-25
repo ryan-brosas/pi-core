@@ -9,17 +9,16 @@ Find all occurrences of a code pattern in the codebase, review each for issues, 
 
 > Use for cross-cutting concerns like auth checks, error handling, API patterns, or security vulnerabilities.
 
-## Pi Subagent Routing
+## Fabric Agent Routing
 
-When this prompt says to spawn, delegate to, or use an agent, invoke the pi-subagents `Agent` tool; an agent name is not itself a tool. This is not Fabric agent orchestration.
+Use `agents.run({...})` inside `fabric_exec` only when delegation saves more context or time than it costs. Direct parent work is the default; there are no named project agent profiles.
 
-- `Explore`: internal codebase discovery
-- `scout`: external documentation and research
-- `review`: correctness, security, and regression review
-- `general`: small independent implementation
-- `Plan`: architecture and executable planning
-- Use a foreground call when the next step depends on the result. For independent parallel work, issue all calls together with `run_in_background: true`.
-- Omit `model` and `thinking`; agent definitions and scoped-model settings own those choices.
+- Encode the task role, exact goal, context, non-goals, output contract, stop conditions, approval constraints, and verification in `task`.
+- Supply an explicit `tools` allowlist. Local discovery, planning, and review default to `["read", "grep", "find", "ls"]`. External research adds only the required configured network tools; add mutation tools only for approved implementation work.
+- Await one foreground `agents.run` when the next decision depends on its result.
+- For genuinely independent questions, issue at most three `agents.run` calls in one `Promise.all`; process overflow in sequential shards.
+- For small read-only discovery or research, prefer `model: "openai-codex/gpt-5.6-luna"` with `thinking: "medium"` when an explicit override is useful.
+- The parent resolves placeholders, inspects child output and changes, synthesizes results, and runs verification itself.
 ## Parse Arguments
 
 | Argument | Default  | Description                          |
@@ -40,8 +39,8 @@ This command invokes the `audit-pattern` workflow for multi-agent parallel execu
 
 1. **Read the workflow:** `.pi/workflows/audit-pattern.md`
 2. **Execute all phases:**
-   - Phase 1: Spawn 1 `Explore` agent to discover all occurrences
-   - Phase 2: Spawn at most three `review` agents for the current disjoint occurrence wave; process remaining occurrences in sequential shards before parent synthesis
+   - Phase 1: Run one foreground read-only local-discovery task to find all occurrences
+   - Phase 2: Run at most three read-only review tasks in `Promise.all` for the current disjoint occurrence wave; process remaining occurrences in sequential shards before parent synthesis
    - Final synthesis: the parent combines verified findings
 3. **Replace placeholders:**
    - `{pattern}` → the pattern from $ARGUMENTS

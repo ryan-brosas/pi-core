@@ -1,4 +1,4 @@
-# Testing Skills With Subagents
+# Testing Skills With Fabric Children
 
 ## When to Use
 
@@ -35,9 +35,20 @@ You run scenarios without the skill (RED - watch agent fail), write skill addres
 
 Same cycle as code TDD, different test format.
 
-## Pi-Subagents Invocation
+## Pi Fabric Invocation
 
-Use one fresh foreground `Agent({ subagent_type: "general", description, prompt })` call per trial. RED prompts must not expose the skill under test. GREEN prompts must tell the child to read the exact `.pi/skills/<name>/SKILL.md` path before running the identical scenario. Do not use Fabric agents, reuse a prior child, or let the child score itself without the parent applying the rubric.
+Use one fresh foreground `agents.run` call inside `fabric_exec` per trial:
+
+```typescript
+const trial = await agents.run({
+  name: "skill-pressure-trial",
+  tools: ["read"],
+  task: "[resolved RED or GREEN scenario plus scoring rubric]",
+});
+return trial.text;
+```
+
+RED prompts must not expose the skill under test. GREEN prompts must tell the child to read the exact `.pi/skills/<name>/SKILL.md` path before running the identical scenario. RED and GREEN are dependent, so keep them sequential. For independent scenario variants, run at most three calls in one `Promise.all` wave and process overflow in sequential shards. Never reuse a prior child or let the child score itself without the parent applying the rubric, inspecting the skill, and verifying the result.
 
 ## RED Phase: Baseline Testing (Watch It Fail)
 
