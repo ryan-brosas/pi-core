@@ -1,0 +1,151 @@
+{
+  "version": 1,
+  "slug": "lets-adopt-whats-viable-to-our-needs",
+  "title": "lets adopt whats viable to our needs",
+  "status": "ready",
+  "execution": {
+    "mode": "sequential",
+    "max_concurrent_agents": 3,
+    "reason": "All tasks share policy, catalog, or test surfaces; sequential execution avoids conflicts and honors the user's swarm limit."
+  },
+  "tasks": [
+    {
+      "id": "task-1",
+      "category": "test",
+      "title": "Establish RED skill and orchestration policy tests",
+      "description": "A failing node:test suite and recorded pressure-test evidence capture unsafe workspace actions, vague language extraction, manifest drift, and agent fan-out above three before production skill changes begin.",
+      "status": "pending",
+      "passes": false,
+      "depends_on": [],
+      "parallel": false,
+      "conflicts_with": [
+        "task-2",
+        "task-3",
+        "task-4"
+      ],
+      "files": [
+        ".pi/tests/skill-system.test.ts",
+        ".pi/artifacts/lets-adopt-whats-viable-to-our-needs/progress.md"
+      ],
+      "acceptance_criteria": [
+        "The static suite fails only on assertions corresponding to behavior not yet implemented.",
+        "Fresh RED pressure scenarios for both proposed skills are scored and recorded without loading those skills.",
+        "No production skill, prompt, workflow, or manifest file is changed in this task."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test .pi/tests/skill-system.test.ts",
+        "test -s .pi/artifacts/lets-adopt-whats-viable-to-our-needs/progress.md"
+      ],
+      "expected_verification_state": "The first command exits non-zero for the named RED assertions; the second exits zero."
+    },
+    {
+      "id": "task-2",
+      "category": "skills",
+      "title": "Add the two adapted skills and reconcile provenance/catalog",
+      "description": "Two compact Pi-native skills pass GREEN pressure scenarios, are indexed exactly once, and carry clear upstream MIT attribution.",
+      "status": "pending",
+      "passes": false,
+      "depends_on": [
+        "task-1"
+      ],
+      "parallel": false,
+      "conflicts_with": [
+        "task-3",
+        "task-4"
+      ],
+      "files": [
+        ".pi/skills/organize-workspace/SKILL.md",
+        ".pi/skills/define-language/SKILL.md",
+        ".pi/skills/THIRD_PARTY_NOTICES.md",
+        ".pi/skills/manifest.json",
+        ".pi/tests/skill-system.test.ts"
+      ],
+      "acceptance_criteria": [
+        "organize-workspace inventories and classifies before acting and requires explicit confirmation before moves or deletes.",
+        "define-language resolves project terminology without introducing a mandatory artifact path.",
+        "Both skills follow local frontmatter and stay under the writing-skills size target.",
+        "The pinned upstream source and MIT license are attributed.",
+        "Two consecutive GREEN pressure scenarios per skill score at least 4/5."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test .pi/tests/skill-system.test.ts",
+        "rg -n \"danielvm-git/bigpowers|MIT|d1993d31437bfbdb5bda81e84650628215365754\" .pi/skills/THIRD_PARTY_NOTICES.md",
+        "! rg -n \"specs/state\\.yaml|release-plan\\.yaml|execution-status\\.yaml|\\.bigpowers/\" .pi/skills/organize-workspace .pi/skills/define-language"
+      ]
+    },
+    {
+      "id": "task-3",
+      "category": "integration",
+      "title": "Merge selected patterns into existing local skills",
+      "description": "Existing local skills provide blast-radius planning, contract validation, typed bounded task handoffs, compact lifecycle handoff, and deterministic catalog parity without a duplicate state system.",
+      "status": "pending",
+      "passes": false,
+      "depends_on": [
+        "task-2"
+      ],
+      "parallel": false,
+      "conflicts_with": [
+        "task-4"
+      ],
+      "files": [
+        ".pi/skills/planning-and-task-breakdown/SKILL.md",
+        ".pi/skills/api-and-interface-design/SKILL.md",
+        ".pi/skills/subagent-driven-development/SKILL.md",
+        ".pi/skills/development-lifecycle/SKILL.md",
+        ".pi/skills/manifest.json",
+        ".pi/tests/skill-system.test.ts"
+      ],
+      "acceptance_criteria": [
+        "Planning performs bounded blast-radius assessment before decomposition.",
+        "API/interface guidance validates contracts at boundaries.",
+        "Subagent task and result envelopes are explicit, bounded, and parent-verified.",
+        "Lifecycle handoff reuses canonical active artifacts rather than adding state YAML.",
+        "The manifest and skill directories have exact bidirectional parity."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test .pi/tests/skill-system.test.ts",
+        "rg -n \"blast radius|boundary|task_brief|handoff\" .pi/skills/{planning-and-task-breakdown,api-and-interface-design,subagent-driven-development,development-lifecycle}/SKILL.md"
+      ]
+    },
+    {
+      "id": "task-4",
+      "category": "workflow",
+      "title": "Enforce Pi-native 1–3 agent waves everywhere",
+      "description": "Active prompts and workflows use direct-first orchestration, no concurrent wave exceeds three agents, and larger workloads retain completeness through sequential sharding.",
+      "status": "pending",
+      "passes": false,
+      "depends_on": [
+        "task-3"
+      ],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [
+        ".pi/prompts/create.md",
+        ".pi/prompts/plan.md",
+        ".pi/prompts/research.md",
+        ".pi/prompts/ship.md",
+        ".pi/workflows/audit-pattern.md",
+        ".pi/workflows/deep-research.md",
+        ".pi/workflows/development-lifecycle-workflow.md",
+        ".pi/workflows/batch-implement.md",
+        ".pi/skills/subagent-driven-development/SKILL.md",
+        ".pi/tests/skill-system.test.ts",
+        ".pi/prompts/audit.md",
+        ".pi/prompts/gc.md",
+        ".pi/workflows/garbage-collection.md"
+      ],
+      "acceptance_criteria": [
+        "One focused agent or direct tools are the default for bounded work.",
+        "Every concurrent wave has a declared maximum of three agents.",
+        "Workloads larger than three are split into sequential non-overlapping shards.",
+        "Parent synthesis, direct inspection, and verification remain mandatory.",
+        "All existing .pi tests pass."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test .pi/tests/*.test.ts",
+        "! rg -n \"max (?:[4-9]|[1-9][0-9])|3-5 agents|five distinct review\" .pi/prompts .pi/workflows .pi/skills/subagent-driven-development/SKILL.md",
+        "rg -n \"sequential.*shard|shard.*sequential|max 3|at most three\" .pi/prompts .pi/workflows .pi/skills/subagent-driven-development/SKILL.md"
+      ]
+    }
+  ]
+}

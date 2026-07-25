@@ -1,0 +1,26 @@
+{
+  "configVersion": 1,
+  "executor": {
+    "runtime": "node-process"
+  },
+  "agents": {
+    "enabled": false,
+    "runner": "pi",
+    "extensions": false,
+    "retainRuns": false,
+    "notifyOnComplete": false,
+    "transport": "auto"
+  },
+  "ui": {
+    "widget": "always",
+    "enabled": false
+  },
+  "compaction": {
+    "engine": "pi",
+    "targetContextRatio": 0.7
+  },
+  "mesh": {
+    "enabled": false
+  },
+  "fullCodeMode": true
+}

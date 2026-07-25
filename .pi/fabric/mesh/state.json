@@ -1,0 +1,165 @@
+{
+  "format": 1,
+  "entries": {
+    "schema/hypothesis/cd3fa669-af16-4260-8a42-19fc0f815bb5": {
+      "key": "schema/hypothesis/cd3fa669-af16-4260-8a42-19fc0f815bb5",
+      "value": {
+        "id": "cd3fa669-af16-4260-8a42-19fc0f815bb5",
+        "label": "create-adopt-viable-skills-artifacts",
+        "summary": "Create the active PRD and executable task set without implementation code",
+        "evidence": [
+          {
+            "kind": "file_absent",
+            "path": "/home/ryan/repo/pi-core/.pi/artifacts/.active"
+          },
+          {
+            "kind": "file_absent",
+            "path": "/home/ryan/repo/pi-core/.pi/artifacts/lets-adopt-whats-viable-to-our-needs/spec.md"
+          },
+          {
+            "kind": "file_absent",
+            "path": "/home/ryan/repo/pi-core/.pi/artifacts/lets-adopt-whats-viable-to-our-needs/tasks.json"
+          }
+        ],
+        "complexityReduction": false,
+        "parentToolCallId": "call_2829ByA4AG01OTkginjI0LMD|fc_0aa687d45f0fa056016a643d80138c8191888d6b2889709dea",
+        "state": null,
+        "fingerprint": "sha256:e87be6650c83701b823b6c7ed321e6c447459373e410c79da98efdb244a603cd",
+        "generation": 0,
+        "status": "abandoned",
+        "createdAt": 1784954329298,
+        "updatedAt": 1784954329439
+      },
+      "version": 2,
+      "updatedAt": 1784954329440,
+      "updatedBy": {
+        "id": "session:019f977b-8e0e-73f8-bc74-f1c014222d40",
+        "name": "main",
+        "kind": "main",
+        "sessionId": "019f977b-8e0e-73f8-bc74-f1c014222d40"
+      }
+    },
+    "schema/hypothesis/987bd382-7828-4b36-904c-07d44a2ceb74": {
+      "key": "schema/hypothesis/987bd382-7828-4b36-904c-07d44a2ceb74",
+      "value": {
+        "id": "987bd382-7828-4b36-904c-07d44a2ceb74",
+        "label": "create-adopt-viable-skills-artifacts-v2",
+        "summary": "Create the active PRD and executable task set without implementation code",
+        "evidence": [
+          {
+            "kind": "file_absent",
+            "path": ".pi/artifacts/.active"
+          },
+          {
+            "kind": "file_absent",
+            "path": ".pi/artifacts/lets-adopt-whats-viable-to-our-needs/spec.md"
+          },
+          {
+            "kind": "file_absent",
+            "path": ".pi/artifacts/lets-adopt-whats-viable-to-our-needs/tasks.json"
+          }
+        ],
+        "complexityReduction": false,
+        "parentToolCallId": "call_33xo8Ltuyn4qRhekP5onoWQ3|fc_0aa687d45f0fa056016a643e45c6c88191ac6c9216b9632931",
+        "state": null,
+        "fingerprint": "sha256:e87be6650c83701b823b6c7ed321e6c447459373e410c79da98efdb244a603cd",
+        "generation": 0,
+        "status": "abandoned",
+        "createdAt": 1784954533104,
+        "updatedAt": 1784954533221
+      },
+      "version": 2,
+      "updatedAt": 1784954533221,
+      "updatedBy": {
+        "id": "session:019f977b-8e0e-73f8-bc74-f1c014222d40",
+        "name": "main",
+        "kind": "main",
+        "sessionId": "019f977b-8e0e-73f8-bc74-f1c014222d40"
+      }
+    },
+    "schema/hypothesis/9e691d24-9885-4d99-909c-167ac136f854": {
+      "key": "schema/hypothesis/9e691d24-9885-4d99-909c-167ac136f854",
+      "value": {
+        "id": "9e691d24-9885-4d99-909c-167ac136f854",
+        "label": "initialize-adoption-artifact-directory",
+        "summary": "Create the active artifact directory sentinel before bounded artifact writes",
+        "evidence": [
+          {
+            "kind": "file_absent",
+            "path": ".pi/artifacts/.active"
+          }
+        ],
+        "complexityReduction": false,
+        "parentToolCallId": "call_C1j3twmvUzGKaXwrQxEebd8J|fc_0aa687d45f0fa056016a643eaecf9c81919f48346b826ad65d",
+        "state": null,
+        "fingerprint": "sha256:e87be6650c83701b823b6c7ed321e6c447459373e410c79da98efdb244a603cd",
+        "generation": 0,
+        "status": "abandoned",
+        "createdAt": 1784954545050,
+        "updatedAt": 1784954545227
+      },
+      "version": 3,
+      "updatedAt": 1784954545228,
+      "updatedBy": {
+        "id": "session:019f977b-8e0e-73f8-bc74-f1c014222d40",
+        "name": "main",
+        "kind": "main",
+        "sessionId": "019f977b-8e0e-73f8-bc74-f1c014222d40"
+      }
+    },
+    "schema/certificate/342438f7b43b6c8dd761f40a2fe0fe6c1b9b90e37d12669d63c2c487474d7cd8": {
+      "key": "schema/certificate/342438f7b43b6c8dd761f40a2fe0fe6c1b9b90e37d12669d63c2c487474d7cd8",
+      "value": {
+        "tokenHash": "342438f7b43b6c8dd761f40a2fe0fe6c1b9b90e37d12669d63c2c487474d7cd8",
+        "hypothesisId": "9e691d24-9885-4d99-909c-167ac136f854",
+        "parentToolCallId": "call_C1j3twmvUzGKaXwrQxEebd8J|fc_0aa687d45f0fa056016a643eaecf9c81919f48346b826ad65d",
+        "state": null,
+        "fingerprint": "sha256:e87be6650c83701b823b6c7ed321e6c447459373e410c79da98efdb244a603cd",
+        "generation": 0,
+        "issuedAt": 1784954545150,
+        "expiresAt": 1784954575150,
+        "status": "abandoned"
+      },
+      "version": 2,
+      "updatedAt": 1784954545227,
+      "updatedBy": {
+        "id": "session:019f977b-8e0e-73f8-bc74-f1c014222d40",
+        "name": "main",
+        "kind": "main",
+        "sessionId": "019f977b-8e0e-73f8-bc74-f1c014222d40"
+      }
+    }
+  },
+  "versions": {
+    "topology/hosts/ea377fbe13dde11798a12782bcb0d3bc69d22f153c65ff74e740545a7eaa2f9c": 11,
+    "sessions/019f96cc-d0ef-741d-a17d-dc627f52b776": 10,
+    "topology/participants/ea377fbe13dde11798a12782bcb0d3bc69d22f153c65ff74e740545a7eaa2f9c": 11,
+    "topology/hosts/0538fab65a8914d05ac8a7904fa04589c1543e6f15d926e9ddfb562078967541": 5,
+    "sessions/019f96ce-93f8-74ea-ac81-2e9f2c82c841": 4,
+    "topology/participants/0538fab65a8914d05ac8a7904fa04589c1543e6f15d926e9ddfb562078967541": 5,
+    "topology/hosts/951dbfff0bec435f9122f5fb1c34d923f25d52f518862acca120cdc8429f73b3": 8,
+    "sessions/019f96ce-eb87-79ac-8d1e-c369047be774": 7,
+    "topology/participants/951dbfff0bec435f9122f5fb1c34d923f25d52f518862acca120cdc8429f73b3": 8,
+    "topology/hosts/7f7c159108e5e5c1f9a69d92f2cdb5001a93dd958be232bf7ab9293ccdf9ee04": 645,
+    "sessions/019f96cf-8825-7455-bf29-c58cdbe6a51f": 644,
+    "topology/participants/7f7c159108e5e5c1f9a69d92f2cdb5001a93dd958be232bf7ab9293ccdf9ee04": 645,
+    "schema/hypothesis/cd3fa669-af16-4260-8a42-19fc0f815bb5": 2,
+    "schema/hypothesis/987bd382-7828-4b36-904c-07d44a2ceb74": 2,
+    "schema/hypothesis/9e691d24-9885-4d99-909c-167ac136f854": 3,
+    "schema/certificate/342438f7b43b6c8dd761f40a2fe0fe6c1b9b90e37d12669d63c2c487474d7cd8": 2
+  },
+  "tombstoneOrder": [
+    "sessions/019f96cc-d0ef-741d-a17d-dc627f52b776",
+    "topology/participants/ea377fbe13dde11798a12782bcb0d3bc69d22f153c65ff74e740545a7eaa2f9c",
+    "topology/hosts/ea377fbe13dde11798a12782bcb0d3bc69d22f153c65ff74e740545a7eaa2f9c",
+    "sessions/019f96ce-93f8-74ea-ac81-2e9f2c82c841",
+    "topology/participants/0538fab65a8914d05ac8a7904fa04589c1543e6f15d926e9ddfb562078967541",
+    "topology/hosts/0538fab65a8914d05ac8a7904fa04589c1543e6f15d926e9ddfb562078967541",
+    "sessions/019f96ce-eb87-79ac-8d1e-c369047be774",
+    "topology/participants/951dbfff0bec435f9122f5fb1c34d923f25d52f518862acca120cdc8429f73b3",
+    "topology/hosts/951dbfff0bec435f9122f5fb1c34d923f25d52f518862acca120cdc8429f73b3",
+    "sessions/019f96cf-8825-7455-bf29-c58cdbe6a51f",
+    "topology/participants/7f7c159108e5e5c1f9a69d92f2cdb5001a93dd958be232bf7ab9293ccdf9ee04",
+    "topology/hosts/7f7c159108e5e5c1f9a69d92f2cdb5001a93dd958be232bf7ab9293ccdf9ee04"
+  ]
+}
