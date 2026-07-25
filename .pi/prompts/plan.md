@@ -55,6 +55,7 @@ Every planning child receives a resolved, self-contained **planning envelope** c
 - **Acceptance criteria:** what must be true for the advisory to be complete
 - **Discovery level cap:** 0–3, set by the parent
 - **Research state:** resolved research, remaining gaps, and questions that must return to the parent
+- **Privacy and data minimization:** include only task-relevant evidence. Never include credentials, secrets, private conversation, or unrelated user data.
 - **Expected chat-only advisory:** one primary recommendation expressed as an advisory plan draft, proposed task-graph delta, validation findings, risks, assumptions, and open decisions
 - **Stop conditions:** scope thresholds, ambiguity limits, missing evidence, or approval gates
 - **Approval constraints:** read-only inspection only; identify actions requiring parent approval without performing them
