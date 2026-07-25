@@ -412,6 +412,19 @@ test("plan agent output is chat-only and canonical-state safe", () => {
   assert.doesNotMatch(envelope, /updated\s+`?tasks\.json`?/i);
   assert.match(envelope, /include only task-relevant evidence/i);
   assert.match(envelope, /never include[^\n]*credentials[^\n]*secrets[^\n]*private conversation[^\n]*unrelated user data/i);
+
+  const workflow = section("## Workflow");
+  assert.match(workflow, /parent-provided[^\n]*`MEMORY\.md` excerpts/i);
+  assert.match(workflow, /topic-bounded[^\n]*(?:search|grep)/i);
+  assert.doesNotMatch(workflow, /read[^\n]*`MEMORY\.md`[^\n]*prior decisions/i);
+
+  const output = section("## Output");
+  assert.equal((output.match(/^### Required Handoff Schema$/gm) ?? []).length, 1);
+  assert.doesNotMatch(output, /^### (?:Advisory Response Format|Plan Artifact Structure)$/m);
+  assert.match(output, /do not write to `plan\.md`, `tasks\.json`/i);
+  assert.doesNotMatch(output, /updated\s+`?plan\.md`?/i);
+  assert.doesNotMatch(output, /updated\s+`?tasks\.json`?/i);
+
   assert.match(plan, /parent alone (?:writes|updates|validates)[^\n]*`plan\.md`[^\n]*`tasks\.json`/i);
   assert.match(plan, /never write or edit[^\n]*`plan\.md`[^\n]*`tasks\.json`[^\n]*`progress\.md`[^\n]*`MEMORY\.md`[^\n]*`\.active`/i);
   assert.match(plan, /never write or edit[^\n]*implementation files[^\n]*Git state[^\n]*dependencies/i);
