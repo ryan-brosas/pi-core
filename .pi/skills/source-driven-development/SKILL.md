@@ -52,7 +52,7 @@ Higher-ranked sources win on conflicts.
 
 ## Pi Subagent Research
 
-Use direct source tools for a surgical lookup. For a bounded question needing specialist judgment, call one foreground `scout` through the installed pi-subagents `Agent` tool. For genuinely independent questions, dispatch at most three distinct scouts in the current wave with `run_in_background: true`; let smart join return the group, then process overflow in later sequential shards:
+Use direct source tools for a surgical lookup. For a bounded question needing specialist judgment, call one foreground `scout` through the installed pi-subagents `Agent` tool. For genuinely independent questions, dispatch at most three distinct scouts in the current wave with `run_in_background: true`; let smart join return the group, then process overflow in later sequential shards. Omit `model` and `thinking`; scoped agent definitions own those choices:
 
 ```typescript
 Agent({
@@ -62,7 +62,7 @@ Agent({
 });
 ```
 
-For a current shard of two or three independent questions, add `run_in_background: true` to each resolved call and issue only that shard together. The parent checks citations, resolves source conflicts, and owns the recommendation before any later sequential shard. Do not use Fabric agent orchestration.
+For a current shard of two or three independent questions, add `run_in_background: true` to each resolved call and issue only that shard together. The parent verifies citations, resolves source conflicts, and owns the recommendation before any later sequential shard. Do not use Fabric agent orchestration.
 
 ## Common Rationalizations
 
