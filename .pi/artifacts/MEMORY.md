@@ -58,7 +58,11 @@ Before starting work: `rg -n "topic" .opencode/artifacts/MEMORY.md` to find rele
 
 ### Minimal Delegation
 
-Prefer direct tools over `task()` delegation for surgical fixes. Delegate only for isolation, parallelism, or specialist focus.
+Prefer direct tools over `task()` delegation for surgical fixes. Delegate only for isolation, parallelism, or specialist focus. Cap each concurrent agent wave at three; preserve larger workloads with sequential, non-overlapping shards and parent verification.
+
+### Agent Fan-Out Validation
+
+Fan-out policy checks must distinguish agent counts and explicit concurrency maxima from unrelated tool-call, API-call, line, and context budgets. Include synthetic positive and negative cases whenever the detector changes.
 
 ### Close the Loop
 

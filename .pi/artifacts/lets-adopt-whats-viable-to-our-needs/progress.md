@@ -645,3 +645,13 @@ Replaced the broad numeric grep with the agent-specific fan-out test. The grep f
 - Important: concurrency-labelled agent lines could still bind unrelated budgets — standalone concurrency maxima now require the value to terminate before punctuation/end.
 - Minor: a compliant count could consume a later numeric count — optional adjective tokens now reject numbers, allowing `matchAll` to find the later violation.
 - Added regressions for a concurrency-labelled `100 tool calls`, `3 and 11 agents`, and a `max 15` concurrency declaration.
+
+## Completion — 2026-07-25
+
+- User confirmed closure after all 11 plan tasks and all 4 PRD tasks passed.
+- Final reviewed implementation: `db28b6815b006941d3c0bcb47bf34a946278f05d`.
+- Verification: build/archive PASS; typecheck PASS; lint PASS; tests PASS (26/26); PRD acceptance PASS.
+- Goal verification: 21/21 artifacts exist and are substantive; manifest wiring 67/67; key links PASS; stubs 0; secret diff hits 0.
+- Final review: 0 Critical, 0 Important, 0 Minor open findings.
+- Rollback: revert the feature commits or discard `feat/adopt-viable-bigpowers-skills`; no migration or external state was created.
+- Concurrent runtime/tooling workspace changes and the unrelated research-persistence test remain unstaged and were not included.

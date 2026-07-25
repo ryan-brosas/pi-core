@@ -2,7 +2,7 @@
   "version": 1,
   "slug": "lets-adopt-whats-viable-to-our-needs",
   "title": "lets adopt whats viable to our needs",
-  "status": "ready",
+  "status": "completed",
   "execution": {
     "mode": "sequential",
     "max_concurrent_agents": 3,
