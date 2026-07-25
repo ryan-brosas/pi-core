@@ -115,18 +115,40 @@ function fanoutLabel(path: string): string {
   return `${parts.at(-2) ?? name} skill`;
 }
 
+const dispatchNouns = "(?:agents?|subagents?|reviewers?|workers?|scouts?|(?:pi-)?subagents?\\s+calls?|(?:agent|review|worker|scout)[\\w-]*\\s+calls?)";
+const spelledAboveThree = "(?:four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred)";
+const numericDispatchCount = new RegExp(`\\b(\\d+)\\b(?:\\s+[\\w-]+){0,2}\\s+${dispatchNouns}\\b`, "i");
+const spelledDispatchCount = new RegExp(`\\b${spelledAboveThree}\\b(?:\\s+[\\w-]+){0,2}\\s+${dispatchNouns}\\b`, "i");
+
+function explicitDispatchCountErrors(text: string): string[] {
+  const errors: string[] = [];
+  for (const line of text.split("\n")) {
+    const numeric = line.match(numericDispatchCount);
+    if (numeric && Number(numeric[1]) > 3) errors.push(line.trim());
+    const maxMatch = line.match(/max(?:imum)?\s*[:=]?\s*(\d+)/i);
+    if (maxMatch && Number(maxMatch[1]) > 3 && (/\bconcurren/i.test(line) || (/\b(?:spawn|dispatch|issue|wave)\b/i.test(line) && /\b(?:agents?|subagents?|reviewers?|workers?|scouts?)\b/i.test(line)))) errors.push(line.trim());
+    if (spelledDispatchCount.test(line) || /3-5 agents|five distinct review|issue one call per independent finding together|one call per task.*max 10/i.test(line)) {
+      errors.push(line.trim());
+    }
+  }
+  return [...new Set(errors)];
+}
+
+test("fan-out detector rejects explicit agent counts above three", () => {
+  assert.deepEqual(explicitDispatchCountErrors("Spawn 11 scouts together."), ["Spawn 11 scouts together."]);
+  assert.deepEqual(explicitDispatchCountErrors("Dispatch fifteen review agents."), ["Dispatch fifteen review agents."]);
+  assert.deepEqual(explicitDispatchCountErrors("Issue 5 pi-subagents calls."), ["Issue 5 pi-subagents calls."]);
+});
+
+test("fan-out detector ignores unrelated call and numeric budgets", () => {
+  const text = "Budget: maximum 100 tool calls.\nAllow 10 API calls.\nCreate AGENTS.md with max 150 lines.";
+  assert.deepEqual(explicitDispatchCountErrors(text), []);
+});
+
 for (const path of orchestrationSurfaces) {
   test(`${fanoutLabel(path)} fan-out stays within one-to-three agents`, () => {
     const text = read(path);
-    const errors: string[] = [];
-    const forbiddenDispatchCount = /\b(?:4|5|6|7|8|9|10|four|five|six|seven|eight|nine|ten)\b(?!\s+tool\b)(?:\s+\w+){0,2}\s+(?:agents?|calls?|reviewers?|workers?|scouts?)\b/i;
-    for (const line of text.split("\n")) {
-      const maxMatch = line.match(/max(?:imum)?\s*[:=]?\s*(\d+)/i);
-      if (maxMatch && Number(maxMatch[1]) > 3 && /agent|call|review|worker|scout|concurren/i.test(line)) errors.push(line.trim());
-      if (forbiddenDispatchCount.test(line) || /3-5 agents|five distinct review|issue one call per independent finding together|one call per task.*max 10/i.test(line)) {
-        errors.push(line.trim());
-      }
-    }
+    const errors = explicitDispatchCountErrors(text);
     if (!/(at most three|max(?:imum)?\s*[:=]?\s*3|one to three|one-to-three|1–3|1-3)/i.test(text)) {
       errors.push("missing explicit max-three wave policy");
     }

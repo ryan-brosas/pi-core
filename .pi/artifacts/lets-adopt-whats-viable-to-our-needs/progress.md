@@ -627,3 +627,9 @@ Replaced the broad numeric grep with the agent-specific fan-out test. The grep f
 - Important: `source-driven-development` retained unbounded parallel source calls — added direct-first, at-most-three waves, sequential overflow, and parent integration.
 - Minor: fan-out tests used file-wide cap wording and could miss explicit per-line counts — strengthened to scan every dispatch line for numeric and spelled counts above three.
 - RED review-fix tests: 2 failed as expected before fixes (MIT notice; source-driven fan-out).
+
+## Final review round 2
+
+- Important: detector only covered counts 4–10 — replaced with arbitrary numeric counts plus common spelled counts above three.
+- Important: detector could confuse API/tool-call budgets with agent dispatch — restricted call matching to agent/reviewer/worker/scout nouns and added synthetic negative cases.
+- Regression tests cover `11 scouts`, `fifteen review agents`, `5 pi-subagents calls`, `100 tool calls`, `10 API calls`, and `max 150 lines`.
