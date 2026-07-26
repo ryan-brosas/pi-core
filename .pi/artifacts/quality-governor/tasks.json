@@ -1,0 +1,228 @@
+{
+  "version": 2,
+  "slug": "quality-governor",
+  "title": "Quality Governor MVP for Pi Core",
+  "status": "pending",
+  "execution": {
+    "mode": "dependency-waves",
+    "max_concurrent_agents": 1,
+    "reason": "The implementation is intentionally sequential: one test contract is shared by the pure policy, sensors, and runtime adapter, and the current checkout has unrelated dirty work that must not be combined or isolated without approval."
+  },
+  "tasks": [
+    {
+      "id": "task-1",
+      "category": "test",
+      "title": "Lock the Quality-Governor Behavioral Contract",
+      "description": "A focused failing test suite defines pure policy, admission, sensor, freshness, runtime, status, persistence, and bounded-correction behavior before production modules exist.",
+      "status": "passed",
+      "passes": true,
+      "attempt": 1,
+      "evidence_refs": [
+        {
+          "kind": "test",
+          "ref": "progress.md#evidence-task-1-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "review",
+          "ref": "progress.md#evidence-task-1-attempt-1",
+          "attempt": 1
+        }
+      ],
+      "depends_on": [],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [
+        ".pi/tests/quality-governor.test.ts"
+      ],
+      "acceptance_criteria": [
+        "Tests cover every profile, PLAN/BUILD/VERIFY, observe/warn/enforce, explicit contract approval, exact and trailing-/** paths, symlink/traversal rejection, new/deleted/dependency/protected paths, and stable violation codes.",
+        "Tests cover direct and Fabric-nested tool identities, unknown provider bypasses, monotonic mutation/contract revisions, structured receipts, current/stale/failed/unknown verification, and vector-to-gate reduction without a scalar score.",
+        "Fake-runtime tests cover terminal annotation, UI-only versus model-context output, active-branch restore, pending/busy correction suppression, dispatch failure, and the one-repair ceiling.",
+        "The new tests fail only because the declared implementation and configuration are absent; no existing production file changes in this task."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test --test-name-pattern=\"quality governor\" .pi/tests/quality-governor.test.ts",
+        "git diff --check -- .pi/tests/quality-governor.test.ts"
+      ],
+      "expected_verification_state": "red: the focused tests fail only for the intentionally absent quality-governor implementation"
+    },
+    {
+      "id": "task-2",
+      "category": "feature",
+      "title": "Implement Pure Contract and Gate Policy",
+      "description": "The dependency-free policy module deterministically classifies turns, validates and revises confirmed contracts, decides admission, reduces quality vectors, selects gate states, and bounds correction.",
+      "status": "passed",
+      "passes": true,
+      "attempt": 1,
+      "evidence_refs": [
+        {
+          "kind": "test",
+          "ref": "progress.md#evidence-task-2-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "review",
+          "ref": "progress.md#evidence-task-2-attempt-1",
+          "attempt": 1
+        }
+      ],
+      "depends_on": [
+        "task-1"
+      ],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [
+        ".pi/extensions/quality-governor/policy.ts",
+        ".pi/tests/quality-governor.test.ts"
+      ],
+      "acceptance_criteria": [
+        "All policy functions are pure, dependency-free, fail closed on unknown versions, fields, and path forms, and distinguish proposals from approved contracts.",
+        "Regression tests prove mutation requires canonical path-verification evidence and confirmed authority produced by the confirmation transition.",
+        "Admission decisions cover modes, rollout levels, repository ownership, allowed new/deleted files, dependency files, protected paths, nested identity, and unsupported effects with stable codes.",
+        "Quality reduction produces independent dimensions and GREEN/YELLOW/RED/STALE/UNKNOWN without a scalar score.",
+        "Correction eligibility permits at most one automatic attempt and never dispatches when state is non-repairable, busy, or has pending input."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test --test-name-pattern=\"quality governor policy|quality governor admission|quality governor vector\" .pi/tests/quality-governor.test.ts",
+        "node --experimental-strip-types --check .pi/extensions/quality-governor/policy.ts",
+        "git diff --check -- .pi/extensions/quality-governor/policy.ts .pi/tests/quality-governor.test.ts"
+      ],
+      "expected_verification_state": "green for pure policy, admission, and vector tests; runtime and sensor groups may remain red"
+    },
+    {
+      "id": "task-3",
+      "category": "feature",
+      "title": "Implement Bounded Sensors and Check Recipes",
+      "description": "Repository sensors and trusted configuration provide canonical path checks, bounded Git evidence, structured no-shell verification, and revision-bound receipts without adding dependencies.",
+      "status": "passed",
+      "passes": true,
+      "attempt": 1,
+      "evidence_refs": [
+        {
+          "kind": "test",
+          "ref": "progress.md#evidence-task-3-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "review",
+          "ref": "progress.md#evidence-task-3-attempt-1",
+          "attempt": 1
+        }
+      ],
+      "depends_on": [
+        "task-2"
+      ],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [
+        ".pi/extensions/quality-governor/sensors.ts",
+        ".pi/quality-governor.json",
+        ".pi/tests/quality-governor.test.ts"
+      ],
+      "acceptance_criteria": [
+        "Existing targets and new-file parents are canonicalized inside the repository, while absolute, traversal, unsupported wildcard, and symlink-escape inputs fail closed.",
+        "Bounded executable/argv Git sensors report status, changed paths, additions/deletions, new/deleted files, scope locality, protected paths, dependency files, and a deterministic same-trust fingerprint.",
+        "Check IDs resolve only from trusted versioned configuration and execute with bounded cwd, timeout, output, accepted exits, and no shell interpretation.",
+        "Injected check runners cannot bypass repository-bounded cwd resolution, and untracked content is revalidated before a fingerprint becomes current.",
+        "Receipts bind contract and mutation revisions, fingerprint, checked paths, recipe identity, exit state, and output digest; a mutating checker or mismatch cannot become current.",
+        "Configuration defaults to observe, one repair, no dependencies, protected governor/policy/runtime paths, and repository-supported Node/Git recipes only."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test --test-name-pattern=\"quality governor sensors|quality governor verification\" .pi/tests/quality-governor.test.ts",
+        "node --experimental-strip-types --check .pi/extensions/quality-governor/sensors.ts",
+        "git diff --check -- .pi/extensions/quality-governor/sensors.ts .pi/quality-governor.json .pi/tests/quality-governor.test.ts"
+      ],
+      "expected_verification_state": "green for policy, sensor, and verification groups; runtime groups may remain red"
+    },
+    {
+      "id": "task-4",
+      "category": "feature",
+      "title": "Wire the Pi Control Loop and Quality HUD",
+      "description": "The thin runtime adapter integrates classification, explicit contract confirmation, direct and nested admission, mutation invalidation, diff analysis, structured checks, dual-channel status, persistence, terminal annotation, and one repair.",
+      "status": "passed",
+      "passes": true,
+      "attempt": 1,
+      "evidence_refs": [
+        {
+          "kind": "test",
+          "ref": "progress.md#evidence-task-4-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "review",
+          "ref": "progress.md#evidence-task-4-attempt-1",
+          "attempt": 1
+        }
+      ],
+      "depends_on": [
+        "task-3"
+      ],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [
+        ".pi/extensions/quality-governor/index.ts",
+        ".pi/tests/quality-governor.test.ts"
+      ],
+      "acceptance_criteria": [
+        "Trusted configuration loads on session start, versioned metadata restores from the active branch, and state transitions remain idempotent under parallel completion ordering.",
+        "New human turns receive one compact proposal packet; confirmed contracts select the top-level tool frontier and gate direct or Fabric-replayed nested actions before execution.",
+        "Runtime mutation fixtures use real canonical roots and existing parents so fail-closed path evidence is exercised without a lexical fallback.",
+        "Successful observed mutations invalidate receipts, settled mutation batches refresh bounded diff evidence, and unknown provider or child effects suppress green status.",
+        "Governor tools and commands support contract proposal and confirmation, declared checks, compact model status, and detailed human status without exposing full logs or secrets.",
+        "Footer and terminal annotation display rollout level, mode, vector and gate, freshness, context usage when available, and bypasses.",
+        "agent_settled dispatches at most one concise repair only when idle and no message is pending, following the existing research-enforcement race protections."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test --test-name-pattern=\"quality governor routing|quality governor status|quality governor persistence|quality governor correction\" .pi/tests/quality-governor.test.ts",
+        "node --experimental-strip-types --check .pi/extensions/quality-governor/index.ts",
+        "git diff --check -- .pi/extensions/quality-governor/index.ts .pi/tests/quality-governor.test.ts"
+      ],
+      "expected_verification_state": "green for every focused quality-governor test"
+    },
+    {
+      "id": "task-5",
+      "category": "verify",
+      "title": "Verify the Integrated Governor",
+      "description": "The complete governor contract, retained Pi Core suite, artifact graphs, read-only frontier behavior, and minimal file boundary pass together with an independent read-only review.",
+      "status": "failed",
+      "passes": false,
+      "attempt": 1,
+      "evidence_refs": [
+        {
+          "kind": "test",
+          "ref": "progress.md#evidence-task-5-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "review",
+          "ref": "progress.md#evidence-task-5-attempt-1",
+          "attempt": 1
+        }
+      ],
+      "depends_on": [
+        "task-4"
+      ],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [],
+      "acceptance_criteria": [
+        "All quality-governor tests pass with zero failures.",
+        "The complete retained test suite passes with zero failures.",
+        "Every artifact graph validates and cross-artifact frontier reporting leaves .active byte-identical.",
+        "The feature-owned implementation layout contains exactly the five declared paths; scoped status evidence and review attribute no additional path to this feature, while pre-existing unrelated work remains untouched.",
+        "No file is deleted, no dependency, manifest, or lockfile is added, and no scalar quality score, unlimited repair loop, architecture mode, or hidden bypass claim appears.",
+        "The parent runs one foreground read-only review over the specification, current-attempt evidence, feature-owned diff and status, and five implementation files; it records severity-ranked path-and-line evidence at progress.md#evidence-task-5-attempt-<n> and leaves no unresolved critical or important correctness, security, regression, or scope finding."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test .pi/tests/*.test.ts",
+        "for f in .pi/artifacts/*/tasks.json; do node --experimental-strip-types .pi/scripts/task-graph.ts validate \"$f\"; done",
+        "before=$(sha256sum .pi/artifacts/.active); node --experimental-strip-types .pi/scripts/task-graph.ts frontier --all .pi/artifacts >/dev/null; test \"$before\" = \"$(sha256sum .pi/artifacts/.active)\"",
+        "node --experimental-strip-types -e 'const fs=require(\"node:fs\"); const expected=[\".pi/extensions/quality-governor/index.ts\",\".pi/extensions/quality-governor/policy.ts\",\".pi/extensions/quality-governor/sensors.ts\",\".pi/quality-governor.json\",\".pi/tests/quality-governor.test.ts\"]; for (const path of expected) if (!fs.statSync(path).isFile()) throw new Error(\"missing file: \"+path); const actual=fs.readdirSync(\".pi/extensions/quality-governor\").sort(); const wanted=[\"index.ts\",\"policy.ts\",\"sensors.ts\"]; if (JSON.stringify(actual)!==JSON.stringify(wanted)) throw new Error(\"unexpected extension layout: \"+actual.join(\",\")); console.log(expected.join(\"\\n\"));'",
+        "git status --short --untracked-files=all -- .pi/extensions/quality-governor .pi/quality-governor.json .pi/tests/quality-governor.test.ts",
+        "git diff --check -- .pi/extensions/quality-governor/policy.ts .pi/extensions/quality-governor/sensors.ts .pi/extensions/quality-governor/index.ts .pi/quality-governor.json .pi/tests/quality-governor.test.ts"
+      ],
+      "expected_verification_state": "green"
+    }
+  ]
+}
