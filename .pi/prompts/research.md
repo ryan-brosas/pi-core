@@ -154,6 +154,8 @@ Persist the report using the Artifact Destination policy above. Include:
 - Recommendation based on findings
 - Open items needing resolution
 
+For each decision, record the decision question, evidence, confidence, alternatives, contract impact, and unresolved risks.
+
 ## Output
 
 Report:

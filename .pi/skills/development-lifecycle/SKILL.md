@@ -23,6 +23,20 @@ Durable cross-feature knowledge belongs in project Hindsight. Automatically reca
 
 When `/research` has no demonstrably related active slug, it writes `.pi/artifacts/<research-slug>/research.md` without changing `.active`. This is a standalone report, not a fifth active-work artifact.
 
+## Contract–Seam–Feedback Kernel
+
+This is the sole named lifecycle authority. Define the observable contract before implementation. Add a seam only for named variance, a trust boundary, or a failure risk; every seam requires a reachable enabling point and a concrete alternative. Verify from the outside first, adding deeper evidence only for a named evidence gap and its consequence. Deliver the smallest safe vertical slice. Route feedback to the earliest lifecycle phase whose contract must change.
+
+**Compact rule:** No requirement without an observable contract; no seam without concrete variance; no gray-box check without a named evidence gap; no MVP claim without a learning signal.
+
+| Existing authority | Responsibility |
+|---|---|
+| `spec.md` | Observable contract |
+| `plan.md` | Boundary and seam design plus evidence design |
+| `tasks.json` | Authoritative scheduling |
+| `progress.md` | Attempt evidence and advisory route decision |
+| Hindsight | Durable cross-feature memory |
+
 ## Slash Commands (Lifecycle Hooks)
 
 - `/create <idea>` — create the active slug and write `spec.md`. Loaded from `brainstorming` + `spec-driven-development`.
@@ -41,6 +55,17 @@ When `/research` has no demonstrably related active slug, it writes `.pi/artifac
 ```
 
 **`/research` is sideways** — it feeds `/plan` or `/create`, not the linear path. These four canonical active-work files remain the complete lifecycle contract: `tasks.json` is authoritative, `plan.md` explains derived views, and `progress.md` stores evidence.
+
+Feedback routes are advisory recommendations; record the route decision in `progress.md`.
+
+| Finding | Recommended route |
+|---|---|
+| Unknown fact | `research` |
+| Changed desired behavior | `create` |
+| Architecture or design gap | `plan` |
+| Known implementation defect | `ship` |
+
+Selecting a route does not automatically invoke any command or phase; it never mutates `.active` or changes lifecycle state automatically.
 
 ## When to Use Each Phase
 

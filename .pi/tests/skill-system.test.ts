@@ -705,3 +705,466 @@ test("legacy file memory is absent", () => {
   assert.equal(existsSync(skillPath), false, `retired memory skill remains: ${skillPath}`);
   assert.equal(manifestSkillNames().includes("memory"), false, "retired memory skill remains in manifest");
 });
+
+type SemanticMarkerGroup = readonly [name: string, alternatives: readonly RegExp[]];
+
+function boundedTextBetween(document: string, start: RegExp, end: RegExp, label: string): string {
+  const startMatch = start.exec(document);
+  assert.ok(startMatch, `${label}: missing section start`);
+  const contentStart = startMatch.index + startMatch[0].length;
+  const endMatch = end.exec(document.slice(contentStart));
+  assert.ok(endMatch, `${label}: missing section end`);
+  return document.slice(contentStart, contentStart + endMatch.index);
+}
+
+function assertSemanticMarkerGroups(text: string, scope: string, groups: readonly SemanticMarkerGroup[]): void {
+  const missing = groups
+    .filter(([, alternatives]) => !alternatives.some((pattern) => pattern.test(text)))
+    .map(([name]) => name);
+  assert.deepEqual(missing, [], `${scope}: missing semantic obligations`);
+}
+
+const anonymousKernelDoctrineDimensions: readonly SemanticMarkerGroup[] = [
+  [
+    "observable contract before implementation",
+    [
+      /observable (?:behavior|contract)[\s\S]{0,120}(?:before|precedes?) implementation/i,
+      /(?:before|prior to) implementation[\s\S]{0,120}observable (?:behavior|contract)/i,
+    ],
+  ],
+  [
+    "justified concrete seam",
+    [
+      /seams?[\s\S]{0,180}(?:named variance|trust boundar|failure risk)[\s\S]{0,180}(?:enabling point|concrete alternative)/i,
+      /(?:enabling point|concrete alternative)[\s\S]{0,180}seams?[\s\S]{0,180}(?:named variance|trust boundar|failure risk)/i,
+    ],
+  ],
+  [
+    "outside-first consequence-aware evidence",
+    [
+      /(?:outside[- ]first|from the outside first|observable boundary (?:evidence|test|behavior)[^\n]{0,80}first)[\s\S]{0,180}deeper (?:checks?|evidence)[\s\S]{0,140}named evidence gap[\s\S]{0,100}consequence/i,
+      /consequence[\s\S]{0,180}(?:outside[- ]first|from the outside first|observable boundary (?:evidence|test|behavior)[^\n]{0,80}first)[\s\S]{0,180}deeper (?:checks?|evidence)[\s\S]{0,140}named evidence gap/i,
+    ],
+  ],
+  ["smallest safe vertical slice", [/smallest safe[\s\S]{0,80}(?:vertical|end-to-end)[\s\S]{0,40}(?:slice|behavior)/i]],
+  [
+    "feedback returns to the earliest contract",
+    [/feedback[\s\S]{0,160}earliest (?:lifecycle )?phase[\s\S]{0,100}contract[\s\S]{0,80}(?:change|reopen)/i],
+  ],
+];
+
+const approvedVerificationConsequenceGroups = [
+  "security",
+  "privacy",
+  "authorization or tenant isolation",
+  "data integrity",
+  "external providers",
+  "retries or idempotency",
+  "cost controls",
+  "recovery",
+] as const;
+
+function assertUnnamedLifecycleSurface(text: string, scope: string): void {
+  assert.doesNotMatch(text, /Contract[–-]Seam[–-]Feedback|\bCSF\b/i, scope);
+  const missingDimensions = anonymousKernelDoctrineDimensions
+    .filter(([, alternatives]) => !alternatives.some((pattern) => pattern.test(text)))
+    .map(([name]) => name);
+  assert.notEqual(
+    missingDimensions.length,
+    0,
+    `${scope}: anonymous full-doctrine repetition duplicates every kernel dimension`,
+  );
+}
+
+function normalizedBoundedConsequenceGroups(text: string, scope: string): string[] {
+  const source = /bounded consequence set[^:\n]*:\s*\*\*([^*\n]+)\*\*/i.exec(text)?.[1];
+  assert.ok(source, `${scope}: missing explicitly bounded semicolon-delimited consequence source list`);
+  return source
+    .split(";")
+    .map((member) => member.trim().toLowerCase().replace(/\s+/g, " ").replace(/[.!?]+$/g, ""))
+    .filter((member) => member.length > 0)
+    .sort();
+}
+
+function assertExactBoundedConsequenceGroups(text: string, scope: string): void {
+  assert.deepEqual(
+    normalizedBoundedConsequenceGroups(text, scope),
+    [...approvedVerificationConsequenceGroups].sort(),
+    `${scope}: bounded source list must contain exactly the approved eight normalized groups`,
+  );
+}
+
+const feedbackRouteMarkerGroups: readonly SemanticMarkerGroup[] = [
+  ["unknown fact routes to research", [/unknown facts?[^\n]{0,100}research|research[^\n]{0,100}unknown facts?/i]],
+  [
+    "changed desired behavior routes to create",
+    [/changed desired behavior[^\n]{0,100}create|create[^\n]{0,100}changed desired behavior/i],
+  ],
+  [
+    "architecture or design gap routes to plan",
+    [/(?:architecture|design) gap[^\n]{0,100}plan|plan[^\n]{0,100}(?:architecture|design) gap/i],
+  ],
+  [
+    "known implementation defect routes to ship",
+    [/known implementation defect[^\n]{0,100}ship|ship[^\n]{0,100}known implementation defect/i],
+  ],
+  ["route is advisory", [/advisory|recommend(?:ed|ation)?/i]],
+  ["route decision is evidence", [/progress\.md[\s\S]{0,120}route|route[\s\S]{0,120}progress\.md/i]],
+  [
+    "route does not invoke another phase automatically",
+    [
+      /(?:does not|must not|never)[^\n]{0,120}(?:invoke|run|trigger)[^\n]{0,80}(?:command|phase)/i,
+      /(?:command|phase)[^\n]{0,80}(?:is not|is never|does not)[^\n]{0,80}(?:automatic|invoked|triggered)/i,
+    ],
+  ],
+  [
+    "route does not mutate the active pointer",
+    [
+      /(?:does not|must not|never)[^\n]{0,120}(?:mutate|change)[^\n]{0,60}\.active/i,
+      /\.active[^\n]{0,60}(?:is not|must not be|is never)[^\n]{0,80}(?:mutated|changed)/i,
+    ],
+  ],
+];
+
+test("contract-seam-feedback kernel is semantically single-sourced", () => {
+  const lifecycle = readRequired(".pi/skills/development-lifecycle/SKILL.md");
+  const unnamedSurfaces = [
+    ".pi/prompts/init.md",
+    ".pi/prompts/research.md",
+    ".pi/prompts/create.md",
+    ".pi/prompts/ship.md",
+    ".pi/prompts/verify.md",
+    ".pi/workflows/development-lifecycle-workflow.md",
+  ];
+
+  for (const path of unnamedSurfaces) {
+    assertUnnamedLifecycleSurface(readRequired(path), path);
+  }
+
+  const anonymousDoctrineMutation = [
+    "Define observable behavior before implementation.",
+    "Add a seam only for named variance, a trust boundary, or a failure risk, with a reachable enabling point and a concrete alternative.",
+    "Verify from the outside first, adding deeper evidence only for a named evidence gap and its consequence.",
+    "Deliver the smallest safe vertical slice.",
+    "Route feedback to the earliest lifecycle phase whose contract must change.",
+  ].join(" ");
+  assert.throws(
+    () => assertUnnamedLifecycleSurface(anonymousDoctrineMutation, "synthetic unnamed surface"),
+    /anonymous full-doctrine repetition/i,
+  );
+
+  assert.equal(
+    (lifecycle.match(/Contract[–-]Seam[–-]Feedback/gi) ?? []).length,
+    1,
+    "development lifecycle must contain one named kernel authority",
+  );
+
+  const kernelHeading = /^## Contract[–-]Seam[–-]Feedback(?: \(CSF\))?(?: Lifecycle)? Kernel[ \t]*$/im;
+  const kernel = boundedTextBetween(
+    lifecycle,
+    kernelHeading,
+    /^## Slash Commands \(Lifecycle Hooks\)[ \t]*$/m,
+    "lifecycle kernel",
+  );
+  const kernelAndFlow = boundedTextBetween(
+    lifecycle,
+    kernelHeading,
+    /^## When to Use Each Phase[ \t]*$/m,
+    "lifecycle kernel and flow",
+  );
+
+  assertSemanticMarkerGroups(kernel, "lifecycle kernel", [
+    [
+      "observable behavior precedes implementation",
+      [
+        /observable (?:behavior|contract)[\s\S]{0,100}before implementation/i,
+        /before implementation[\s\S]{0,100}observable (?:behavior|contract)/i,
+      ],
+    ],
+    ["seam requires named or concrete variance", [/seams?[\s\S]{0,120}(?:named|concrete) variance/i]],
+    ["trust boundary is a seam reason", [/trust boundar/i]],
+    ["failure risk is a seam reason", [/failure risk/i]],
+    ["seam has an enabling point", [/(?:reachable )?enabling point/i]],
+    ["seam has a concrete alternative", [/(?:concrete|real) alternative/i]],
+    ["evidence starts outside", [/outside[- ]first|from the outside first|observable boundary evidence first/i]],
+    ["deeper evidence is explicit", [/deeper evidence/i]],
+    ["deeper evidence names a gap", [/named evidence gap/i]],
+    ["deeper evidence is consequence-aware", [/\bconsequence\b/i]],
+    ["delivery is the smallest safe vertical slice", [/smallest safe (?:vertical|end-to-end) (?:slice|behavior)/i]],
+    [
+      "feedback returns to the earliest contract",
+      [/earliest (?:lifecycle )?phase[\s\S]{0,100}contract[\s\S]{0,60}(?:change|reopen)/i],
+    ],
+    ["compact rule requires an observable contract", [/observable contract/i]],
+    [
+      "compact rule rejects unjustified gray-box checks",
+      [/gray-box[\s\S]{0,100}evidence gap|evidence gap[\s\S]{0,100}gray-box/i],
+    ],
+    ["compact rule ties MVP claims to learning", [/MVP[\s\S]{0,100}learning signal|learning signal[\s\S]{0,100}MVP/i]],
+    [
+      "spec stores the observable contract",
+      [/spec\.md[\s\S]{0,120}observable contract|observable contract[\s\S]{0,120}spec\.md/i],
+    ],
+    [
+      "plan stores boundary and seam design",
+      [/plan\.md[\s\S]{0,120}(?:boundar|seam)|(?:boundar|seam)[\s\S]{0,120}plan\.md/i],
+    ],
+    [
+      "plan stores evidence design",
+      [/plan\.md[\s\S]{0,120}evidence|evidence[\s\S]{0,120}plan\.md/i],
+    ],
+    [
+      "tasks graph remains scheduling authority",
+      [/tasks\.json[\s\S]{0,120}(?:authoritative|schedul)|(?:authoritative|schedul)[\s\S]{0,120}tasks\.json/i],
+    ],
+    [
+      "progress stores attempt evidence",
+      [/progress\.md[\s\S]{0,120}(?:attempt|evidence)|(?:attempt|evidence)[\s\S]{0,120}progress\.md/i],
+    ],
+    [
+      "progress stores the route decision",
+      [/progress\.md[\s\S]{0,120}route|route[\s\S]{0,120}progress\.md/i],
+    ],
+    [
+      "Hindsight remains durable cross-feature memory",
+      [
+        /Hindsight[\s\S]{0,120}durable[\s\S]{0,80}cross-feature/i,
+        /durable[\s\S]{0,80}cross-feature[\s\S]{0,120}Hindsight/i,
+      ],
+    ],
+  ]);
+  assertSemanticMarkerGroups(kernelAndFlow, "lifecycle feedback routing", feedbackRouteMarkerGroups);
+});
+
+test("lifecycle intake phases expose decision-bearing contracts", () => {
+  const init = boundedTextBetween(
+    readRequired(".pi/prompts/init.md"),
+    /^### Phase 1: Detect Project[ \t]*$/m,
+    /^### Phase 2: Preview Detection and Merge[ \t]*$/m,
+    "init detection",
+  );
+  const research = boundedTextBetween(
+    readRequired(".pi/prompts/research.md"),
+    /^### Phase 4: Document[ \t]*$/m,
+    /^## Output[ \t]*$/m,
+    "research documentation",
+  );
+  const create = boundedTextBetween(
+    readRequired(".pi/prompts/create.md"),
+    /^## Phase 7: Write PRD[ \t]*$/m,
+    /^## Phase 8: Validate PRD[ \t]*$/m,
+    "create PRD",
+  );
+
+  assertSemanticMarkerGroups(init, "init detection", [
+    ["validated intended outcome or hypothesis", [/(?:intended outcome|product hypothesis)/i]],
+    ["material boundaries", [/(?:material|major)[^\n]{0,100}boundar|boundar[^\n]{0,100}(?:material|major)/i]],
+    ["external boundary", [/external[^\n]{0,60}boundar|boundar[^\n]{0,60}external/i]],
+    ["trust boundary", [/trust[^\n]{0,60}boundar|boundar[^\n]{0,60}trust/i]],
+    ["volatility boundary", [/volatil[^\n]{0,60}boundar|boundar[^\n]{0,60}volatil/i]],
+    ["available evidence or feedback channels", [/(?:evidence|feedback)[^\n]{0,60}channels?/i]],
+    [
+      "initialization does not invent speculative seams",
+      [/(?:do not|must not|never)[^\n]{0,100}(?:invent|speculat)[^\n]{0,60}(?:seams?|adapters?)/i],
+    ],
+  ]);
+
+  assertSemanticMarkerGroups(research, "research documentation", [
+    ["decision question", [/decision question/i]],
+    ["evidence", [/\bevidence\b/i]],
+    ["confidence", [/\bconfidence\b/i]],
+    ["alternatives", [/\balternatives?\b/i]],
+    ["contract impact", [/contract impact/i]],
+    ["unresolved risks", [/unresolved risks?/i]],
+  ]);
+
+  assertSemanticMarkerGroups(create, "create PRD", [
+    ["observable success behavior", [/observable[^\n]{0,80}(?:success|behavior)|success[^\n]{0,80}observable/i]],
+    ["essential journeys", [/essential journeys?/i]],
+    ["inputs", [/\binputs?\b/i]],
+    ["outputs", [/\boutputs?\b/i]],
+    ["errors", [/\berrors?\b/i]],
+    ["side effects", [/side effects?/i]],
+    ["non-goals", [/non-goals?/i]],
+    ["non-deferrable controls", [/non-deferrable[^\n]{0,40}controls?/i]],
+    [
+      "learning guidance is conditional to product or release work",
+      [
+        /(?:only|conditional)[^\n]{0,120}(?:product|release)/i,
+        /(?:product|release)[^\n]{0,120}(?:only|conditional|when relevant)/i,
+      ],
+    ],
+    ["learning signal or real feedback path", [/learning signal|real feedback path/i]],
+    [
+      "internal tooling does not invent a learning signal",
+      [
+        /internal (?:tooling|work)[^\n]{0,120}(?:does not|must not|should not|never)[^\n]{0,80}(?:invent|require)/i,
+        /(?:does not|must not|should not|never)[^\n]{0,100}(?:invent|require)[^\n]{0,80}internal (?:tooling|work)/i,
+      ],
+    ],
+    [
+      "technical readiness is not validated learning",
+      [
+        /tests?[^\n]{0,100}readiness[^\n]{0,80}(?:not|cannot|does not)[^\n]{0,60}validated learning/i,
+        /readiness[^\n]{0,80}(?:not|cannot|does not)[^\n]{0,80}validated learning/i,
+      ],
+    ],
+  ]);
+});
+
+test("delivery phases select observable and consequence-based evidence", () => {
+  const ship = boundedTextBetween(
+    readRequired(".pi/prompts/ship.md"),
+    /^### TDD Execution Flow[ \t]*$/m,
+    /^### Task Commit Protocol[ \t]*$/m,
+    "ship TDD flow",
+  );
+  const verify = boundedTextBetween(
+    readRequired(".pi/prompts/verify.md"),
+    /^## Phase 3: Correctness[ \t]*$/m,
+    /^## Phase 4: Coherence \(skip with --quick\)[ \t]*$/m,
+    "verify correctness",
+  );
+
+  assertSemanticMarkerGroups(verify, "verify changed-file execution mode", [
+    ["changed-file heuristic", [/changed files?|changed-file/i]],
+    ["incremental mode", [/\bincremental\b/i]],
+    ["full mode", [/\bfull\b/i]],
+  ]);
+
+  assertSemanticMarkerGroups(ship, "ship TDD flow", [
+    ["smallest safe vertical slice", [/smallest safe[\s\S]{0,80}(?:vertical|end-to-end)[\s\S]{0,40}(?:slice|behavior)/i]],
+    ["failing observable boundary evidence", [/failing[\s\S]{0,80}observable boundary (?:test|evidence|behavior)/i]],
+    [
+      "observable boundary evidence comes first where practical",
+      [
+        /observable boundary (?:test|evidence|behavior)[^\n]{0,100}first[^\n]{0,80}(?:where|when) practical/i,
+        /(?:where|when) practical[^\n]{0,80}observable boundary (?:test|evidence|behavior)[^\n]{0,80}first/i,
+      ],
+    ],
+    ["test doubles use justified seams", [/(?:fakes?|test doubles?)[^\n]{0,100}justified seams?/i]],
+    [
+      "private-method mocks are prohibited",
+      [/(?:do not|must not|never|no|prohibit)[^\n]{0,100}(?:private[- ]method mocks?|mock(?:ing|s)?[^\n]{0,30}private)/i],
+    ],
+    [
+      "test-only production APIs are prohibited",
+      [/(?:do not|must not|never|no|prohibit)[^\n]{0,100}test-only production (?:APIs?|methods?)/i],
+    ],
+    [
+      "speculative test interfaces are prohibited",
+      [
+        /(?:do not|must not|never|no|prohibit)[^\n]{0,120}(?:speculative interfaces?|interfaces?[^\n]{0,50}(?:solely|only)[^\n]{0,40}(?:for )?testing)/i,
+      ],
+    ],
+  ]);
+
+  const consequenceMarkerGroups: readonly SemanticMarkerGroup[] = [
+    ["security", [/\bsecurity\b/i]],
+    ["privacy", [/\bprivacy\b/i]],
+    [
+      "authorization and tenant isolation",
+      [
+        /authori[sz]ation[\s\S]{0,100}tenant isolation/i,
+        /tenant isolation[\s\S]{0,100}authori[sz]ation/i,
+      ],
+    ],
+    ["data integrity", [/data integrity/i]],
+    ["external providers", [/external providers?/i]],
+    [
+      "retries and idempotency",
+      [/retr(?:y|ies)[\s\S]{0,100}idempoten|idempoten[\s\S]{0,100}retr(?:y|ies)/i],
+    ],
+    ["cost controls", [/cost controls?/i]],
+    ["recovery", [/\brecovery\b/i]],
+  ];
+  assert.equal(consequenceMarkerGroups.length, 8, "verification consequence set must stay bounded to eight groups");
+  assertSemanticMarkerGroups(verify, "verify bounded consequence set", [
+    ["consequence set is explicitly bounded", [/bounded[^\n]{0,80}(?:consequence|risk)|(?:consequence|risk)[^\n]{0,80}bounded/i]],
+    ...consequenceMarkerGroups,
+  ]);
+  assertExactBoundedConsequenceGroups(verify, "verify bounded consequence set");
+
+  const ninthConsequenceMutation = verify.replace(
+    /cost controls; recovery\./i,
+    "cost controls; availability; recovery.",
+  );
+  assert.notEqual(ninthConsequenceMutation, verify, "ninth-consequence mutation must alter the bounded source list");
+  assert.throws(
+    () => assertExactBoundedConsequenceGroups(ninthConsequenceMutation, "synthetic ninth-consequence source list"),
+    /exactly the approved eight/i,
+  );
+
+  assertSemanticMarkerGroups(verify, "verify evidence selection", [
+    [
+      "observable behavior and controlled failures come first",
+      [
+        /observable (?:behavior|evidence)[\s\S]{0,160}controlled failures?[\s\S]{0,100}first/i,
+        /first[\s\S]{0,100}observable (?:behavior|evidence)[\s\S]{0,160}controlled failures?/i,
+      ],
+    ],
+    ["deeper checks require a named evidence gap", [/deeper (?:checks?|evidence)[\s\S]{0,120}named evidence gap/i]],
+    ["deeper checks use a stable inspection seam", [/stable inspection seam/i]],
+    ["recorded evidence names its vantage", [/(?:recorded )?(?:result|evidence)[\s\S]{0,120}(?:names?|states?)[^\n]{0,60}vantage/i]],
+    ["observable-behavior vantage", [/observable behavior/i]],
+    ["provider-contract vantage", [/(?:adapter|provider) contract/i]],
+    ["real-integration vantage", [/real integration/i]],
+    ["justified structural or gray-box vantage", [/(?:structural|gray-box) evidence/i]],
+    [
+      "experiment readiness is scoped to product or release work",
+      [
+        /(?:product|release)[^\n]{0,120}experiment readiness/i,
+        /experiment readiness[^\n]{0,120}(?:product|release)/i,
+      ],
+    ],
+    [
+      "experiment-readiness scope is conditional",
+      [
+        /conditional[^\n]{0,120}(?:product|release|experiment readiness)/i,
+        /(?:product|release|experiment readiness)[^\n]{0,120}(?:conditional|only for|when relevant)/i,
+      ],
+    ],
+    ["validated learning remains distinct", [/validated learning/i]],
+    [
+      "technical evidence cannot establish validated learning",
+      [/(?:tests?|reviewer score)[^\n]{0,120}(?:cannot|does not|do not)[^\n]{0,100}(?:establish|prove)[^\n]{0,80}validated learning/i],
+    ],
+  ]);
+  assertSemanticMarkerGroups(verify, "verify feedback routing", feedbackRouteMarkerGroups);
+});
+
+test("lifecycle workflow is optional and non-cyclic", () => {
+  const lifecycleFlow = boundedTextBetween(
+    readRequired(".pi/skills/development-lifecycle/SKILL.md"),
+    /^## Workflow[ \t]*$/m,
+    /^## When to Use Each Phase[ \t]*$/m,
+    "lifecycle workflow",
+  );
+  const workflowIntro = boundedTextBetween(
+    readRequired(".pi/workflows/development-lifecycle-workflow.md"),
+    /^# development-lifecycle-workflow[ \t]*$/m,
+    /^## Fabric Agent Execution[ \t]*$/m,
+    "optional workflow introduction",
+  );
+
+  assertSemanticMarkerGroups(lifecycleFlow, "canonical lifecycle workflow", [
+    ["research remains sideways", [/research[^\n]{0,80}sideways|sideways[^\n]{0,80}research/i]],
+    ["tasks graph remains authoritative", [/tasks\.json[^\n]{0,100}authoritative/i]],
+  ]);
+  assertSemanticMarkerGroups(workflowIntro, "optional lifecycle workflow", [
+    ["workflow is optional", [/\boptional\b/i]],
+    ["workflow is bounded", [/\bbounded\b/i]],
+    ["workflow is a helper", [/\bhelper\b/i]],
+    ["workflow is one-shot", [/one[- ]shot/i]],
+    ["workflow is not canonical", [/(?:not|isn't)[^\n]{0,80}canonical lifecycle|canonical lifecycle[^\n]{0,80}(?:not|isn't)/i]],
+    ["workflow does not loop or cycle", [/(?:does not|must not|never)[^\n]{0,80}(?:loop|cycle)|non[- ]cyclic/i]],
+    [
+      "workflow does not trigger another phase automatically",
+      [/(?:does not|must not|never)[^\n]{0,100}(?:trigger|invoke|start)[^\n]{0,100}(?:phase|command)[^\n]{0,80}automatic/i],
+    ],
+    [
+      "workflow does not mutate active state",
+      [/(?:does not|must not|never)[^\n]{0,100}(?:mutate|change)[^\n]{0,80}(?:active state|\.active)/i],
+    ],
+  ]);
+});

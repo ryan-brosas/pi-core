@@ -1,0 +1,285 @@
+{
+  "version": 2,
+  "slug": "contract-seam-feedback-lifecycle",
+  "title": "Contract–Seam–Feedback Lifecycle Kernel",
+  "status": "complete",
+  "execution": {
+    "mode": "dependency-waves",
+    "max_concurrent_agents": 1,
+    "reason": "The three implementation slices are file-disjoint but share one semantic lifecycle contract and one retained test surface; serial execution avoids unapproved worktree isolation and lets the parent revalidate after each transition."
+  },
+  "tasks": [
+    {
+      "id": "task-1",
+      "category": "test",
+      "title": "Lock Lifecycle Kernel Contracts",
+      "description": "Four focused policy tests encode the single kernel authority, intake obligations, delivery and verification obligations, and optional non-cyclic workflow, and fail against the current unmodified surfaces for the intended missing behavior.",
+      "status": "passed",
+      "passes": true,
+      "attempt": 2,
+      "evidence_refs": [
+        {
+          "kind": "test",
+          "ref": "progress.md#evidence-task-1-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "review",
+          "ref": "progress.md#evidence-task-1-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "review",
+          "ref": "progress.md#verification-task-5-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "test",
+          "ref": "progress.md#evidence-task-1-attempt-2",
+          "attempt": 2
+        },
+        {
+          "kind": "review",
+          "ref": "progress.md#evidence-task-1-attempt-2",
+          "attempt": 2
+        }
+      ],
+      "depends_on": [],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [
+        ".pi/tests/skill-system.test.ts"
+      ],
+      "acceptance_criteria": [
+        "One test requires the lifecycle skill to contain the sole named Contract–Seam–Feedback definition and compact rule.",
+        "One test requires init, research, and create to carry their bounded intake and decision obligations without naming CSF.",
+        "One test requires ship and verify to carry thin-slice, consequence-based evidence, conditional MVP, and feedback-routing obligations without naming CSF.",
+        "One test requires the generic lifecycle workflow to be optional and non-cyclic.",
+        "Existing planning-boundary and Hindsight lifecycle contracts remain green.",
+        "No production prompt, skill, workflow, or template is modified by this task."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test --test-name-pattern=\"contract-seam-feedback kernel|lifecycle intake phases|delivery phases|lifecycle workflow is optional\" .pi/tests/skill-system.test.ts",
+        "node --experimental-strip-types --test --test-name-pattern=\"planning boundaries and testability contract is conditional|parent lifecycle memory policy uses Hindsight\" .pi/tests/skill-system.test.ts",
+        "git diff --check -- .pi/tests/skill-system.test.ts"
+      ],
+      "expected_verification_state": "The new named contracts fail only because the lifecycle obligations are absent; the existing baseline tests pass."
+    },
+    {
+      "id": "task-2",
+      "category": "docs",
+      "title": "Establish the Lifecycle Kernel and Optional Workflow",
+      "description": "The lifecycle skill becomes the single named authority for contract, justified seams, evidence depth, artifact mapping, and feedback routes, while the generic workflow is explicitly optional and non-cyclic.",
+      "status": "passed",
+      "passes": true,
+      "attempt": 2,
+      "evidence_refs": [
+        {
+          "kind": "test",
+          "ref": "progress.md#evidence-task-2-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "review",
+          "ref": "progress.md#evidence-task-2-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "test",
+          "ref": "progress.md#evidence-task-2-attempt-2",
+          "attempt": 2
+        },
+        {
+          "kind": "review",
+          "ref": "progress.md#evidence-task-2-attempt-2",
+          "attempt": 2
+        }
+      ],
+      "depends_on": [
+        "task-1"
+      ],
+      "parallel": true,
+      "conflicts_with": [],
+      "files": [
+        ".pi/skills/development-lifecycle/SKILL.md",
+        ".pi/workflows/development-lifecycle-workflow.md"
+      ],
+      "acceptance_criteria": [
+        "The lifecycle skill contains one concise Contract–Seam–Feedback definition and compact enforcement rule.",
+        "The lifecycle skill maps contract, seam decisions, task authority, attempt evidence, and durable learning to the existing artifacts and Hindsight.",
+        "The lifecycle skill routes unknown facts, changed desired behavior, architecture or design gaps, and known implementation defects to the correct earliest phase.",
+        "Route selection never automatically invokes a command, mutates .active, or changes lifecycle state.",
+        "The generic lifecycle workflow is described as an optional bounded helper rather than the canonical lifecycle or a mandatory research-to-verification cycle.",
+        "The workflow does not repeat the CSF name, acronym, or full doctrine."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test --test-name-pattern=\"contract-seam-feedback kernel|lifecycle workflow is optional\" .pi/tests/skill-system.test.ts",
+        "git diff --check -- .pi/skills/development-lifecycle/SKILL.md .pi/workflows/development-lifecycle-workflow.md"
+      ],
+      "expected_verification_state": "green"
+    },
+    {
+      "id": "task-3",
+      "category": "prompt",
+      "title": "Align Intake and Decision Phases",
+      "description": "Initialization, research, and specification creation each emit their bounded decision input, observable contract, risk controls, and conditional product or release learning signal without duplicating the named kernel.",
+      "status": "passed",
+      "passes": true,
+      "attempt": 2,
+      "evidence_refs": [
+        {
+          "kind": "test",
+          "ref": "progress.md#evidence-task-3-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "review",
+          "ref": "progress.md#evidence-task-3-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "test",
+          "ref": "progress.md#evidence-task-3-attempt-2",
+          "attempt": 2
+        },
+        {
+          "kind": "review",
+          "ref": "progress.md#evidence-task-3-attempt-2",
+          "attempt": 2
+        }
+      ],
+      "depends_on": [
+        "task-1"
+      ],
+      "parallel": true,
+      "conflicts_with": [],
+      "files": [
+        ".pi/prompts/init.md",
+        ".pi/prompts/research.md",
+        ".pi/prompts/create.md"
+      ],
+      "acceptance_criteria": [
+        "Init identifies validated intended outcomes, major external, trust, and volatility boundaries, and available evidence channels when relevant, without inventing speculative seams.",
+        "Research records the decision question, evidence, confidence, alternatives, contract impact, and unresolved risks and remains on demand.",
+        "Create requires essential journeys, inputs, outputs, errors, side effects, non-goals, and non-deferrable risk controls in observable success behavior.",
+        "Create requires a measurable learning signal or real feedback path only for product or release-level specifications.",
+        "None of the three prompts contains the CSF acronym or repeats the named kernel."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test --test-name-pattern=\"lifecycle intake phases\" .pi/tests/skill-system.test.ts",
+        "git diff --check -- .pi/prompts/init.md .pi/prompts/research.md .pi/prompts/create.md"
+      ],
+      "expected_verification_state": "green"
+    },
+    {
+      "id": "task-4",
+      "category": "prompt",
+      "title": "Align Delivery, Verification, and Feedback",
+      "description": "Shipping and verification favor observable thin slices, deepen evidence for the approved consequence set, distinguish product learning from technical readiness, and route findings without automatic phase transitions.",
+      "status": "passed",
+      "passes": true,
+      "attempt": 2,
+      "evidence_refs": [
+        {
+          "kind": "test",
+          "ref": "progress.md#evidence-task-4-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "review",
+          "ref": "progress.md#evidence-task-4-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "test",
+          "ref": "progress.md#evidence-task-4-attempt-2",
+          "attempt": 2
+        },
+        {
+          "kind": "review",
+          "ref": "progress.md#evidence-task-4-attempt-2",
+          "attempt": 2
+        }
+      ],
+      "depends_on": [
+        "task-1"
+      ],
+      "parallel": true,
+      "conflicts_with": [],
+      "files": [
+        ".pi/prompts/ship.md",
+        ".pi/prompts/verify.md"
+      ],
+      "acceptance_criteria": [
+        "Ship directs behavioral work toward the smallest safe end-to-end slice and a failing observable boundary test first where practical.",
+        "Ship does not require speculative interfaces, private-method mocks, or test-only production APIs.",
+        "Verify retains changed-file mode selection but independently escalates for security, privacy, authorization or tenant isolation, data integrity, external providers, retries or idempotency, cost controls, and recovery.",
+        "Verify starts with essential observable journeys and controlled failures, records evidence vantage, and requires a named evidence gap for deeper checks.",
+        "Product or release MVP readiness requires a learning signal or feedback path and cannot be equated with internal tests or reviewer score.",
+        "Feedback routes to research, create, plan, or ship without automatic command execution, .active mutation, or phase cycling.",
+        "Neither prompt contains the CSF acronym or repeats the named kernel."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test --test-name-pattern=\"delivery phases\" .pi/tests/skill-system.test.ts",
+        "git diff --check -- .pi/prompts/ship.md .pi/prompts/verify.md"
+      ],
+      "expected_verification_state": "green"
+    },
+    {
+      "id": "task-5",
+      "category": "verify",
+      "title": "Verify Integrated Lifecycle Behavior",
+      "description": "All lifecycle contracts, retained tests, graph validation, artifact authority, Hindsight policy, and untouched planning surfaces pass together with no out-of-scope changes.",
+      "status": "passed",
+      "passes": true,
+      "attempt": 2,
+      "evidence_refs": [
+        {
+          "kind": "verification",
+          "ref": "progress.md#verification-task-5-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "review",
+          "ref": "progress.md#verification-task-5-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "verification",
+          "ref": "progress.md#evidence-task-5-attempt-2",
+          "attempt": 2
+        },
+        {
+          "kind": "review",
+          "ref": "progress.md#evidence-task-5-attempt-2",
+          "attempt": 2
+        }
+      ],
+      "depends_on": [
+        "task-2",
+        "task-3",
+        "task-4"
+      ],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [],
+      "acceptance_criteria": [
+        "All focused lifecycle contract tests pass with zero failures.",
+        "The complete retained test suite passes with zero failures.",
+        "Every artifact task graph validates.",
+        "Cross-artifact frontier reporting leaves .active byte-identical.",
+        "The plan prompt, planning skill, PRD template, and task-graph implementation remain unchanged.",
+        "Only declared implementation and lifecycle evidence paths are owned by this feature; runtime-managed and unrelated state remains untouched.",
+        "An independent read-only review has no unresolved critical or important findings."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test .pi/tests/*.test.ts",
+        "for f in .pi/artifacts/*/tasks.json; do node --experimental-strip-types .pi/scripts/task-graph.ts validate \"$f\"; done",
+        "before=$(sha256sum .pi/artifacts/.active); node --experimental-strip-types .pi/scripts/task-graph.ts frontier --all .pi/artifacts >/dev/null; test \"$before\" = \"$(sha256sum .pi/artifacts/.active)\"",
+        "git diff --quiet HEAD -- .pi/prompts/plan.md .pi/skills/planning-and-task-breakdown/SKILL.md .pi/templates/prd.md .pi/scripts/task-graph.ts",
+        "git diff --check -- .pi/skills/development-lifecycle/SKILL.md .pi/prompts/init.md .pi/prompts/research.md .pi/prompts/create.md .pi/prompts/ship.md .pi/prompts/verify.md .pi/workflows/development-lifecycle-workflow.md .pi/tests/skill-system.test.ts"
+      ],
+      "expected_verification_state": "green"
+    }
+  ]
+}

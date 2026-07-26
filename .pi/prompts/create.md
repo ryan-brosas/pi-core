@@ -195,6 +195,10 @@ Copy and fill the PRD template (lite or full) using context from Phase 4.
 | Risks             | Codebase exploration                                       | Feature/epic only |
 | Open Questions    | Unresolved items from Phase 4                              | If any exist      |
 
+Define observable success behavior for essential journeys, including inputs, outputs, errors, side effects, non-goals, and non-deferrable controls.
+
+For product- or release-level specifications only, include a measurable learning signal or real feedback path. Internal tooling and internal work must not invent one. Tests establish readiness, not validated learning.
+
 ### Task Format
 
 Tasks must follow this format:

@@ -192,6 +192,12 @@ When task specifies TDD:
 2. Run tests → MUST still pass
 3. Commit if changes: `refactor: clean up [feature]`
 
+#### Behavioral Delivery Rule
+
+For behavioral tasks, deliver the smallest safe vertical or end-to-end slice. Where practical, put a failing observable boundary test or evidence first, then implement through that boundary. Test doubles or fakes may substitute only at justified seams.
+
+Never use private-method mocks. Never add test-only production APIs. Never create interfaces solely for testing.
+
 ### Task Commit Protocol
 
 This protocol is an explicit-approval checkpoint. Do not stage, commit, merge, or integrate without separate approval; verified graph evidence does not imply Git authorization.

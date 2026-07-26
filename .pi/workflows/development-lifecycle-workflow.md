@@ -1,6 +1,6 @@
 # development-lifecycle-workflow
 
-Fabric-agent workflow that chains development lifecycle phases with bounded parallelism. It uses explicit research, review, planning, and implementation task shapes and composes with the batch-implement workflow.
+Optional, bounded, one-shot Fabric-agent helper for a parent-selected, parent-controlled case. It is not the canonical lifecycle and should not be used when approach research is already resolved. It does not loop or cycle, trigger any next phase or command automatically, or mutate `.active` or other active state.
 
 ## Fabric Agent Execution
 

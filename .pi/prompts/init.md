@@ -75,6 +75,13 @@ Detect and validate before including a fact:
 - CI/CD configuration
 - Optional workflows: require both project/configuration evidence and executable validation; PATH presence alone is insufficient
 
+Also require, only when validated:
+- The intended outcome, or product hypothesis when relevant
+- Material external boundaries, trust boundaries, and volatility boundaries
+- Available evidence or feedback channels
+
+Keep unsupported facts omitted. Do not invent speculative seams or adapters.
+
 With `--deep`:
 - Define distinct discovery questions before dispatch.
 - Use at most three agents in a wave; process overflow in sequential shards.

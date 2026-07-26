@@ -120,6 +120,29 @@ Follow the [Verification Protocol](../skills/verification-before-completion/refe
 | Incremental | Default, <20 changed files                | Lint changed files, test changed |
 | Full        | `--full` flag, >20 changed files, or ship | Lint all, test all               |
 
+### Consequence-Based Evidence
+
+The changed-file heuristic still selects incremental or full gate breadth; file count never substitutes for consequence. Escalation uses exactly this bounded consequence set and no other categories: **security; privacy; authorization or tenant isolation; data integrity; external providers; retries or idempotency; cost controls; recovery.**
+
+Verify observable behavior across essential journeys and controlled failures first. Add deeper checks only to close a named evidence gap and only through a stable inspection seam.
+
+Every recorded result or evidence item must name its vantage: observable behavior, adapter/provider contract, real integration, or justified structural or gray-box evidence.
+
+### Conditional Experiment Readiness
+
+Only for product or release work, apply this conditional MVP or experiment readiness check: essential journeys, deferred scope, non-deferrable controls, observable failures, current technical evidence, and a learning signal or real feedback path. Tests or a reviewer score cannot establish validated learning.
+
+### Advisory Feedback Routing
+
+Routing is advisory and never automatic:
+
+- An unknown fact routes to research.
+- Changed desired behavior routes to create.
+- An architecture or design gap routes to plan.
+- A known implementation defect routes to ship.
+
+The parent records the route decision in `progress.md`, but does not invoke or trigger a phase or command and never mutates `.active` automatically.
+
 If `--fix` is set, run the project's auto-fix command **before** final verification (for example `npm run lint:fix`, `ruff check --fix`, or `cargo clippy --fix`). Refresh the changed-file set afterward. If auto-fix fails, stop; do not use cached evidence.
 
 **Execution order after any auto-fix:**
