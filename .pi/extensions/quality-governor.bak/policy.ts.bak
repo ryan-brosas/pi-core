@@ -1,0 +1,861 @@
+/**
+ * Quality Governor — pure policy contract.
+ *
+ * Dependency-free and deterministic. Classification proposes a profile; only a
+ * positively confirmed contract grants mutation authority.
+ */
+
+// ---------------------------------------------------------------------------
+// Public contract
+// ---------------------------------------------------------------------------
+
+export type ChangeProfile =
+  | "inspect"
+  | "surgical"
+  | "feature"
+  | "refactor"
+  | "boundary"
+  | "visual";
+
+export type GovernorMode = "PLAN" | "BUILD" | "VERIFY";
+export type RolloutLevel = "observe" | "warn" | "enforce";
+export type PathRule = string;
+
+export interface ContractCandidate {
+  readonly version: 1;
+  readonly goal: string;
+  readonly profile: ChangeProfile;
+  readonly initialMode: GovernorMode;
+  readonly ownedPaths: readonly PathRule[];
+  readonly expectedExistingFiles: readonly string[];
+  readonly allowedNewFiles: readonly string[];
+  readonly allowedDeletions: readonly string[];
+  readonly allowedDependencies: readonly string[];
+  readonly allowedPublicApiChanges: readonly string[];
+  readonly publicApiEvidence: string;
+  readonly architectureEvidence: string;
+  readonly nonGoals: readonly string[];
+  readonly requiredChecks: readonly string[];
+  readonly maxRepairs: 1;
+}
+
+export interface ConfirmedContract {
+  readonly revision: number;
+  readonly candidate: ContractCandidate;
+  readonly confirmedAt: string;
+}
+
+export type ViolationCode =
+  | "QG-001"
+  | "QG-002"
+  | "QG-003"
+  | "QG-004"
+  | "QG-005"
+  | "QG-006"
+  | "QG-007"
+  | "QG-008"
+  | "QG-009"
+  | "QG-010"
+  | "QG-011"
+  | "QG-012"
+  | "QG-013"
+  | "QG-014"
+  | "QG-015"
+  | "QG-016";
+
+export interface AdmissionRequest {
+  readonly contract?: ConfirmedContract;
+  readonly mode: GovernorMode;
+  readonly rollout: RolloutLevel;
+  readonly effect: string;
+  readonly toolName: string;
+  readonly toolCallId: string;
+  readonly identity: {
+    readonly kind: "direct" | "replayed" | "provider" | "agent" | "unknown";
+    readonly source: string;
+    readonly toolName: string;
+  };
+  readonly target?: string;
+  readonly targetExists?: boolean;
+  readonly repositoryRoot: string;
+  readonly contentLength?: number;
+  readonly checkId?: string;
+  readonly pathVerified?: boolean;
+  readonly protectedPaths?: readonly PathRule[];
+  readonly dependencyPaths?: readonly PathRule[];
+}
+
+export interface AdmissionDecision {
+  readonly admitted: boolean;
+  readonly greenEligible: boolean;
+  readonly rollout: RolloutLevel;
+  readonly code?: ViolationCode;
+  readonly reason: string;
+}
+
+export type VerificationState = "CURRENT" | "STALE" | "FAILED" | "UNKNOWN";
+export type GateState = "GREEN" | "YELLOW" | "RED" | "STALE" | "UNKNOWN";
+
+export interface QualityVector {
+  readonly scope: "PASS" | "FAIL" | "UNKNOWN";
+  readonly protectedPaths: "PASS" | "FAIL";
+  readonly newFiles: { readonly count: number; readonly undeclared: number };
+  readonly deletedFiles: { readonly count: number; readonly undeclared: number };
+  readonly dependencies: "UNCHANGED" | "CHANGED" | "UNKNOWN";
+  readonly publicApi: "UNCHANGED" | "CHANGED" | "NOT_REQUIRED" | "UNKNOWN";
+  readonly architecture: "PASS" | "FAIL" | "NOT_REQUIRED" | "UNKNOWN";
+  readonly verification: VerificationState;
+  readonly diff: {
+    readonly files: number;
+    readonly additions: number;
+    readonly deletions: number;
+    readonly outOfScope: readonly string[];
+  };
+  readonly repair: { readonly attempted: number; readonly maximum: number };
+  readonly bypasses: readonly string[];
+  readonly mode: GovernorMode;
+  readonly contractRevision: number;
+  readonly mutationRevision: number;
+}
+
+// ---------------------------------------------------------------------------
+// Strict candidate parsing
+// ---------------------------------------------------------------------------
+
+const PROFILES: readonly ChangeProfile[] = [
+  "inspect",
+  "surgical",
+  "feature",
+  "refactor",
+  "boundary",
+  "visual",
+];
+const MODES: readonly GovernorMode[] = ["PLAN", "BUILD", "VERIFY"];
+const ROLLOUTS: readonly RolloutLevel[] = ["observe", "warn", "enforce"];
+
+const CANDIDATE_KEYS = [
+  "version",
+  "goal",
+  "profile",
+  "initialMode",
+  "ownedPaths",
+  "expectedExistingFiles",
+  "allowedNewFiles",
+  "allowedDeletions",
+  "allowedDependencies",
+  "allowedPublicApiChanges",
+  "publicApiEvidence",
+  "architectureEvidence",
+  "nonGoals",
+  "requiredChecks",
+  "maxRepairs",
+] as const;
+
+const GOAL_MAX = 512;
+const TEXT_MAX = 512;
+const PATH_MAX = 512;
+const CHECK_ID_MAX = 64;
+const MAX_LIST_ITEMS = 128;
+const CHECK_ID_RE = /^[a-z][a-z0-9._-]*$/;
+
+interface PolicyFailure {
+  readonly ok: false;
+  readonly code: ViolationCode;
+  readonly reason: string;
+}
+
+type PolicyResult<T> =
+  | { readonly ok: true; readonly value: T }
+  | PolicyFailure;
+
+function failure(code: ViolationCode, reason: string): PolicyFailure {
+  return Object.freeze({ ok: false, code, reason });
+}
+
+function success<T>(value: T): PolicyResult<T> {
+  return Object.freeze({ ok: true, value });
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function hasExactKeys(record: Record<string, unknown>, keys: readonly string[]): boolean {
+  const ownKeys = Reflect.ownKeys(record);
+  if (ownKeys.length !== keys.length || ownKeys.some((key) => typeof key !== "string")) {
+    return false;
+  }
+  const allowed = new Set(keys);
+  return ownKeys.every((key) => typeof key === "string" && allowed.has(key));
+}
+
+function isOneOf<T extends string>(value: unknown, values: readonly T[]): value is T {
+  return typeof value === "string" && values.includes(value as T);
+}
+
+function boundedString(value: unknown, maximum: number): string | null {
+  if (typeof value !== "string" || value.length === 0 || value.length > maximum) {
+    return null;
+  }
+  const normalized = value.trim();
+  if (normalized.length === 0 || normalized.length > maximum || normalized.includes("\0")) {
+    return null;
+  }
+  return normalized;
+}
+
+function boundedStringList(
+  value: unknown,
+  maximumItems = MAX_LIST_ITEMS,
+  maximumLength = TEXT_MAX,
+  requireItem = false,
+): string[] | null {
+  if (!Array.isArray(value) || value.length > maximumItems || (requireItem && value.length === 0)) {
+    return null;
+  }
+  const result: string[] = [];
+  const seen = new Set<string>();
+  for (const item of value) {
+    const normalized = boundedString(item, maximumLength);
+    if (normalized === null || seen.has(normalized)) return null;
+    seen.add(normalized);
+    result.push(normalized);
+  }
+  return result;
+}
+
+interface ParsedPathRule {
+  readonly path: string;
+  readonly descendants: boolean;
+}
+
+function parsePathRuleValue(value: unknown, allowDescendants: boolean): ParsedPathRule | null {
+  if (typeof value !== "string" || value.length === 0 || value.length > PATH_MAX) return null;
+  if (value !== value.trim() || value.includes("\0") || value.includes("\\")) return null;
+  if (value.startsWith("/") || /^[A-Za-z]:/.test(value) || value.endsWith("/")) return null;
+
+  const suffix = "/**";
+  const descendants = allowDescendants && value.endsWith(suffix);
+  const path = descendants ? value.slice(0, -suffix.length) : value;
+  if (path.length === 0 || path.includes("*")) return null;
+  if (!descendants && value.includes("*")) return null;
+
+  const segments = path.split("/");
+  if (segments.some((segment) => segment.length === 0 || segment === "." || segment === "..")) {
+    return null;
+  }
+  return { path, descendants };
+}
+
+function boundedPathList(value: unknown, allowDescendants: boolean): string[] | null {
+  if (!Array.isArray(value) || value.length > MAX_LIST_ITEMS) return null;
+  const result: string[] = [];
+  const seen = new Set<string>();
+  for (const item of value) {
+    const parsed = parsePathRuleValue(item, allowDescendants);
+    if (parsed === null) return null;
+    const normalized = parsed.descendants ? `${parsed.path}/**` : parsed.path;
+    if (seen.has(normalized)) return null;
+    seen.add(normalized);
+    result.push(normalized);
+  }
+  return result;
+}
+
+function isCheckId(value: string): boolean {
+  return value.length <= CHECK_ID_MAX && CHECK_ID_RE.test(value);
+}
+
+function parseEvidence(value: unknown, requiredChecks: readonly string[]): string | null {
+  const evidence = boundedString(value, CHECK_ID_MAX);
+  if (evidence === null) return null;
+  if (evidence === "not-required") return evidence;
+  if (!isCheckId(evidence) || !requiredChecks.includes(evidence)) return null;
+  return evidence;
+}
+
+function intersects(left: readonly string[], right: readonly string[]): boolean {
+  const values = new Set(left);
+  return right.some((value) => values.has(value));
+}
+
+const CONFIRMED_AUTHORITY = Symbol("quality-governor.confirmed-authority");
+
+function markConfirmedAuthority<T extends object>(value: T): T {
+  Object.defineProperty(value, CONFIRMED_AUTHORITY, {
+    value: true,
+    enumerable: false,
+    configurable: false,
+    writable: false,
+  });
+  return value;
+}
+
+function hasConfirmedAuthority(value: unknown): value is Record<string, unknown> {
+  if (!isRecord(value) || !Object.isFrozen(value)) return false;
+  const descriptor = Object.getOwnPropertyDescriptor(value, CONFIRMED_AUTHORITY);
+  return (
+    descriptor?.value === true &&
+    descriptor.enumerable === false &&
+    descriptor.configurable === false &&
+    descriptor.writable === false
+  );
+}
+
+function freezeCandidate(candidate: ContractCandidate, confirmedAuthority = false): ContractCandidate {
+  const frozenCandidate = {
+    ...candidate,
+    ownedPaths: Object.freeze([...candidate.ownedPaths]),
+    expectedExistingFiles: Object.freeze([...candidate.expectedExistingFiles]),
+    allowedNewFiles: Object.freeze([...candidate.allowedNewFiles]),
+    allowedDeletions: Object.freeze([...candidate.allowedDeletions]),
+    allowedDependencies: Object.freeze([...candidate.allowedDependencies]),
+    allowedPublicApiChanges: Object.freeze([...candidate.allowedPublicApiChanges]),
+    nonGoals: Object.freeze([...candidate.nonGoals]),
+    requiredChecks: Object.freeze([...candidate.requiredChecks]),
+  } satisfies ContractCandidate;
+  if (confirmedAuthority) markConfirmedAuthority(frozenCandidate);
+  return Object.freeze(frozenCandidate);
+}
+
+/** Parse an untrusted version-1 proposal without granting it authority. */
+export function parseContractCandidate(input: unknown): PolicyResult<ContractCandidate> {
+  if (!isRecord(input) || !hasExactKeys(input, CANDIDATE_KEYS)) {
+    return failure("QG-015", "contract must contain exactly the version-1 fields");
+  }
+  if (input.version !== 1 || input.maxRepairs !== 1) {
+    return failure("QG-015", "unsupported contract version or repair bound");
+  }
+  if (!isOneOf(input.profile, PROFILES) || !isOneOf(input.initialMode, MODES)) {
+    return failure("QG-015", "unsupported profile or mode");
+  }
+
+  const goal = boundedString(input.goal, GOAL_MAX);
+  const ownedPaths = boundedPathList(input.ownedPaths, true);
+  const expectedExistingFiles = boundedPathList(input.expectedExistingFiles, false);
+  const allowedNewFiles = boundedPathList(input.allowedNewFiles, false);
+  const allowedDeletions = boundedPathList(input.allowedDeletions, false);
+  const allowedDependencies = boundedStringList(input.allowedDependencies);
+  const allowedPublicApiChanges = boundedStringList(input.allowedPublicApiChanges);
+  const nonGoals = boundedStringList(input.nonGoals);
+  const requiredChecks = boundedStringList(input.requiredChecks, MAX_LIST_ITEMS, CHECK_ID_MAX, true);
+
+  if (
+    goal === null ||
+    ownedPaths === null ||
+    expectedExistingFiles === null ||
+    allowedNewFiles === null ||
+    allowedDeletions === null ||
+    allowedDependencies === null ||
+    allowedPublicApiChanges === null ||
+    nonGoals === null ||
+    requiredChecks === null ||
+    requiredChecks.some((checkId) => !isCheckId(checkId))
+  ) {
+    return failure("QG-015", "contract contains an invalid or duplicate bounded value");
+  }
+  if (allowedDependencies.length !== 0) {
+    return failure("QG-015", "dependency changes are unavailable in version 1");
+  }
+  if (
+    intersects(expectedExistingFiles, allowedNewFiles) ||
+    intersects(allowedNewFiles, allowedDeletions)
+  ) {
+    return failure("QG-015", "file declarations contradict one another");
+  }
+
+  const publicApiEvidence = parseEvidence(input.publicApiEvidence, requiredChecks);
+  const architectureEvidence = parseEvidence(input.architectureEvidence, requiredChecks);
+  if (publicApiEvidence === null || architectureEvidence === null) {
+    return failure("QG-015", "evidence must be not-required or a required check ID");
+  }
+  if (allowedPublicApiChanges.length > 0 && publicApiEvidence === "not-required") {
+    return failure("QG-015", "public API changes require declared evidence");
+  }
+
+  return success(freezeCandidate({
+    version: 1,
+    goal,
+    profile: input.profile,
+    initialMode: input.initialMode,
+    ownedPaths,
+    expectedExistingFiles,
+    allowedNewFiles,
+    allowedDeletions,
+    allowedDependencies,
+    allowedPublicApiChanges,
+    publicApiEvidence,
+    architectureEvidence,
+    nonGoals,
+    requiredChecks,
+    maxRepairs: 1,
+  }));
+}
+
+// ---------------------------------------------------------------------------
+// Classification and confirmation authority
+// ---------------------------------------------------------------------------
+
+/** Classify a request as proposal metadata only. */
+export function classifyRequest(request: string): { readonly profile: ChangeProfile } {
+  const text = typeof request === "string" ? request.toLowerCase() : "";
+  const inspection = /\b(inspect|review|audit|analy[sz]e|explain|investigate|report)\b/.test(text);
+  const mutation = /\b(add|change|create|delete|edit|fix|implement|migrate|refactor|remove|rename|update|write|redesign)\b/.test(text);
+  const explicitlyReadOnly = /\b(read[- ]only|report findings|without (?:changing|editing|modifying))\b/.test(text);
+
+  if (inspection && (!mutation || explicitlyReadOnly)) return Object.freeze({ profile: "inspect" });
+  if (/\b(visual|ui|ux|layout|styling|styles?|css|redesign|frontend)\b/.test(text)) {
+    return Object.freeze({ profile: "visual" });
+  }
+  if (/\b(public api|api|schema|boundary|interface|protocol|contract|endpoint)\b/.test(text)) {
+    return Object.freeze({ profile: "boundary" });
+  }
+  if (/\b(refactor|restructure|reorganize|architecture|decompose|consolidate)\b/.test(text)) {
+    return Object.freeze({ profile: "refactor" });
+  }
+  if (/\b(fix|bug|typo|patch|one[- ]line|single[- ]file|narrow|surgical)\b/.test(text)) {
+    return Object.freeze({ profile: "surgical" });
+  }
+  return Object.freeze({ profile: "feature" });
+}
+
+function validRevision(value: number, allowZero: boolean): boolean {
+  return Number.isSafeInteger(value) && value >= (allowZero ? 0 : 1) && value < Number.MAX_SAFE_INTEGER;
+}
+
+function makeConfirmedContract(candidate: ContractCandidate, revision: number): ConfirmedContract {
+  const contract = {
+    revision,
+    candidate: freezeCandidate(candidate, true),
+    confirmedAt: `policy-revision-${revision}`,
+  } satisfies ConfirmedContract;
+  markConfirmedAuthority(contract);
+  return Object.freeze(contract);
+}
+
+interface ValidatedConfirmedContract {
+  readonly revision: number;
+  readonly candidate: ContractCandidate;
+  readonly confirmedAt: string;
+}
+
+function validateConfirmedContract(input: unknown): PolicyResult<ValidatedConfirmedContract> {
+  if (!hasConfirmedAuthority(input)) {
+    return failure("QG-001", "no confirmed in-process contract authority");
+  }
+  const confirmedCandidate = input.candidate;
+  if (!hasConfirmedAuthority(confirmedCandidate)) {
+    return failure("QG-001", "confirmed candidate lacks in-process contract authority");
+  }
+
+  const revision = input.revision;
+  const confirmedAt = boundedString(input.confirmedAt, TEXT_MAX);
+  if (typeof revision !== "number" || !validRevision(revision, false) || confirmedAt === null) {
+    return failure("QG-015", "confirmed contract metadata is invalid");
+  }
+  const parsedCandidate = parseContractCandidate({ ...confirmedCandidate });
+  if (!parsedCandidate.ok) return parsedCandidate;
+  return success(Object.freeze({ revision, candidate: parsedCandidate.value, confirmedAt }));
+}
+
+/** Activate a parsed proposal only after an affirmative confirmation. */
+export function confirmContract(
+  candidate: ContractCandidate,
+  confirmed: boolean | undefined,
+  previousRevision: number,
+): PolicyResult<ConfirmedContract> {
+  const parsed = parseContractCandidate(candidate);
+  if (!parsed.ok) return parsed;
+  if (!validRevision(previousRevision, true)) {
+    return failure("QG-015", "previous contract revision is invalid");
+  }
+  if (confirmed !== true) {
+    return failure("QG-002", "interactive confirmation is unavailable or declined");
+  }
+  return success(makeConfirmedContract(parsed.value, previousRevision + 1));
+}
+
+function isSuperset(next: readonly string[], previous: readonly string[]): boolean {
+  const nextValues = new Set(next);
+  return previous.every((value) => nextValues.has(value));
+}
+
+function evidenceIsMonotonic(previous: string, next: string): boolean {
+  return previous === next || (previous === "not-required" && next !== "not-required");
+}
+
+function isMonotonicRevision(previous: ContractCandidate, next: ContractCandidate): boolean {
+  return (
+    previous.goal === next.goal &&
+    previous.profile === next.profile &&
+    previous.initialMode === next.initialMode &&
+    isSuperset(next.ownedPaths, previous.ownedPaths) &&
+    isSuperset(next.expectedExistingFiles, previous.expectedExistingFiles) &&
+    isSuperset(next.allowedNewFiles, previous.allowedNewFiles) &&
+    isSuperset(next.allowedDeletions, previous.allowedDeletions) &&
+    isSuperset(next.allowedPublicApiChanges, previous.allowedPublicApiChanges) &&
+    isSuperset(next.nonGoals, previous.nonGoals) &&
+    isSuperset(next.requiredChecks, previous.requiredChecks) &&
+    evidenceIsMonotonic(previous.publicApiEvidence, next.publicApiEvidence) &&
+    evidenceIsMonotonic(previous.architectureEvidence, next.architectureEvidence)
+  );
+}
+
+/** Confirm a complete monotonic replacement; silent expansion has no authority. */
+export function reviseContract(
+  current: ConfirmedContract,
+  replacement: unknown,
+  confirmed: boolean | undefined,
+): PolicyResult<ConfirmedContract> {
+  const previous = validateConfirmedContract(current);
+  if (!previous.ok) return previous;
+  if (confirmed !== true) {
+    return failure("QG-002", "contract revision confirmation is unavailable or declined");
+  }
+  const next = parseContractCandidate(replacement);
+  if (!next.ok) return next;
+  if (!isMonotonicRevision(previous.value.candidate, next.value)) {
+    return failure("QG-015", "contract revision removes or changes confirmed terms");
+  }
+  return success(makeConfirmedContract(next.value, previous.value.revision + 1));
+}
+
+/** Remove authority and advance the monotonic contract revision. */
+export function revokeContract(contract: ConfirmedContract): { readonly revision: number } {
+  const revision = validRevision(contract?.revision, false) ? contract.revision + 1 : 1;
+  return Object.freeze({ revision });
+}
+
+// ---------------------------------------------------------------------------
+// Path and admission policy
+// ---------------------------------------------------------------------------
+
+/** Match one strict exact or descendant-only repository-relative path rule. */
+export function matchPathRule(rule: PathRule, target: string): boolean {
+  const parsedRule = parsePathRuleValue(rule, true);
+  const parsedTarget = parsePathRuleValue(target, false);
+  if (parsedRule === null || parsedTarget === null) return false;
+  if (!parsedRule.descendants) return parsedRule.path === parsedTarget.path;
+  return parsedTarget.path.startsWith(`${parsedRule.path}/`);
+}
+
+const DEFAULT_PROTECTED_PATHS: readonly PathRule[] = [
+  "AGENTS.md",
+  ".pi/extensions/quality-governor/**",
+  ".pi/quality-governor.json",
+  ".pi/artifacts/**",
+  ".pi/fabric/**",
+  ".pi/state/**",
+  ".pi/state.md",
+  ".pi/prewalk.json",
+];
+
+const DEFAULT_DEPENDENCY_PATHS: readonly PathRule[] = [
+  "package.json",
+  "package-lock.json",
+  "npm-shrinkwrap.json",
+  "pnpm-lock.yaml",
+  "yarn.lock",
+  "bun.lock",
+  "bun.lockb",
+  "deno.json",
+  "deno.jsonc",
+];
+
+type EffectKind =
+  | "read"
+  | "search"
+  | "check"
+  | "edit"
+  | "write-existing"
+  | "write-new"
+  | "destructive"
+  | "write-unverified"
+  | "unsupported";
+
+function normalizeEffect(request: AdmissionRequest): EffectKind {
+  const effect = typeof request.effect === "string" ? request.effect.toLowerCase() : "";
+  if (["read", "grep", "find", "ls"].includes(effect)) return "read";
+  if (effect === "search") return "search";
+  if (["check", "quality-check"].includes(effect)) return "check";
+  if (effect === "edit") return "edit";
+  if (["delete", "destructive-write", "truncate"].includes(effect)) return "destructive";
+  if (effect === "write-existing") return "write-existing";
+  if (effect === "write-new") return "write-new";
+  if (effect === "write") {
+    if (request.targetExists === true) {
+      return request.contentLength === 0 ? "destructive" : "write-existing";
+    }
+    if (request.targetExists === false) return "write-new";
+    return "write-unverified";
+  }
+  return "unsupported";
+}
+
+function decision(
+  rollout: RolloutLevel,
+  admitted: boolean,
+  greenEligible: boolean,
+  reason: string,
+  code?: ViolationCode,
+): AdmissionDecision {
+  return Object.freeze({ admitted, greenEligible, rollout, reason, ...(code ? { code } : {}) });
+}
+
+function denied(rollout: RolloutLevel, code: ViolationCode, reason: string): AdmissionDecision {
+  return decision(rollout, false, false, reason, code);
+}
+
+function rolloutFinding(
+  rollout: RolloutLevel,
+  code: "QG-004" | "QG-005",
+  reason: string,
+): AdmissionDecision {
+  return decision(rollout, rollout !== "enforce", false, reason, code);
+}
+
+function isFilesystemMutation(effect: EffectKind): boolean {
+  return ["edit", "write-existing", "write-new", "destructive", "write-unverified"].includes(effect);
+}
+
+function modeAllows(mode: GovernorMode, effect: EffectKind): boolean {
+  if (effect === "read" || effect === "search") return true;
+  if (effect === "check") return mode === "BUILD" || mode === "VERIFY";
+  if (isFilesystemMutation(effect)) return mode === "BUILD";
+  return false;
+}
+
+function validatedAdditionalRules(rules: readonly PathRule[] | undefined): readonly PathRule[] | null {
+  if (rules === undefined) return [];
+  const parsed = boundedPathList(rules, true);
+  return parsed === null ? null : parsed;
+}
+
+function matchesAny(rules: readonly PathRule[], target: string): boolean {
+  return rules.some((rule) => matchPathRule(rule, target));
+}
+
+/** Decide one mediated action from confirmed authority and preflight evidence. */
+export function decideAdmission(request: AdmissionRequest): AdmissionDecision {
+  const rollout = isOneOf(request?.rollout, ROLLOUTS) ? request.rollout : "enforce";
+  if (!isOneOf(request?.rollout, ROLLOUTS)) {
+    return denied(rollout, "QG-015", "rollout configuration is invalid");
+  }
+  if (!isOneOf(request?.mode, MODES)) {
+    return denied(rollout, "QG-003", "mode does not admit this effect");
+  }
+
+  const effect = normalizeEffect(request);
+  const identityKind = request?.identity?.kind;
+  if (identityKind !== "direct" && identityKind !== "replayed") {
+    return denied(rollout, "QG-014", "provider, agent, or unknown effects bypass mediated authority");
+  }
+  if (effect === "unsupported") {
+    return denied(rollout, "QG-010", "effect is unsupported or unknown");
+  }
+
+  if (request.contract === undefined) {
+    if (effect === "read" || effect === "search") {
+      return decision(rollout, true, false, "read-only inspection has no confirmed contract", "QG-001");
+    }
+    return denied(rollout, "QG-001", "no confirmed contract authorizes this action");
+  }
+  const confirmedContract = validateConfirmedContract(request.contract);
+  if (!confirmedContract.ok) {
+    return denied(rollout, confirmedContract.code, confirmedContract.reason);
+  }
+  const candidate = confirmedContract.value.candidate;
+
+  if (isFilesystemMutation(effect) && request.pathVerified !== true) {
+    return denied(rollout, "QG-009", "target path is invalid, escaping, or unverifiable");
+  }
+  if (!modeAllows(request.mode, effect)) {
+    return denied(rollout, "QG-003", `${request.mode} denies the requested effect`);
+  }
+  if (effect === "read" || effect === "search") {
+    return decision(rollout, true, true, "read-only effect admitted");
+  }
+  if (effect === "check") {
+    if (
+      request.checkId !== undefined &&
+      (!isCheckId(request.checkId) || !candidate.requiredChecks.includes(request.checkId))
+    ) {
+      return denied(rollout, "QG-011", "check ID is not required by the confirmed contract");
+    }
+    return decision(rollout, true, true, "declared check admitted");
+  }
+  if (effect === "write-unverified") {
+    return denied(rollout, "QG-009", "write target existence is unverifiable");
+  }
+
+  const parsedTarget = parsePathRuleValue(request.target, false);
+  if (parsedTarget === null) {
+    return denied(rollout, "QG-009", "target path is invalid, escaping, or unverifiable");
+  }
+  const target = parsedTarget.path;
+
+  if (
+    request.contentLength !== undefined &&
+    (!Number.isSafeInteger(request.contentLength) || request.contentLength < 0)
+  ) {
+    return denied(rollout, "QG-010", "write content shape is unsupported");
+  }
+  if (
+    (effect === "write-existing" || effect === "destructive") &&
+    request.targetExists !== true
+  ) {
+    return denied(rollout, "QG-009", "existing mutation target is unverifiable");
+  }
+  if (effect === "write-new" && request.targetExists !== false) {
+    return denied(rollout, "QG-009", "new-file target is unverifiable");
+  }
+
+  const additionalProtected = validatedAdditionalRules(request.protectedPaths);
+  const additionalDependencies = validatedAdditionalRules(request.dependencyPaths);
+  if (additionalProtected === null || additionalDependencies === null) {
+    return denied(rollout, "QG-015", "path policy configuration is invalid");
+  }
+  if (matchesAny([...DEFAULT_PROTECTED_PATHS, ...additionalProtected], target)) {
+    return denied(rollout, "QG-008", "protected policy, generated, or runtime path");
+  }
+  if (matchesAny([...DEFAULT_DEPENDENCY_PATHS, ...additionalDependencies], target)) {
+    return denied(rollout, "QG-007", "dependency-file change is undeclared");
+  }
+
+  if (effect === "edit" && request.targetExists !== true) {
+    if (request.targetExists === false && !candidate.allowedNewFiles.includes(target)) {
+      return rolloutFinding(rollout, "QG-005", "new file is not declared by the contract");
+    }
+    return denied(rollout, "QG-009", "edit requires an existing target");
+  }
+  if (effect === "destructive" && !candidate.allowedDeletions.includes(target)) {
+    return denied(rollout, "QG-006", "destructive change is undeclared");
+  }
+  if (effect === "write-new") {
+    if (!candidate.allowedNewFiles.includes(target)) {
+      return rolloutFinding(rollout, "QG-005", "new file is not declared by the contract");
+    }
+    return decision(rollout, true, true, "declared new file admitted");
+  }
+  if (!matchesAny(candidate.ownedPaths, target)) {
+    return rolloutFinding(rollout, "QG-004", "existing target is outside confirmed ownership");
+  }
+  return decision(rollout, true, true, "owned existing target admitted");
+}
+
+// ---------------------------------------------------------------------------
+// Non-scalar vector and correction policy
+// ---------------------------------------------------------------------------
+
+function uniqueStrings(values: readonly string[]): string[] {
+  return [...new Set(values)];
+}
+
+/** Copy and deterministically reduce independent quality evidence. */
+export function reduceQualityVector(vector: QualityVector): QualityVector {
+  const outOfScope = uniqueStrings(vector.diff.outOfScope);
+  const scope =
+    vector.scope === "PASS" &&
+    (outOfScope.length > 0 || vector.newFiles.undeclared > 0 || vector.deletedFiles.undeclared > 0)
+      ? "FAIL"
+      : vector.scope;
+  return {
+    scope,
+    protectedPaths: vector.protectedPaths,
+    newFiles: { count: vector.newFiles.count, undeclared: vector.newFiles.undeclared },
+    deletedFiles: { count: vector.deletedFiles.count, undeclared: vector.deletedFiles.undeclared },
+    dependencies: vector.dependencies,
+    publicApi: vector.publicApi,
+    architecture: vector.architecture,
+    verification: vector.verification,
+    diff: {
+      files: vector.diff.files,
+      additions: vector.diff.additions,
+      deletions: vector.diff.deletions,
+      outOfScope,
+    },
+    repair: { attempted: vector.repair.attempted, maximum: vector.repair.maximum },
+    bypasses: uniqueStrings(vector.bypasses),
+    mode: vector.mode,
+    contractRevision: vector.contractRevision,
+    mutationRevision: vector.mutationRevision,
+  };
+}
+
+function isNonNegativeInteger(value: number): boolean {
+  return Number.isSafeInteger(value) && value >= 0;
+}
+
+function vectorHasUnavailableEvidence(vector: QualityVector): boolean {
+  return (
+    vector.scope === "UNKNOWN" ||
+    vector.dependencies === "UNKNOWN" ||
+    vector.publicApi === "UNKNOWN" ||
+    vector.architecture === "UNKNOWN" ||
+    vector.verification === "UNKNOWN" ||
+    vector.bypasses.length > 0 ||
+    !isOneOf(vector.mode, MODES) ||
+    !["PASS", "FAIL", "UNKNOWN"].includes(vector.scope) ||
+    !["PASS", "FAIL"].includes(vector.protectedPaths) ||
+    !["UNCHANGED", "CHANGED", "UNKNOWN"].includes(vector.dependencies) ||
+    !["UNCHANGED", "CHANGED", "NOT_REQUIRED", "UNKNOWN"].includes(vector.publicApi) ||
+    !["PASS", "FAIL", "NOT_REQUIRED", "UNKNOWN"].includes(vector.architecture) ||
+    !["CURRENT", "STALE", "FAILED", "UNKNOWN"].includes(vector.verification) ||
+    !isNonNegativeInteger(vector.newFiles.count) ||
+    !isNonNegativeInteger(vector.newFiles.undeclared) ||
+    vector.newFiles.undeclared > vector.newFiles.count ||
+    !isNonNegativeInteger(vector.deletedFiles.count) ||
+    !isNonNegativeInteger(vector.deletedFiles.undeclared) ||
+    vector.deletedFiles.undeclared > vector.deletedFiles.count ||
+    !isNonNegativeInteger(vector.diff.files) ||
+    !isNonNegativeInteger(vector.diff.additions) ||
+    !isNonNegativeInteger(vector.diff.deletions) ||
+    !isNonNegativeInteger(vector.repair.attempted) ||
+    vector.repair.maximum !== 1 ||
+    vector.repair.attempted > vector.repair.maximum ||
+    !validRevision(vector.contractRevision, false) ||
+    !isNonNegativeInteger(vector.mutationRevision)
+  );
+}
+
+/** Select a gate with hard-failure, stale, unknown, yellow, green precedence. */
+export function selectGate(vector: QualityVector): GateState {
+  if (
+    vector.scope === "FAIL" ||
+    vector.protectedPaths === "FAIL" ||
+    vector.newFiles.undeclared > 0 ||
+    vector.deletedFiles.undeclared > 0 ||
+    vector.dependencies === "CHANGED" ||
+    vector.architecture === "FAIL" ||
+    vector.publicApi === "CHANGED" ||
+    vector.verification === "FAILED" ||
+    vector.diff.outOfScope.length > 0
+  ) {
+    return "RED";
+  }
+  if (vector.verification === "STALE") return "STALE";
+  if (vectorHasUnavailableEvidence(vector)) return "UNKNOWN";
+  if (vector.mode !== "VERIFY") return "YELLOW";
+  return "GREEN";
+}
+
+/** Permit only the one exact idle, terminal, unexhausted repair state. */
+export function canDispatchRepair(state: {
+  readonly repairable: boolean;
+  readonly attempted: number;
+  readonly maximum: number;
+  readonly idle: boolean;
+  readonly pendingInput: boolean;
+  readonly terminal: boolean;
+  readonly dispatchStatus?: string;
+}): boolean {
+  return (
+    state?.repairable === true &&
+    state.idle === true &&
+    state.pendingInput === false &&
+    state.terminal === true &&
+    state.attempted === 0 &&
+    state.maximum === 1 &&
+    (state.dispatchStatus === undefined || state.dispatchStatus === "eligible")
+  );
+}
