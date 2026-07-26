@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "slug": "node-cli-with-pure-core",
+  "summary": "Zero-dependency Node CLI: pure exported validators, thin IO shell, JSON-to-stdout with meaningful exit codes, and an import.meta.url guard so tests can import without executing.",
+  "tags": [
+    "typescript",
+    "node",
+    "cli",
+    "validation",
+    "testable"
+  ],
+  "origin": "pi-core .pi/scripts/task-graph.ts @ 493739f",
+  "deposited": "2026-07-26",
+  "files": [
+    "task-graph.ts"
+  ]
+}
