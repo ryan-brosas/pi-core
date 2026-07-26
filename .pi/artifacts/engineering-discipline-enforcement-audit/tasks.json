@@ -1,0 +1,216 @@
+{
+  "version": 2,
+  "slug": "engineering-discipline-enforcement-audit",
+  "title": "Engineering Discipline Enforcement Audit",
+  "status": "complete",
+  "execution": {
+    "max_concurrent_agents": 1
+  },
+  "tasks": [
+    {
+      "id": "task-1",
+      "category": "test",
+      "title": "Lock Version-2 Execution Contracts",
+      "description": "Focused tests define the required task fields, deterministic rejection behavior, producer obligations, and unchanged compatibility before implementation changes.",
+      "status": "passed",
+      "passes": true,
+      "attempt": 2,
+      "evidence_refs": [
+        {
+          "kind": "test",
+          "ref": "progress.md#evidence-task-1-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "review",
+          "ref": "progress.md#evidence-task-1-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "test",
+          "ref": "progress.md#evidence-task-1-attempt-2",
+          "attempt": 2
+        },
+        {
+          "kind": "review",
+          "ref": "progress.md#evidence-task-1-attempt-2",
+          "attempt": 2
+        }
+      ],
+      "depends_on": [],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [
+        ".pi/tests/task-graph.test.ts",
+        ".pi/tests/skill-system.test.ts"
+      ],
+      "acceptance_criteria": [
+        "Positive fixtures prove that version-2 tasks with non-empty acceptance_criteria and verification arrays validate.",
+        "Negative fixtures cover absent, non-array, empty, non-string, and whitespace-only values with deterministic issue codes and exact JSON paths.",
+        "Repeated validation and CLI fixtures prove stable issue ordering and unchanged exit-code behavior.",
+        "Producer-contract tests require the PRD template, /create, and /plan to emit and preserve both arrays.",
+        "Version-1 and existing graph-producer baseline tests remain green before production changes."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test --test-name-pattern=\"version 2 task execution contracts|graph producers emit executable task contracts\" .pi/tests/task-graph.test.ts .pi/tests/skill-system.test.ts",
+        "node --experimental-strip-types --test --test-name-pattern=\"validates version 1 and version 2 graphs|graph producers use one canonical task graph\" .pi/tests/task-graph.test.ts .pi/tests/skill-system.test.ts",
+        "git diff --check -- .pi/tests/task-graph.test.ts .pi/tests/skill-system.test.ts"
+      ],
+      "expected_verification_state": "The new contract tests fail only because version-2 execution fields and producer obligations are not yet enforced; retained baseline tests pass."
+    },
+    {
+      "id": "task-2",
+      "category": "core",
+      "title": "Enforce Version-2 Task Contracts",
+      "description": "The task-graph validator rejects incomplete acceptance and verification arrays with deterministic issues while preserving version-1 and scheduling behavior.",
+      "status": "passed",
+      "passes": true,
+      "attempt": 2,
+      "evidence_refs": [
+        {
+          "kind": "test",
+          "ref": "progress.md#evidence-task-2-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "review",
+          "ref": "progress.md#evidence-task-2-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "test",
+          "ref": "progress.md#evidence-task-2-attempt-2",
+          "attempt": 2
+        },
+        {
+          "kind": "review",
+          "ref": "progress.md#evidence-task-2-attempt-2",
+          "attempt": 2
+        }
+      ],
+      "depends_on": [
+        "task-1"
+      ],
+      "parallel": true,
+      "conflicts_with": [],
+      "files": [
+        ".pi/scripts/task-graph.ts"
+      ],
+      "acceptance_criteria": [
+        "Version-2 decoding preserves acceptance_criteria and verification arrays for validation and downstream consumers.",
+        "Missing, malformed, empty, non-string, and whitespace-only contract values produce deterministic GraphIssue codes and exact paths.",
+        "Version-1 tasks remain valid without the new fields.",
+        "Existing state, evidence, dependency, conflict, file-overlap, frontier, descendant, and CLI behavior is unchanged.",
+        "Validation treats verification strings as inert data and starts no subprocess."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test --test-name-pattern=\"version 2 task execution contracts|validates version 1 and version 2 graphs|validation rejects malformed scheduling and evidence field types\" .pi/tests/task-graph.test.ts",
+        "for f in .pi/artifacts/*/tasks.json; do node --experimental-strip-types .pi/scripts/task-graph.ts validate \"$f\"; done",
+        "git diff --check -- .pi/scripts/task-graph.ts .pi/tests/task-graph.test.ts"
+      ]
+    },
+    {
+      "id": "task-3",
+      "category": "workflow",
+      "title": "Align Canonical Graph Producers",
+      "description": "The PRD template and /create and /plan guidance consistently emit and preserve the version-2 execution contract enforced by the validator.",
+      "status": "passed",
+      "passes": true,
+      "attempt": 2,
+      "evidence_refs": [
+        {
+          "kind": "test",
+          "ref": "progress.md#evidence-task-3-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "review",
+          "ref": "progress.md#evidence-task-3-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "test",
+          "ref": "progress.md#evidence-task-3-attempt-2",
+          "attempt": 2
+        },
+        {
+          "kind": "review",
+          "ref": "progress.md#evidence-task-3-attempt-2",
+          "attempt": 2
+        }
+      ],
+      "depends_on": [
+        "task-1"
+      ],
+      "parallel": true,
+      "conflicts_with": [],
+      "files": [
+        ".pi/templates/prd.md",
+        ".pi/prompts/create.md",
+        ".pi/prompts/plan.md"
+      ],
+      "acceptance_criteria": [
+        "The PRD task format requires at least one observable acceptance criterion and one repository-supported verification command per task.",
+        "/create validation and version-2 conversion preserve both non-empty arrays.",
+        "/plan graph refinement preserves stable IDs and both execution-contract arrays.",
+        "Producer guidance states that structural validation does not prove semantic adequacy or command success.",
+        "tasks.json remains the sole scheduling authority and no fifth lifecycle artifact is introduced."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test --test-name-pattern=\"graph producers emit executable task contracts|graph producers use one canonical task graph|PRD success criteria describe externally observable behavior\" .pi/tests/skill-system.test.ts",
+        "git diff --check -- .pi/templates/prd.md .pi/prompts/create.md .pi/prompts/plan.md .pi/tests/skill-system.test.ts"
+      ]
+    },
+    {
+      "id": "task-4",
+      "category": "verify",
+      "title": "Verify Integrated Enforcement",
+      "description": "The validator, producer contracts, retained graphs, and full test suite pass together without broadening the enforcement claim or modifying out-of-scope state.",
+      "status": "passed",
+      "passes": true,
+      "attempt": 2,
+      "evidence_refs": [
+        {
+          "kind": "verification",
+          "ref": "progress.md#verification-task-4-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "review",
+          "ref": "progress.md#verification-task-4-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "verification",
+          "ref": "progress.md#evidence-task-4-attempt-2",
+          "attempt": 2
+        },
+        {
+          "kind": "review",
+          "ref": "progress.md#evidence-task-4-attempt-2",
+          "attempt": 2
+        }
+      ],
+      "depends_on": [
+        "task-2",
+        "task-3"
+      ],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [],
+      "acceptance_criteria": [
+        "All focused task-graph and producer-contract tests pass with zero skips.",
+        "Every retained artifact graph validates without migration.",
+        "The complete retained test suite passes.",
+        "Cross-artifact frontier reporting leaves .active byte-identical.",
+        "The final diff is limited to the six declared implementation paths and contains no dependency, runtime-state, or lifecycle-artifact proliferation."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test .pi/tests/*.test.ts",
+        "for f in .pi/artifacts/*/tasks.json; do node --experimental-strip-types .pi/scripts/task-graph.ts validate \"$f\"; done",
+        "before=$(sha256sum .pi/artifacts/.active); node --experimental-strip-types .pi/scripts/task-graph.ts frontier --all .pi/artifacts >/dev/null; test \"$before\" = \"$(sha256sum .pi/artifacts/.active)\"",
+        "git diff --check -- .pi/scripts/task-graph.ts .pi/tests/task-graph.test.ts .pi/templates/prd.md .pi/prompts/create.md .pi/prompts/plan.md .pi/tests/skill-system.test.ts"
+      ]
+    }
+  ]
+}
