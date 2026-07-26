@@ -2,7 +2,7 @@
   "version": 2,
   "slug": "code-as-a-resource",
   "title": "Code as a Resource — Retrievable, Trustworthy Corpus",
-  "status": "pending",
+  "status": "complete",
   "execution": {
     "mode": "dependency-waves",
     "max_concurrent_agents": 1,
@@ -14,10 +14,16 @@
       "category": "core",
       "title": "Bound and Rank Corpus Search",
       "description": "corpus search returns a relevance-ordered set capped at three entries by default, with an explicit override, so retrieved exemplars stay inside the few-shot range the literature supports.",
-      "status": "pending",
-      "passes": false,
-      "attempt": 0,
-      "evidence_refs": [],
+      "status": "passed",
+      "passes": true,
+      "attempt": 1,
+      "evidence_refs": [
+        {
+          "kind": "test",
+          "ref": ".pi/artifacts/code-as-a-resource/progress.md#evidence-task-1-attempt-1",
+          "attempt": 1
+        }
+      ],
       "depends_on": [],
       "parallel": false,
       "conflicts_with": [
@@ -33,6 +39,7 @@
         "An explicit limit argument overrides the default and a limit of 0 or a negative limit is rejected as a usage error.",
         "Results are ordered deterministically: exact tag match, then slug match, then summary substring match.",
         "Ties within a rank tier are broken by ascending slug, so the set surviving truncation is identical across runs.",
+        "Ranking is invariant to input order: shuffling the scanned entries produces a byte-identical ranked result, including when every match falls in the same rank tier.",
         "The CLI search output reports the applied limit and the total number of matches before truncation.",
         "Existing validate and list CLI behavior and exit codes are unchanged."
       ],
@@ -48,10 +55,21 @@
       "category": "core",
       "title": "Report Corpus Entry Staleness",
       "description": "The corpus CLI reports each entry's age in days derived from its deposited date and fails closed when any entry exceeds a supplied maximum age.",
-      "status": "pending",
-      "passes": false,
-      "attempt": 0,
-      "evidence_refs": [],
+      "status": "passed",
+      "passes": true,
+      "attempt": 2,
+      "evidence_refs": [
+        {
+          "kind": "test",
+          "ref": ".pi/artifacts/code-as-a-resource/progress.md#evidence-task-2-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "test",
+          "ref": ".pi/artifacts/code-as-a-resource/progress.md#evidence-task-2-attempt-2",
+          "attempt": 2
+        }
+      ],
       "depends_on": [
         "task-1"
       ],
@@ -83,10 +101,21 @@
       "category": "core",
       "title": "Record What Validates an Entry",
       "description": "entry.json accepts an optional non-empty validated field recording the evidence that proves the entry good, while existing entries without the field remain valid.",
-      "status": "pending",
-      "passes": false,
-      "attempt": 0,
-      "evidence_refs": [],
+      "status": "passed",
+      "passes": true,
+      "attempt": 2,
+      "evidence_refs": [
+        {
+          "kind": "test",
+          "ref": ".pi/artifacts/code-as-a-resource/progress.md#evidence-task-3-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "test",
+          "ref": ".pi/artifacts/code-as-a-resource/progress.md#evidence-task-3-attempt-2",
+          "attempt": 2
+        }
+      ],
       "depends_on": [
         "task-2"
       ],
@@ -117,10 +146,21 @@
       "category": "verify",
       "title": "Integration Verification",
       "description": "The full retained test suite and the corpus CLI both pass with all three slices integrated, with no regression outside the two owned files.",
-      "status": "pending",
-      "passes": false,
-      "attempt": 0,
-      "evidence_refs": [],
+      "status": "passed",
+      "passes": true,
+      "attempt": 2,
+      "evidence_refs": [
+        {
+          "kind": "test",
+          "ref": ".pi/artifacts/code-as-a-resource/progress.md#evidence-task-4-attempt-1-failed-review-gate",
+          "attempt": 1
+        },
+        {
+          "kind": "test",
+          "ref": ".pi/artifacts/code-as-a-resource/progress.md#evidence-task-4-attempt-2",
+          "attempt": 2
+        }
+      ],
       "depends_on": [
         "task-3"
       ],
