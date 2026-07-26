@@ -149,7 +149,9 @@ Not every change needs a full spec. Assess complexity to choose the right PRD le
 
 For simple, well-scoped work (bugs, small tasks):
 
-```markdown
+Discover verification commands supported by the current repository; do not invent package-manager commands.
+
+````markdown
 # [Title]
 
 ## Problem
@@ -162,12 +164,31 @@ For simple, well-scoped work (bugs, small tasks):
 - `src/path/to/file.ts`
 
 ## Tasks
-- [ ] [Task description] → Verify: `[command]`
+### [Task Title] [category]
+[One sentence describing the observable end state.]
+
+**Metadata:**
+
+```yaml
+depends_on: []
+parallel: true
+conflicts_with: []
+files: ["src/path/to/file.ts"]
+```
+
+**Execution Contract:**
+
+```yaml
+acceptance_criteria:
+  - "[Observable acceptance criterion proving the end state]"
+verification:
+  - "[Repository-supported verification command discovered from the current repository]"
+```
 
 ## Success Criteria
-- Verify: `npm run typecheck && npm run lint`
-- Verify: `[specific test or check]`
-```
+- [ ] [Observable success criterion]
+  - Verify: `[Repository-supported verification command discovered from the current repository]`
+````
 
 ### Full PRD Format
 
@@ -206,7 +227,9 @@ Tasks must follow this format:
 - Title with `[category]` tag
 - One-sentence **end state** description (not step-by-step)
 - Metadata block: `depends_on`, `parallel`, `conflicts_with`, `files`
-- At least one verification command per task
+- Non-empty `acceptance_criteria` and `verification` arrays for every task
+- At least one observable acceptance criterion per task
+- At least one repository-supported verification command per task
 
 ## Phase 8: Validate PRD
 
@@ -217,7 +240,7 @@ Before saving, verify:
 - [ ] Technical context references actual `src/` paths from exploration
 - [ ] Affected files list real paths
 - [ ] Tasks have `[category]` headings
-- [ ] Each task has verification
+- [ ] Every task has non-empty `acceptance_criteria` and `verification` arrays
 - [ ] No implementation code in the PRD
 - [ ] No unresolved `[NEEDS CLARIFICATION]` markers remain (convert to Open Questions or resolve)
 
@@ -248,13 +271,15 @@ read(".pi/skills/using-git-worktrees/SKILL.md");
 
 ## Phase 10: Convert PRD to the Canonical Task Graph
 
-Convert the PRD markdown into the authoritative `.pi/artifacts/$(cat .pi/artifacts/.active)/tasks.json`. New graphs use top-level version 2 (`"version": 2`); every task preserves its stable ID, dependencies, conflicts, files, status, and verification commands and initializes:
+Convert the PRD markdown into the authoritative `.pi/artifacts/$(cat .pi/artifacts/.active)/tasks.json`. New graphs use top-level version 2 (`"version": 2`); every task preserves its stable ID, dependencies, conflicts, files, and both non-empty `acceptance_criteria` and `verification` arrays, then initializes:
 
 ```json
 { "status": "pending", "passes": false, "attempt": 0, "evidence_refs": [] }
 ```
 
 After writing, run `node --experimental-strip-types .pi/scripts/task-graph.ts validate ".pi/artifacts/$(cat .pi/artifacts/.active)/tasks.json"`. If task-graph validation fails, stop and report its machine-readable issues without changing execution state.
+
+Structural task-graph validation checks shape only; it does not prove semantic adequacy or successful command execution, so verification commands do not necessarily pass. Verification strings are inert data and are not executed by validation.
 
 ## Phase 11: Report
 

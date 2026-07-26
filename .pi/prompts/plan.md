@@ -313,7 +313,9 @@ Assess size to determine plan structure:
 
 ## Phase 6: Refine the Authoritative Task Graph
 
-`tasks.json` is the only authoritative persisted work graph. Preserve its task IDs. When planning splits, merges, or changes a node, update `tasks.json` first, re-run task-graph validation, and only then regenerate the explanatory dependency section below. If plan task IDs and canonical task IDs diverge, stop rather than guessing.
+`tasks.json` remains the sole scheduling authority and the only authoritative persisted work graph. During graph refinement, preserve stable task IDs and both non-empty `acceptance_criteria` and `verification` arrays. When planning splits, merges, or changes a node, update `tasks.json` first, re-run task-graph validation, and only then regenerate the explanatory dependency section below. If plan task IDs and canonical task IDs diverge, stop rather than guessing.
+
+Structural task-graph validation checks shape; it does not establish semantic adequacy or prove verification commands pass, and those commands do not necessarily succeed.
 
 **For each task, record:**
 
@@ -427,7 +429,9 @@ Wave 3: C
 
 - **Exact file paths** — never "add to the relevant file"
 - **Complete code** — never "add validation logic here"
-- **Exact commands with expected output**
+- **Executable task contract** — every task has non-empty `acceptance_criteria` and `verification` arrays
+- **Observable end state** — at least one observable acceptance criterion per task
+- **Repository proof** — at least one repository-supported verification command per task, with expected output
 - **TDD order** — test first, then implementation
 - **Each step is 2-5 minutes** — one action per step
 - **Tasks map to PRD tasks**

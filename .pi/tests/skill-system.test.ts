@@ -174,6 +174,111 @@ test("graph producers use one canonical task graph", () => {
   assert.match(lifecycle, /four canonical/i);
 });
 
+test("graph producers emit executable task contracts", () => {
+  const template = readRequired(".pi/templates/prd.md");
+  const create = readRequired(".pi/prompts/create.md");
+  const plan = readRequired(".pi/prompts/plan.md");
+  const templateTasks = boundedTextBetween(
+    template,
+    /^## Tasks[ \t]*$/m,
+    /^## Dependency Legend[ \t]*$/m,
+    "PRD template tasks",
+  );
+  const createTasks = boundedTextBetween(
+    create,
+    /^## Phase 7: Write PRD[ \t]*$/m,
+    /^## Phase 8: Validate PRD[ \t]*$/m,
+    "create PRD tasks",
+  );
+  const planTasks = boundedTextBetween(
+    plan,
+    /^## Phase 7: Write Plan[ \t]*$/m,
+    /^## Phase 8: Constitutional Compliance Gate[ \t]*$/m,
+    "plan tasks",
+  );
+  const createLite = boundedTextBetween(
+    create,
+    /^### Lite PRD Format[ \t]*$/m,
+    /^### Full PRD Format[ \t]*$/m,
+    "create Lite PRD format",
+  );
+  const liteTaskFormat = boundedTextBetween(
+    createLite,
+    /^## Tasks[ \t]*$/m,
+    /^## Success Criteria[ \t]*$/m,
+    "create Lite task format",
+  );
+  const producers = [["PRD template", templateTasks], ["/create", createTasks], ["/plan", planTasks]] as const;
+
+  for (const [scope, text] of producers) {
+    assert.match(text, /\bacceptance_criteria\b/i, `${scope}: name acceptance_criteria`);
+    assert.match(text, /\bverification\b/i, `${scope}: name verification`);
+    assert.match(text, /\bnon-empty\b[^\n]{0,160}\barrays?\b|\barrays?\b[^\n]{0,160}\bnon-empty\b/i, `${scope}: require non-empty arrays`);
+    assert.match(text, /at least one[^\n]{0,100}observable acceptance criteri(?:on|a)/i, `${scope}: require an observable criterion per task`);
+    assert.match(text, /at least one[^\n]{0,140}repository[- ]supported verification command/i, `${scope}: require a repository-supported command per task`);
+  }
+
+  const nonEmptyArrayShape = (field: string): RegExp => new RegExp(
+    String.raw`(?:^|\n)[ \t]*(?:-[ \t]+)?${field}:[ \t]*(?:\[[^\]\r\n]*\S[^\]\r\n]*\]|\r?\n[ \t]+-[ \t]+\S)`,
+    "i",
+  );
+  assert.match(liteTaskFormat, nonEmptyArrayShape("acceptance_criteria"), "/create Lite: show a non-empty acceptance_criteria array");
+  assert.match(liteTaskFormat, nonEmptyArrayShape("verification"), "/create Lite: show a non-empty verification array");
+  assert.match(liteTaskFormat, /\bacceptance_criteria\b[\s\S]{0,240}\bobservable (?:acceptance criteri(?:on|a)|behavior|outcome|state)\b/i, "/create Lite: show an observable acceptance criterion");
+  assert.match(liteTaskFormat, /\bverification\b[\s\S]{0,240}\brepository[- ]supported (?:verification )?command\b/i, "/create Lite: show a repository-supported verification command");
+  assert.doesNotMatch(createLite, /\bnpm\s+run\s+(?:typecheck|lint)\b/i, "/create Lite: do not hard-code unavailable npm commands");
+  assert.match(createLite, /\bdiscover(?:ed|ing|y)?\b[\s\S]{0,180}\b(?:verification )?commands?\b|\b(?:verification )?commands?\b[\s\S]{0,180}\bdiscover(?:ed|ing|y)?\b/i, "/create Lite: discover verification commands");
+  assert.match(createLite, /\b(?:supported by|available in|from)\b[^\n]{0,80}\b(?:the )?current repository\b|\bcurrent repository\b[^\n]{0,80}\b(?:supported|available|discover)/i, "/create Lite: use commands supported by the current repository");
+  assert.match(createLite, /\b(?:do not|never|rather than|instead of)\b[^\n]{0,120}\binvent(?:ed|ing)?\b[^\n]{0,120}\bpackage[- ]manager commands?\b/i, "/create Lite: reject invented package-manager commands");
+
+  const templateExampleMatches = [...templateTasks.matchAll(/^### <Task Title> \[category\][ \t]*$/gm)];
+  assert.equal(templateExampleMatches.length, 2, "PRD template: expected exactly two task examples");
+  const templateExamples = templateExampleMatches.map((match, index) => templateTasks.slice(
+    match.index,
+    templateExampleMatches[index + 1]?.index ?? templateTasks.length,
+  ));
+  for (const [index, example] of templateExamples.entries()) {
+    const scope = `PRD template example ${index + 1}`;
+    const acceptanceHeading = /^\*\*Acceptance Criteria:\*\*[ \t]*$/m.exec(example);
+    const verificationHeading = /^\*\*Verification:\*\*[ \t]*$/m.exec(example);
+    assert.ok(acceptanceHeading, `${scope}: missing Acceptance Criteria block`);
+    assert.ok(verificationHeading, `${scope}: missing Verification block`);
+    assert.ok(acceptanceHeading.index < verificationHeading.index, `${scope}: Acceptance Criteria must precede Verification`);
+    const acceptanceBlock = example.slice(acceptanceHeading.index + acceptanceHeading[0].length, verificationHeading.index);
+    const verificationBlock = example.slice(verificationHeading.index + verificationHeading[0].length);
+    assert.match(acceptanceBlock, /^-[ \t]+\[[^\]\r\n]*\bobservable\b[^\]\r\n]*\][ \t]*$/im, `${scope}: missing observable acceptance placeholder`);
+    assert.match(verificationBlock, /^-[ \t]+\[[^\]\r\n]*\brepository[- ]supported\b[^\]\r\n]*\bcommand\b[^\]\r\n]*\][ \t]*$/im, `${scope}: missing explicit repository-supported command placeholder`);
+    assert.doesNotMatch(example, /\bcommand or check\b/i, `${scope}: ambiguous command-or-check placeholder`);
+  }
+
+  const createConversion = boundedTextBetween(
+    create,
+    /^## Phase 10: Convert PRD to the Canonical Task Graph[ \t]*$/m,
+    /^## Phase 11: Report[ \t]*$/m,
+    "create graph conversion",
+  );
+  const planRefinement = boundedTextBetween(
+    plan,
+    /^## Phase 6: Refine the Authoritative Task Graph[ \t]*$/m,
+    /^## Phase 7: Write Plan[ \t]*$/m,
+    "plan graph refinement",
+  );
+  for (const [scope, text] of [["create conversion", createConversion], ["plan refinement", planRefinement]] as const) {
+    assert.match(text, /preserv/i, `${scope}: preserve execution contracts`);
+    assert.match(text, /\bacceptance_criteria\b/i, `${scope}: preserve acceptance_criteria`);
+    assert.match(text, /\bverification\b/i, `${scope}: preserve verification`);
+    assert.match(text, /\bnon-empty\b/i, `${scope}: preserve non-empty values`);
+    assert.match(text, /\barrays?\b/i, `${scope}: preserve arrays`);
+  }
+
+  const structuralLimit = /structural (?:task-graph validation|validation|validity)[\s\S]{0,240}(?:does not|cannot|neither)[\s\S]{0,180}(?:semantic adequacy|semantically adequate)/i;
+  const executionLimit = /structural (?:task-graph validation|validation|validity)[\s\S]{0,320}(?:does not|cannot|neither)[\s\S]{0,240}(?:command success|commands? (?:succeed|pass)|successful command execution)/i;
+  for (const [scope, text] of [["PRD template", templateTasks], ["/create", create], ["/plan", plan]] as const) {
+    assert.match(text, structuralLimit, `${scope}: distinguish structure from semantic adequacy`);
+    assert.match(text, executionLimit, `${scope}: distinguish structure from command success`);
+  }
+});
+
 test("ship executes a validated dynamic frontier", () => {
   const ship = readRequired(".pi/prompts/ship.md");
   const batch = readRequired(".pi/workflows/batch-implement.md");

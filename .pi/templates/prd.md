@@ -151,7 +151,11 @@ Write tasks in a machine-convertible format for `prd-task` skill.
 - Each task is a `### <Title> [category]` heading
 - Provide one sentence describing the end state
 - Include `**Metadata:**` with dependency info
-- Include `**Verification:**` with bullet steps proving it works
+- Each task produces non-empty `acceptance_criteria` and `verification` arrays
+- Include at least one observable acceptance criterion per task under `**Acceptance Criteria:**`
+- Include at least one repository-supported verification command per task under `**Verification:**`
+
+Structural task-graph validation checks shape only; it does not execute verification commands and cannot prove semantic adequacy or command success.
 
 ### <Task Title> [category]
 
@@ -166,10 +170,14 @@ conflicts_with: [] # Task titles modifying same files
 files: [] # Files this task will modify
 ```
 
+**Acceptance Criteria:**
+
+- [Observable behavior or state proving the task is complete]
+
 **Verification:**
 
-- [Command or check]
-- [Command or check]
+- [Repository-supported verification command]
+- [Repository-supported verification command]
 
 ### <Task Title> [category]
 
@@ -183,9 +191,13 @@ parallel: false
 files: []
 ```
 
+**Acceptance Criteria:**
+
+- [Observable behavior or state proving the dependent task is complete]
+
 **Verification:**
 
-- [Command or check]
+- [Repository-supported verification command]
 
 ---
 

@@ -14,6 +14,8 @@ type TaskNode = {
   parallel: boolean;
   attempt?: number;
   evidence_refs?: EvidenceRef[];
+  acceptance_criteria?: unknown[];
+  verification?: unknown[];
 };
 type TaskGraph = { version: 1 | 2; tasks: TaskNode[]; execution?: { max_concurrent_agents?: number } };
 
@@ -62,7 +64,9 @@ function decode(input: unknown): { graph?: TaskGraph; version: 1 | 2; issues: Gr
     tasks.push({ id, status, passes, depends_on: depends, conflicts_with: conflicts, files,
       parallel: typeof raw.parallel === "boolean" ? raw.parallel : true,
       attempt: typeof raw.attempt === "number" ? raw.attempt : undefined,
-      evidence_refs: evidence });
+      evidence_refs: evidence,
+      acceptance_criteria: Array.isArray(raw.acceptance_criteria) ? raw.acceptance_criteria : undefined,
+      verification: Array.isArray(raw.verification) ? raw.verification : undefined });
   });
   const execution = record(input.execution) ? { max_concurrent_agents: typeof input.execution.max_concurrent_agents === "number" ? input.execution.max_concurrent_agents : undefined } : undefined;
   return { graph: { version, tasks, execution }, version, issues };
@@ -96,6 +100,17 @@ export function validateTaskGraph(input: unknown): { ok: boolean; version: 1 | 2
   return { ok: issues.length === 0, version: graph.version, issues };
 }
 
+function validateExecutionContract(values: unknown[] | undefined, code: string, fieldPath: string, issues: GraphIssue[]): void {
+  if (values === undefined || values.length === 0) {
+    issues.push(issue(code, fieldPath, "Field must be a non-empty array of non-whitespace strings."));
+    return;
+  }
+  for (let memberIndex = 0; memberIndex < values.length; memberIndex += 1) {
+    const value = values[memberIndex];
+    if (typeof value !== "string" || !value.trim()) issues.push(issue(code, `${fieldPath}/${memberIndex}`, "Entry must be a non-whitespace string."));
+  }
+}
+
 function validateV2Task(task: TaskNode, index: number, issues: GraphIssue[]): void {
   const base = `/tasks/${index}`;
   if (!V2_STATUSES.has(task.status)) issues.push(issue("status_invalid", `${base}/status`, `invalid version 2 status: ${task.status}`));
@@ -105,6 +120,8 @@ function validateV2Task(task: TaskNode, index: number, issues: GraphIssue[]): vo
     const refPath = `${base}/evidence_refs/${refIndex}`;
     if (!EVIDENCE_KINDS.has(ref.kind) || !ref.ref.trim() || !Number.isInteger(ref.attempt) || ref.attempt < 1) issues.push(issue("evidence_invalid", refPath, "evidence must have an allowed kind, non-empty ref, and positive attempt"));
   });
+  validateExecutionContract(task.acceptance_criteria, "acceptance_criteria_invalid", `${base}/acceptance_criteria`, issues);
+  validateExecutionContract(task.verification, "verification_invalid", `${base}/verification`, issues);
   if (task.status === "passed") {
     if ((task.attempt ?? 0) < 1) issues.push(issue("passed_attempt_invalid", `${base}/attempt`, "passed task must have attempt >= 1"));
     if (!task.evidence_refs?.length) issues.push(issue("passed_evidence_missing", `${base}/evidence_refs`, "passed task must reference evidence"));

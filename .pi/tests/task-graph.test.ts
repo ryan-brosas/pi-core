@@ -10,10 +10,11 @@ const ROOT = process.cwd();
 const MODULE_PATH = path.join(ROOT, ".pi/scripts/task-graph.ts");
 const NODE_ARGS = ["--experimental-strip-types", MODULE_PATH];
 
-type Task = { id: string; status: string; passes: boolean; depends_on: string[]; conflicts_with: string[]; files: string[]; parallel?: boolean; attempt?: number; evidence_refs?: Array<{ kind: string; ref: string; attempt: number }> };
+type Task = { id: string; status: string; passes: boolean; depends_on: string[]; conflicts_with: string[]; files: string[]; parallel?: boolean; acceptance_criteria?: string[]; verification?: string[]; attempt?: number; evidence_refs?: Array<{ kind: string; ref: string; attempt: number }> };
 function task(id: string, overrides: Partial<Task> = {}): Task { return { id, status: "pending", passes: false, depends_on: [], conflicts_with: [], files: [`src/${id}.ts`], parallel: true, ...overrides }; }
+function v2Task(id: string, overrides: Partial<Task> = {}): Task { return task(id, { acceptance_criteria: [`${id} is observable`], verification: [`node --test ${id}`], attempt: 0, evidence_refs: [], ...overrides }); }
 function v1(tasks: Task[] = [task("a")]) { return { version: 1, slug: "fixture", status: "ready", tasks }; }
-function v2(tasks: Task[] = [task("a", { attempt: 0, evidence_refs: [] })]) { return { version: 2, slug: "fixture", status: "ready", tasks }; }
+function v2(tasks: Task[] = [v2Task("a")]) { return { version: 2, slug: "fixture", status: "ready", tasks }; }
 async function api() { return import(pathToFileURL(MODULE_PATH).href); }
 function writeGraph(graph: unknown): string { const dir = mkdtempSync(path.join(tmpdir(), "task-graph-")); const file = path.join(dir, "tasks.json"); writeFileSync(file, JSON.stringify(graph, null, 2)); return file; }
 function cli(args: string[]) { return spawnSync(process.execPath, [...NODE_ARGS, ...args], { cwd: ROOT, encoding: "utf8" }); }
@@ -27,9 +28,88 @@ test("reports deterministic ID and target invariant issues", async () => {
 });
 test("reports a stable dependency cycle path", async () => { const { validateTaskGraph } = await api(); const graph = v1([task("a", { depends_on: ["c"] }), task("b", { depends_on: ["a"] }), task("c", { depends_on: ["b"] })]); const first = validateTaskGraph(graph); assert.deepEqual(first, validateTaskGraph(graph)); assert.ok(first.issues.some((issue: { code: string; message: string }) => issue.code === "dependency_cycle" && issue.message.includes("a -> c -> b -> a"))); });
 test("enforces version 2 state, attempt, and current evidence coherence", async () => {
-  const { validateTaskGraph } = await api(); const passed = task("a", { status: "passed", passes: true, attempt: 1, evidence_refs: [{ kind: "test", ref: "progress.md#evidence-a-attempt-1", attempt: 1 }] }); assert.equal(validateTaskGraph(v2([passed])).ok, true);
-  const invalid = [task("a", { status: "pending", passes: true, attempt: 0, evidence_refs: [] }), task("a", { status: "passed", passes: true, attempt: 0, evidence_refs: [] }), task("a", { status: "passed", passes: true, attempt: 2, evidence_refs: [{ kind: "test", ref: "progress.md#old", attempt: 1 }] }), task("a", { status: "unknown", passes: false, attempt: 0, evidence_refs: [] })];
+  const { validateTaskGraph } = await api(); const passed = v2Task("a", { status: "passed", passes: true, attempt: 1, evidence_refs: [{ kind: "test", ref: "progress.md#evidence-a-attempt-1", attempt: 1 }] }); assert.equal(validateTaskGraph(v2([passed])).ok, true);
+  const invalid = [v2Task("a", { status: "pending", passes: true }), v2Task("a", { status: "passed", passes: true }), v2Task("a", { status: "passed", passes: true, attempt: 2, evidence_refs: [{ kind: "test", ref: "progress.md#old", attempt: 1 }] }), v2Task("a", { status: "unknown" })];
   const codes = invalid.map((node) => validateTaskGraph(v2([node])).issues.map((issue: { code: string }) => issue.code)); assert.ok(codes[0].includes("state_pass_mismatch")); assert.ok(codes[1].includes("passed_attempt_invalid") && codes[1].includes("passed_evidence_missing")); assert.ok(codes[2].includes("passed_evidence_stale")); assert.ok(codes[3].includes("status_invalid"));
+});
+test("version 2 task execution contracts", async () => {
+  const { validateTaskGraph } = await api();
+  type ContractIssue = { code: string; path: string; message: string };
+  const fieldMessage = "Field must be a non-empty array of non-whitespace strings.";
+  const entryMessage = "Entry must be a non-whitespace string.";
+  const issue = (code: string, issuePath: string, message: string): ContractIssue => ({ code, path: issuePath, message });
+  const invalid = (issues: ContractIssue[]) => ({ ok: false, version: 2, issues });
+  const validateNode = (node: object) => validateTaskGraph({ ...v2(), tasks: [node] });
+  const contracts = [
+    { field: "acceptance_criteria", code: "acceptance_criteria_invalid" },
+    { field: "verification", code: "verification_invalid" },
+  ] as const;
+
+  assert.deepEqual(validateTaskGraph(v2([v2Task("valid", {
+    acceptance_criteria: ["The result is visible"],
+    verification: ["node --experimental-strip-types --test .pi/tests/task-graph.test.ts"],
+  })])), { ok: true, version: 2, issues: [] });
+  assert.deepEqual(validateTaskGraph(v2([v2Task("outer-whitespace", {
+    acceptance_criteria: ["  The result remains visible  "],
+    verification: ["  node --experimental-strip-types --test .pi/tests/task-graph.test.ts  "],
+  })])), { ok: true, version: 2, issues: [] });
+  assert.deepEqual(validateTaskGraph(v2([v2Task("inert-command", {
+    verification: ["command-that-does-not-exist-anywhere --still-inert"],
+  })])), { ok: true, version: 2, issues: [] });
+
+  for (const contract of contracts) {
+    const { [contract.field]: omitted, ...absent } = v2Task(`${contract.field}-absent`);
+    void omitted;
+    const expectedFieldIssue = invalid([issue(contract.code, `/tasks/0/${contract.field}`, fieldMessage)]);
+    assert.deepEqual(validateNode(absent), expectedFieldIssue, `${contract.field}: absent`);
+    const fieldShapes = [
+      ["scalar", "value"],
+      ["object", { value: "value" }],
+      ["empty array", []],
+      ["null", null],
+    ] as const;
+    for (const [label, value] of fieldShapes) {
+      const node = { ...v2Task(`${contract.field}-${label}`), [contract.field]: value };
+      assert.deepEqual(validateNode(node), expectedFieldIssue, `${contract.field}: ${label}`);
+    }
+
+    const memberCases = [
+      ["non-string", [7], [0]],
+      ["whitespace-only", [" \t\n"], [0]],
+      ["mixed invalid members", ["valid", 7, " \t", "  also valid  ", null], [1, 2, 4]],
+    ] as const;
+    for (const [label, members, invalidIndexes] of memberCases) {
+      const node = { ...v2Task(`${contract.field}-${label}`), [contract.field]: members };
+      const expected = invalid(invalidIndexes.map((index) => issue(contract.code, `/tasks/0/${contract.field}/${index}`, entryMessage)));
+      assert.deepEqual(validateNode(node), expected, `${contract.field}: ${label}`);
+    }
+  }
+
+  const combinedNode = {
+    ...v2Task("combined-invalid"),
+    acceptance_criteria: [" ", "valid criterion", 7],
+    verification: [null, "\t", "valid-command"],
+  };
+  const combinedFirst = validateNode(combinedNode);
+  const combinedSecond = validateNode(combinedNode);
+  assert.deepEqual(combinedFirst, combinedSecond);
+  assert.deepEqual(combinedFirst, invalid([
+    issue("acceptance_criteria_invalid", "/tasks/0/acceptance_criteria/0", entryMessage),
+    issue("acceptance_criteria_invalid", "/tasks/0/acceptance_criteria/2", entryMessage),
+    issue("verification_invalid", "/tasks/0/verification/0", entryMessage),
+    issue("verification_invalid", "/tasks/0/verification/1", entryMessage),
+  ]));
+  assert.deepEqual(validateTaskGraph(v1([task("equivalent-v1")])), { ok: true, version: 1, issues: [] });
+
+  const invalidFile = writeGraph({ ...v2(), tasks: [{ ...v2Task("cli-invalid"), acceptance_criteria: [] }] });
+  const firstCli = cli(["validate", invalidFile]);
+  const secondCli = cli(["validate", invalidFile]);
+  assert.equal(firstCli.status, 1, firstCli.stderr);
+  assert.equal(secondCli.status, 1, secondCli.stderr);
+  assert.deepEqual(JSON.parse(firstCli.stdout), invalid([
+    issue("acceptance_criteria_invalid", "/tasks/0/acceptance_criteria", fieldMessage),
+  ]));
+  assert.equal(firstCli.stdout, secondCli.stdout);
 });
 test("frontier gates dependencies and excludes conflicts with running work", async () => {
   const { computeFrontier } = await api(); const graph = v1([task("done", { status: "passed", passes: true }), task("running", { status: "running", files: ["src/shared.ts"] }), task("ready", { depends_on: ["done"] }), task("waiting", { depends_on: ["ready"] }), task("declared", { conflicts_with: ["running"] }), task("overlap", { files: ["src/shared.ts"] })]); const result = computeFrontier(graph, 3); assert.deepEqual(result.ready, ["ready"]); assert.deepEqual(result.selected, ["ready"]); assert.deepEqual(result.running, ["running"]); assert.ok(result.blocked.some((entry: { id: string; reasons: string[] }) => entry.id === "waiting" && entry.reasons.some((reason) => reason.includes("ready"))));
@@ -67,7 +147,7 @@ test("validation rejects malformed scheduling and evidence field types", async (
   const { validateTaskGraph } = await api();
   const malformedParallel = { ...v1(), tasks: [{ ...task("a"), parallel: "false" }] };
   assert.ok(validateTaskGraph(malformedParallel).issues.some((entry: { code: string; path: string }) => entry.code === "parallel_invalid" && entry.path === "/tasks/0/parallel"));
-  const malformedEvidence = { ...v2(), tasks: [{ ...task("a", { status: "passed", passes: true, attempt: 1 }), evidence_refs: [{ kind: "test", ref: 7, attempt: "1" }] }] };
+  const malformedEvidence = { ...v2(), tasks: [{ ...v2Task("a", { status: "passed", passes: true, attempt: 1 }), evidence_refs: [{ kind: "test", ref: 7, attempt: "1" }] }] };
   assert.ok(validateTaskGraph(malformedEvidence).issues.some((entry: { code: string; path: string }) => entry.code === "evidence_invalid" && entry.path === "/tasks/0/evidence_refs/0"));
 });
 
