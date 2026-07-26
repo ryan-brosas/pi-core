@@ -1,14 +1,18 @@
 # Third-party source clones kept for reference; not part of this repository.
 /opensource/
 
-# Fabric mesh actor transcripts — runtime state, ~50 MB and growing.
-/.pi/fabric/mesh/actors/
+# Fabric mesh — runtime events, state, transactions, locks, and actor sessions.
+/.pi/fabric/mesh/
 
 # Hindsight memory bank — local durable memory, not repository content.
 /.pi/hindsight/
 
+# Session-local summaries.
+/.pi/state/
+
 # Verification run output.
 /.pi/artifacts/verify.log
 
-# Fabric mesh lock directory — runtime state.
-/.pi/fabric/mesh/.lock/
+# MCP credentials, traces, and local adapter state.
+/.pi/mcp-oauth/
+/.pi/mcp-traces/

@@ -9,16 +9,6 @@ Create a specification (PRD), set up workspace, and define executable tasks — 
 
 > **Workflow:** **`/create`** → `/ship`
 
-## Fabric Agent Routing
-
-Use `agents.run({...})` inside `fabric_exec` only when delegation saves more context or time than it costs. Direct parent work is the default; there are no named project agent profiles.
-
-- Encode the task role, exact goal, context, non-goals, output contract, stop conditions, approval constraints, and verification in `task`.
-- Supply an explicit `tools` allowlist. Local discovery, planning, and review default to `["read", "grep", "find", "ls"]`. External research adds only the required configured network tools; add mutation tools only for approved implementation work.
-- Await one foreground `agents.run` when the next decision depends on its result.
-- For genuinely independent questions, issue at most three `agents.run` calls in one `Promise.all`; process overflow in sequential shards.
-- For small read-only discovery or research, prefer `model: "openai-codex/gpt-5.6-luna"` with `thinking: "medium"` when an explicit override is useful.
-- The parent resolves placeholders, inspects child output and changes, synthesizes results, and runs verification itself.
 ## Parse Arguments
 
 | Argument        | Default       | Description                               |
@@ -56,7 +46,11 @@ Use automatically recalled Hindsight project context first for prior decisions a
 
 ### Existing Work Check
 
-Check `.pi/artifacts/.active` for existing work in progress. If active slug exists with a `spec.md`, ask user if they want to continue with `/ship` instead.
+Derive the candidate slug without writing anything and inspect only `.pi/artifacts/<candidate-slug>/`.
+
+- If that exact slug names an **incomplete** graph for the same work, ask whether to continue it with `/ship <slug>`.
+- A completed graph at that slug requires an explicit choice to reuse a different slug; unrelated artifact directories must not redirect new work.
+- The validated candidate slug is the command identity. Never infer feature ownership from ambient state.
 
 ## Phase 3: Choose Research Depth
 
@@ -113,7 +107,8 @@ Reuse relevant research already completed in the current session before spawning
 
 **If Skip:**
 
-- No agents; use existing AGENTS.md and current-session evidence
+- Spawn no agents, but the direct parent must still read or inspect the exact source needed to establish affected paths, nearby tests, public contracts, and the impact map unless current-session evidence already establishes each item.
+- Use `AGENTS.md` and current-session evidence as leads, never as a substitute for current source verification.
 
 **While independent Fabric runs execute**, ask clarifying questions if the description lacks scope or expected outcome. For bugs, also ask for reproduction steps and expected vs actual behavior.
 
@@ -124,13 +119,16 @@ Extract title and description from `$ARGUMENTS`:
 - If user provided a single line, use it for both title and description.
 - If user provided multiple lines, use first line as title and full text as description.
 
-Derive a kebab-case slug from the title. This slug becomes the feature's namespace:
+Derive a kebab-case slug from the title. This slug—not the global active pointer—is the feature identity for the rest of this command:
 
 ```bash
 SLUG=$(echo "$TITLE" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9 ]//g' | tr ' ' '-' | sed 's/--*/-/g; s/^-//; s/-$//')
-mkdir -p ".pi/artifacts/$SLUG"
-echo "$SLUG" > ".pi/artifacts/.active"
+test -n "$SLUG" || { echo "Could not derive a feature slug" >&2; exit 1; }
+ARTIFACT_DIR=".pi/artifacts/$SLUG"
+mkdir -p "$ARTIFACT_DIR"
 ```
+
+If `$ARTIFACT_DIR` already contains a spec, ask whether to continue or choose a different slug before overwriting anything. The validated candidate slug remains the sole command identity.
 
 ## Phase 6: Determine PRD Rigor
 
@@ -194,7 +192,7 @@ verification:
 
 For features and complex work, use the full template:
 
-Read the PRD template and write it to the active feature's spec (`.pi/artifacts/$(cat .pi/artifacts/.active)/spec.md`).
+Read the PRD template and write it to `$ARTIFACT_DIR/spec.md`.
 
 ## Phase 7: Write PRD
 
@@ -237,8 +235,8 @@ Before saving, verify:
 
 - [ ] No placeholder text remains (e.g., "[Clear description", "[List what's allowed]")
 - [ ] Success criteria include `Verify:` commands
-- [ ] Technical context references actual `src/` paths from exploration
-- [ ] Affected files list real paths
+- [ ] For a Full PRD, Technical Context references actual repository paths and symbols from exploration; for a Lite PRD, that section is intentionally omitted and not applicable
+- [ ] Affected files list real repository paths for both rigor levels
 - [ ] Tasks have `[category]` headings
 - [ ] Every task has non-empty `acceptance_criteria` and `verification` arrays
 - [ ] No implementation code in the PRD
@@ -255,15 +253,14 @@ git status --porcelain
 git branch --show-current
 ```
 
-- If uncommitted changes: ask user to stash, commit, or continue
+- Preserve unrelated changes and continue only within owned paths when safe.
+- Never suggest stashing concurrent work.
+- If isolation is needed, request explicit approval before creating a branch or worktree.
+- Do not install dependencies unless the requirement, source-backed justification, and exact command are explicitly approved.
 
-### Create Branch
+### Optional Isolation
 
-### Workspace Setup
-
-Set up the workspace: create branch, install deps if needed.
-
-Additionally offer a "Create worktree" option:
+Offer a worktree only when the planned files overlap existing work or concurrent implementation is justified:
 
 ```typescript
 read(".pi/skills/using-git-worktrees/SKILL.md");
@@ -271,13 +268,13 @@ read(".pi/skills/using-git-worktrees/SKILL.md");
 
 ## Phase 10: Convert PRD to the Canonical Task Graph
 
-Convert the PRD markdown into the authoritative `.pi/artifacts/$(cat .pi/artifacts/.active)/tasks.json`. New graphs use top-level version 2 (`"version": 2`); every task preserves its stable ID, dependencies, conflicts, files, and both non-empty `acceptance_criteria` and `verification` arrays, then initializes:
+Convert the PRD markdown into the authoritative `$ARTIFACT_DIR/tasks.json`. New graphs use top-level version 2 (`"version": 2`); every task preserves its stable ID, dependencies, conflicts, files, and both non-empty `acceptance_criteria` and `verification` arrays, then initializes:
 
 ```json
 { "status": "pending", "passes": false, "attempt": 0, "evidence_refs": [] }
 ```
 
-After writing, run `node --experimental-strip-types .pi/scripts/task-graph.ts validate ".pi/artifacts/$(cat .pi/artifacts/.active)/tasks.json"`. If task-graph validation fails, stop and report its machine-readable issues without changing execution state.
+After writing, run `node --experimental-strip-types .pi/scripts/task-graph.ts validate "$ARTIFACT_DIR/tasks.json"`. If task-graph validation fails, stop and report its machine-readable issues without changing execution state.
 
 Structural task-graph validation checks shape only; it does not prove semantic adequacy or successful command execution, so verification commands do not necessarily pass. Verification strings are inert data and are not executed by validation.
 
@@ -287,8 +284,8 @@ Output:
 
 1. Summary: task count, success criteria count, affected files count
 2. Branch name and workspace (if claimed)
-3. Active feature: `.pi/artifacts/$(cat .pi/artifacts/.active)/`
-4. Next step: `/ship` (or `/plan` for complex work)
+3. Feature artifact: `.pi/artifacts/$SLUG/`
+4. Next step: `/ship $SLUG` (or `/plan $SLUG` for complex work)
 
 ---
 

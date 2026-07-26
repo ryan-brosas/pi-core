@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -105,6 +105,16 @@ test("rejects present-but-invalid validated values with validated_invalid at /va
   }
 });
 
+test("rejects missing or unsupported entry schema versions", async () => {
+  const { validateEntry } = await api();
+  for (const version of [undefined, 0, 2, "1"]) {
+    const input = entry("a", { version });
+    const result = validateEntry(input, "a");
+    assert.equal(result.ok, false, `expected version ${JSON.stringify(version)} to fail`);
+    assert.ok(result.issues.some((item: { code: string; path: string }) => item.code === "version_unsupported" && item.path === "/version"));
+  }
+});
+
 test("requires the slug to match its directory name", async () => {
   const { validateEntry } = await api();
   const result = validateEntry(entry("declared"), "actual");
@@ -120,6 +130,33 @@ test("rejects files that escape the entry directory", async () => {
     assert.ok(result.issues.some((item: { code: string; path: string }) => item.code === "file_escapes_entry" && item.path === "/files/0"));
   }
   assert.equal(validateEntry(entry("a", { files: ["nested/main.ts"] }), "a").ok, true);
+});
+
+test("scanCorpus rejects entry.json symlinks that resolve outside an entry", async () => {
+  const { scanCorpus } = await api();
+  const corpus = mkdtempSync(path.join(tmpdir(), "corpus-entry-link-"));
+  const entryDir = path.join(corpus, "linked-entry");
+  mkdirSync(entryDir, { recursive: true });
+  writeFileSync(path.join(entryDir, "main.ts"), "export const local = true;\n");
+  const outside = mkdtempSync(path.join(tmpdir(), "corpus-entry-outside-"));
+  const outsideEntry = path.join(outside, "entry.json");
+  writeFileSync(outsideEntry, JSON.stringify(entry("linked-entry")));
+  symlinkSync(outsideEntry, path.join(entryDir, "entry.json"));
+  const result = scanCorpus(corpus);
+  assert.equal(result.ok, false);
+  assert.ok(result.issues.some((item: { code: string; path: string }) => item.code === "entry_escapes_entry" && item.path === "linked-entry/entry.json"));
+});
+
+test("scanCorpus rejects listed symlinks that resolve outside an entry", async () => {
+  const { scanCorpus } = await api();
+  const corpus = writeCorpus({ "linked-entry": { entry: entry("linked-entry", { files: ["linked.ts"] }), files: {} } });
+  const outside = mkdtempSync(path.join(tmpdir(), "corpus-outside-"));
+  const outsideFile = path.join(outside, "outside.ts");
+  writeFileSync(outsideFile, "export const outside = true;\n");
+  symlinkSync(outsideFile, path.join(corpus, "linked-entry", "linked.ts"));
+  const result = scanCorpus(corpus);
+  assert.equal(result.ok, false);
+  assert.ok(result.issues.some((item: { code: string; path: string }) => item.code === "file_escapes_entry" && item.path === "linked-entry/linked.ts"));
 });
 
 test("scans a corpus directory into sorted entries", async () => {
@@ -336,17 +373,29 @@ test("cli stale marks an old entry stale and exits 1 with ok false", () => {
   assert.ok(report.ageDays >= 30, `ageDays should be at least 30, got ${report.ageDays}`);
 });
 
-test("cli stale marks a clearly fresh entry ok and exits 0", () => {
-  const dir = writeCorpus({ "fresh-thing": { entry: entry("fresh-thing", { deposited: "2099-01-01" }) } });
+test("future-dated deposits fail closed instead of appearing fresh", async () => {
+  const { reportStaleness } = await api();
+  const futureEntry = { slug: "future-thing", summary: "s", tags: [], origin: "o", deposited: "2099-01-01", files: ["main.ts"] };
+  const [direct] = reportStaleness([futureEntry], 30, new Date("2026-07-26T00:00:00Z"));
+  assert.ok(direct.ageDays < 0);
+  assert.equal(direct.stale, true);
+
+  const dir = writeCorpus({ "future-thing": { entry: entry("future-thing", { deposited: "2099-01-01" }) } });
   const result = cli(["stale", dir, "30"]);
-  assert.equal(result.status, 0, result.stdout);
+  assert.equal(result.status, 1, result.stdout);
   const payload = JSON.parse(result.stdout);
-  assert.deepEqual({ ok: payload.ok, maxAgeDays: payload.maxAgeDays, count: payload.entries.length, issues: payload.issues }, { ok: true, maxAgeDays: 30, count: 1, issues: [] });
-  const [report] = payload.entries;
-  assert.equal(report.slug, "fresh-thing");
-  assert.equal(report.deposited, "2099-01-01");
-  assert.equal(report.stale, false);
-  assert.ok(report.ageDays < 0, `future-deposited ageDays should be negative, got ${report.ageDays}`);
+  assert.equal(payload.ok, false);
+  assert.equal(payload.entries[0].stale, true);
+  assert.ok(payload.entries[0].ageDays < 0);
+});
+
+test("reportStaleness rejects invalid direct API thresholds and clocks", async () => {
+  const { reportStaleness } = await api();
+  const validEntry = { slug: "valid", summary: "s", tags: [], origin: "o", deposited: "2026-07-01", files: ["main.ts"] };
+  for (const threshold of [-1, 1.5, Number.POSITIVE_INFINITY]) {
+    assert.throws(() => reportStaleness([validEntry], threshold, new Date("2026-07-26T00:00:00Z")), RangeError);
+  }
+  assert.throws(() => reportStaleness([validEntry], 30, new Date(Number.NaN)), RangeError);
 });
 
 test("cli stale rejects non-canonical max-age as usage errors and accepts 0 as stale", () => {
@@ -389,9 +438,8 @@ test("the repository corpus validates and lists with the backward-compatible val
   const entries = JSON.parse(list.stdout).entries as Array<Record<string, unknown>>;
   assert.ok(entries.length >= 1);
   for (const item of entries) {
-    if (Object.prototype.hasOwnProperty.call(item, "validated")) {
-      assert.equal(typeof item.validated, "string", `repository entry ${item.slug} validated must be a string`);
-      assert.ok((item.validated as string).length > 0, `repository entry ${item.slug} validated must be non-empty`);
-    }
+    assert.equal(typeof item.validated, "string", `repository entry ${item.slug} must record validation evidence`);
+    assert.ok((item.validated as string).trim().length > 0, `repository entry ${item.slug} validated must be non-empty`);
+    assert.match(String(item.origin), /@[ \t]+[0-9a-f]{40}\b/i, `repository entry ${item.slug} must pin a full commit SHA`);
   }
 });

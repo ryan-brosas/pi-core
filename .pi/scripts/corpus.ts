@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, realpathSync, statSync } from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -44,6 +44,7 @@ export function validateEntry(input: unknown, dirName: string): { ok: boolean; e
   const validated = input.validated;
   const validatedPresent = Object.prototype.hasOwnProperty.call(input, "validated");
 
+  if (input.version !== 1) issues.push(issue("version_unsupported", "/version", "version must be exactly 1"));
   if (!SLUG_PATTERN.test(slug)) issues.push(issue("slug_invalid", "/slug", "slug must be kebab-case"));
   else if (slug !== dirName) issues.push(issue("slug_mismatch", "/slug", `slug ${slug} does not match directory ${dirName}`));
   if (!summary.trim()) issues.push(issue("summary_invalid", "/summary", "summary must be a non-empty string"));
@@ -70,13 +71,47 @@ export function scanCorpus(corpusDir: string): { ok: boolean; entries: CorpusEnt
   const entries: CorpusEntry[] = [];
   const dirNames = readdirSync(corpusDir, { withFileTypes: true }).filter((item) => item.isDirectory()).map((item) => item.name).sort();
   for (const dirName of dirNames) {
+    const entryDir = path.join(corpusDir, dirName);
+    const metadataIssuePath = `${dirName}/entry.json`;
     let parsed: unknown;
-    try { parsed = JSON.parse(readFileSync(path.join(corpusDir, dirName, "entry.json"), "utf8")); }
-    catch (error) { issues.push(issue("entry_unreadable", dirName, String(error))); continue; }
+    let realEntryDir: string;
+    try {
+      realEntryDir = realpathSync(entryDir);
+      const metadataPath = realpathSync(path.join(entryDir, "entry.json"));
+      const metadataRelative = path.relative(realEntryDir, metadataPath);
+      if (metadataRelative === ".." || metadataRelative.startsWith(`..${path.sep}`) || path.isAbsolute(metadataRelative)) {
+        issues.push(issue("entry_escapes_entry", metadataIssuePath, "entry.json resolves outside the entry directory"));
+        continue;
+      }
+      if (!statSync(metadataPath).isFile()) {
+        issues.push(issue("entry_unreadable", metadataIssuePath, "entry.json must resolve to a regular file"));
+        continue;
+      }
+      parsed = JSON.parse(readFileSync(metadataPath, "utf8"));
+    } catch (error) {
+      issues.push(issue("entry_unreadable", metadataIssuePath, String(error)));
+      continue;
+    }
     const result = validateEntry(parsed, dirName);
     if (!result.entry) { issues.push(...result.issues.map((item) => issue(item.code, `${dirName}${item.path}`, item.message))); continue; }
     for (const file of result.entry.files) {
-      if (!existsSync(path.join(corpusDir, dirName, file))) issues.push(issue("file_missing", `${dirName}/${file}`, "listed file does not exist"));
+      const issuePath = `${dirName}/${file}`;
+      const candidate = path.join(entryDir, file);
+      if (!existsSync(candidate)) {
+        issues.push(issue("file_missing", issuePath, "listed file does not exist"));
+        continue;
+      }
+      try {
+        const resolved = realpathSync(candidate);
+        const relative = path.relative(realEntryDir, resolved);
+        if (relative === ".." || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
+          issues.push(issue("file_escapes_entry", issuePath, "listed file resolves outside the entry directory"));
+        } else if (!statSync(resolved).isFile()) {
+          issues.push(issue("file_not_regular", issuePath, "listed path must resolve to a regular file"));
+        }
+      } catch (error) {
+        issues.push(issue("file_unreadable", issuePath, String(error)));
+      }
     }
     entries.push(result.entry);
   }
@@ -111,11 +146,14 @@ function parseMaxAgeDays(raw: string): number | null {
 }
 
 export function reportStaleness(entries: CorpusEntry[], maxAgeDays: number, now: Date): StaleReport[] {
+  if (!Number.isSafeInteger(maxAgeDays) || maxAgeDays < 0) throw new RangeError("maxAgeDays must be a nonnegative safe integer");
+  const nowMs = now.getTime();
+  if (!Number.isFinite(nowMs)) throw new RangeError("now must be a valid Date");
   return entries.map((entry) => {
     const depositedMs = parseDepositedMs(entry.deposited);
     if (depositedMs === null) throw new RangeError(`invalid deposited date for ${entry.slug}: ${entry.deposited}`);
-    const ageDays = Math.floor((now.getTime() - depositedMs) / 86_400_000);
-    return { slug: entry.slug, deposited: entry.deposited, ageDays, stale: ageDays >= maxAgeDays };
+    const ageDays = Math.floor((nowMs - depositedMs) / 86_400_000);
+    return { slug: entry.slug, deposited: entry.deposited, ageDays, stale: ageDays < 0 || ageDays >= maxAgeDays };
   });
 }
 

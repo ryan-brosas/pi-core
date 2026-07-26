@@ -1,6 +1,6 @@
 # development-lifecycle-workflow
 
-Optional, bounded, one-shot Fabric-agent helper for a parent-selected, parent-controlled case. It is not the canonical lifecycle and should not be used when approach research is already resolved. It does not loop or cycle, trigger any next phase or command automatically, or mutate `.active` or other active state.
+Optional, bounded, one-shot Fabric-agent helper for a parent-selected, parent-controlled case. It is not the canonical lifecycle and should not be used when approach research is already resolved. It does not loop or cycle, trigger any next phase or command automatically, or select any slug, artifact, or work scope.
 
 ## Fabric Agent Execution
 

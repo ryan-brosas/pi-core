@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "slug": "blocking-orchestration-policy",
+  "summary": "Pure policy core for classifying blocking orchestration calls: exact host-reference membership plus call-site detection with adversarial false-positive tests, kept separate from the runtime timeout shell.",
+  "tags": [
+    "typescript",
+    "pure-core",
+    "policy",
+    "orchestration",
+    "classification",
+    "tests"
+  ],
+  "origin": "https://github.com/monotykamary/pi-fabric src/runtime/orchestration.ts + tests/orchestration.test.ts @ c4c9533d4cea34f855d38095d8d02069a067c8ac",
+  "deposited": "2026-07-26",
+  "files": [
+    "src/runtime/orchestration.ts",
+    "tests/orchestration.test.ts",
+    "LICENSE"
+  ],
+  "validated": "Source, test, and MIT license are byte-identical to the pinned origin (sha256:fd518a07584dcfddaf48010753e0df10c126b28a405d7342cdc462e0da7de457, sha256:0f8588980c0a422398b1507cda63eeb8a6adfca15bbb649d2ccf86445889a2bd, sha256:d4b36fb8ee5da34042c850c094d0024b028174b5785ce7fae613c9456cbc84f9). Focused upstream Vitest run passed 8/8 on 2026-07-26; the full upstream suite passed 1083/1084 under Node 26, with the sole failure in an unrelated npm 12 package-output-shape assertion."
+}

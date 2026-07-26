@@ -9,9 +9,10 @@
     "validation",
     "testable"
   ],
-  "origin": "pi-core .pi/scripts/task-graph.ts @ 493739f",
+  "origin": "pi-core .pi/scripts/task-graph.ts @ 493739f45638a6a9bddb90d88483b94c4ad8a975",
   "deposited": "2026-07-26",
   "files": [
     "task-graph.ts"
-  ]
+  ],
+  "validated": "Byte-identical to the declared origin (sha256:b13e979ed3e2b346af01094c28ee0e00dbbff7a5ed1bc9b69a045a4f05da2425); behavior is covered by .pi/tests/task-graph.test.ts in the retained suite."
 }

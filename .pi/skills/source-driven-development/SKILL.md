@@ -51,13 +51,11 @@ Higher-ranked sources win on conflicts.
 
 ## Fabric Research
 
-Use direct source tools for a surgical lookup. For a bounded external question needing isolated judgment, call one foreground Fabric child through `agents.run` inside `fabric_exec`. Small read-only research tasks should prefer `openai-codex/gpt-5.6-luna` with `thinking: "medium"` when available:
+Use direct source tools for a surgical lookup. For a bounded external question needing isolated judgment, call one foreground Fabric child through `agents.run` inside `fabric_exec`. Use configured model defaults unless a measured task need justifies an override:
 
 ```typescript
 const researchResult = await agents.run({
   name: "external-api-research",
-  model: "openai-codex/gpt-5.6-luna",
-  thinking: "medium",
   tools: ["read", "grep", "find", "ls", "context7.resolve-library-id", "context7.query-docs"],
   task: `[exact question, project/library version, source hierarchy, required citation format, and stop condition]`,
 });

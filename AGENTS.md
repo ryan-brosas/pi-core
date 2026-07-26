@@ -11,7 +11,7 @@
 | Item | Value |
 |---|---|
 | Project | Pi Core |
-| Canonical checkout | `/home/ryan/repo/pi-core` |
+| Canonical checkout | `/home/ryanj/work/projects/pi-core` |
 | Primary branch | `main` |
 | Runtime | Node.js with `--experimental-strip-types` |
 | Package manager | None currently; do not invent install commands or lockfiles |
@@ -145,9 +145,9 @@ Compatibility is contract-driven, not automatic. Preserve documented compatibili
 - Modify the source, run the canonical generator, and review source/output together.
 - Never hand-edit generated output unless the user explicitly requests an emergency exception.
 - Generated does not mean disposable; deleting generated output still requires written permission.
-- Treat `.pi/fabric/mesh/**`, `.pi/state/session-summary.md`, lock directories, caches, and similar files as runtime-managed unless the task explicitly targets them.
+- Treat `.pi/fabric/mesh/**`, `.pi/state/**`, `.pi/hindsight/**`, lock directories, caches, MCP traces/OAuth state, and similar files as runtime-managed unless the task explicitly targets them.
 - `.pi/fabric.json` is configuration, but runtime tools may change it. Inspect provenance and never absorb its changes incidentally.
-- Do not stage runtime state alongside implementation.
+- Do not stage runtime state alongside implementation. Hidden artifact-selection pointers are retired; graph-backed commands require an explicit slug.
 - If ownership or the generator is unknown, stop and report the gap rather than guessing.
 
 ---
@@ -163,6 +163,11 @@ Use this evidence order:
 5. maintainer examples;
 6. dated community material with explicit caveats.
 
+Local discovery roles:
+
+- Current source and tests are authoritative. A configured MCP code graph is optional gray-box evidence for target-code relationships only after an exact-repository, known-symbol health probe; verify every result against source and fall back to `read`, `grep`, and `find` when unhealthy.
+- A project `.pi/corpus/` is a separate curated-exemplar seam. Use bounded corpus search for implementation patterns when present; it does not replace impact mapping, compatibility checks, or tests.
+
 Rules:
 
 - Cite non-trivial external claims and record version/date.
@@ -174,28 +179,35 @@ Rules:
 
 ---
 
-## Graph-Based Development Lifecycle
+## Adaptive Development Lifecycle
 
-Resolve `.pi/artifacts/.active` before feature-specific execution.
+Use the smallest process that fits the consequence and uncertainty:
 
-Each active slug uses four canonical files:
+| Mode | Typical scope | Durable artifacts |
+|---|---|---|
+| Quick | Known low-risk change, usually 1–3 files | None required |
+| Standard | One bounded feature or boundary | Lite `spec.md`, `tasks.json`, concise evidence |
+| Complex | Cross-system, migration, security/privacy, or dependent parallel work | Full `spec.md`, optional `plan.md`, `tasks.json`, `progress.md` |
+
+Graph-backed work requires an explicit slug argument. If it is missing or unsafe, stop and request `/plan <slug>` or `/ship <slug>` rather than inferring scope from ambient state.
 
 | File | Purpose |
 |---|---|
 | `spec.md` | Requirements, scope, and success criteria |
-| `plan.md` | Human-readable execution details and derived waves |
+| `plan.md` | Optional implementation detail and derived waves for complex work |
 | `tasks.json` | Sole authoritative persisted task DAG |
-| `progress.md` | Attempts, blockers, review, and verification evidence |
+| `progress.md` | Attempt-scoped blockers, review, and verification evidence |
 
 Additional rules:
 
 - Durable cross-feature context belongs in project Hindsight. Automatic Hindsight retain captures ordinary session deltas; use `hindsight_retain` only for raw, high-value facts or decisions that require immediate persistence.
+- Do not create lifecycle artifacts for ordinary read-only analysis or a Quick task.
 - `tasks.json`, not prose waves, determines readiness, dependencies, conflicts, and task state.
 - Validate the graph before scheduling. Execute only ready, dependency-satisfied, conflict-free nodes.
 - Recompute the frontier after each state transition or integration.
 - Passed version-2 nodes require current-attempt evidence. Failures block or stale descendants; ancestors reopen only with attributed cause or changed output.
-- Cross-artifact frontier reporting is read-only. It must never change `.active`, select a slug, or dispatch work.
-- Execution requires an explicitly selected active slug. Never switch `.active` implicitly.
+- Cross-artifact frontier reporting is read-only. It must never select a slug or dispatch work.
+- Execution requires an explicitly supplied slug; no ambient file, previous command, or child may select it.
 - Read-only analysis must not mutate lifecycle artifacts merely to record that analysis.
 
 ---
@@ -218,9 +230,9 @@ When delegation is useful, use Pi Fabric `agents.run({...})` inside `fabric_exec
 - Parent-provided task-relevant Hindsight context is the only memory context sent to Fabric children. If context is missing, children report the context gap to the parent instead of broadening memory access. Never include credentials, secrets, private conversation, or unrelated user data.
 - Await one foreground `agents.run` when the next decision depends on the result.
 - Run only genuinely independent, disjoint tasks concurrently using at most three `agents.run` calls in one `Promise.all`; process overflow in sequential shards.
-- For small read-only discovery or research, prefer `openai-codex/gpt-5.6-luna` with `thinking: "medium"` when an explicit override is useful.
+- Use configured model defaults unless a measured task need justifies an explicit override.
 - Concurrent implementation requires isolated worktrees, explicit approval, and disjoint file ownership.
-- Child agents may not schedule siblings, alter `.active`, own lifecycle state, integrate branches, commit, merge, push, or modify unrelated work unless the user separately approves that action.
+- Child agents may not schedule siblings, select lifecycle scope, own lifecycle state, integrate branches, commit, merge, push, or modify unrelated work unless the user separately approves that action.
 - The parent must inspect child changes and rerun verification. A child result is evidence to check, not proof of completion.
 ---
 
@@ -251,9 +263,14 @@ done
 ### Prove cross-artifact reporting is read-only
 
 ```bash
-before=$(sha256sum .pi/artifacts/.active)
+artifact_tree_stamp() {
+  find .pi/artifacts -type f -print0 | sort -z |
+    while IFS= read -r -d '' file; do printf '%s\0' "$file"; sha256sum "$file"; done |
+    sha256sum | cut -d' ' -f1
+}
+before=$(artifact_tree_stamp)
 node --experimental-strip-types .pi/scripts/task-graph.ts frontier --all .pi/artifacts >/dev/null
-test "$before" = "$(sha256sum .pi/artifacts/.active)"
+test "$before" = "$(artifact_tree_stamp)"
 ```
 
 ### Diff and checkout evidence

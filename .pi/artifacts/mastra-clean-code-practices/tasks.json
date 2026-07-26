@@ -1,0 +1,140 @@
+{
+  "version": 2,
+  "slug": "mastra-clean-code-practices",
+  "title": "Mastra Clean-Code Pattern Adoption",
+  "status": "complete",
+  "execution": {
+    "mode": "sequential",
+    "max_concurrent_agents": 1,
+    "reason": "Qualification must precede publication, and both implementation tasks share the skill-system contract before integrated verification."
+  },
+  "tasks": [
+    {
+      "id": "task-1",
+      "category": "research-test",
+      "title": "Qualify the pinned source and lock the RED contract",
+      "description": "Canonical provenance, license, focused-test evidence, and the failing-then-passing consumer-neutral static contract are recorded without modifying external source.",
+      "status": "passed",
+      "passes": true,
+      "attempt": 1,
+      "evidence_refs": [
+        {
+          "kind": "verification",
+          "ref": ".pi/artifacts/mastra-clean-code-practices/progress.md#evidence-task-1-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "review",
+          "ref": ".pi/artifacts/mastra-clean-code-practices/progress.md#evidence-task-1-attempt-1",
+          "attempt": 1
+        }
+      ],
+      "depends_on": [],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [
+        ".pi/tests/skill-system.test.ts",
+        ".pi/artifacts/mastra-clean-code-practices/progress.md"
+      ],
+      "acceptance_criteria": [
+        "The exact standalone commit, byte-matched canonical monorepo ref, Apache-2.0 license, canonical type-contract paths, and observed PR CI success, failure, and cancellation results are recorded with the explicit limitation that no template-specific tests exist.",
+        "An MCP health probe resolves a known Mastra source symbol and the parent verifies the result against current source bytes.",
+        "The static test rejects portfolio coupling, missing clean-code sections, missing source limits, and omission of known anomalies.",
+        "Existing RED evidence is recorded truthfully; the absence of template-specific tests remains explicit, and target behavior tests rather than upstream CI alone gate adoption."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test --test-name-pattern=\"Mastra skill extracts clean source practices\" .pi/tests/skill-system.test.ts",
+        "rg -ni \"fb88481957c029167092cef2c47eeaffeb411ce7|2b16edbc165d42dee8248296cb22979a26930fad9efaef4ebe263698a416c19c|agent\\.test-d\\.ts|tool\\.test-d\\.ts|workflow\\.test-d\\.ts|no template-specific\" .pi/artifacts/mastra-clean-code-practices/plan.md",
+        "test -s .pi/artifacts/mastra-clean-code-practices/progress.md && rg -ni \"canonical|license|test|MCP|4b954b41350dcd8139d135abb677ab9ddfae4f6c\" .pi/artifacts/mastra-clean-code-practices/progress.md",
+        "git diff --check -- .pi/tests/skill-system.test.ts .pi/artifacts/mastra-clean-code-practices/progress.md"
+      ],
+      "expected_verification_state": "The focused target contract and plan qualification check pass; /ship must record the previously observed RED failure, current GREEN result, exact upstream CI exceptions, and parent source verification before this task may pass."
+    },
+    {
+      "id": "task-2",
+      "category": "skills",
+      "title": "Publish the qualified Mastra clean-code skill",
+      "description": "The registered on-demand skill teaches reusable Mastra structure in consumer-neutral terms while explicitly rejecting the template's unqualified shortcuts.",
+      "status": "passed",
+      "passes": true,
+      "attempt": 1,
+      "evidence_refs": [
+        {
+          "kind": "verification",
+          "ref": ".pi/artifacts/mastra-clean-code-practices/progress.md#evidence-task-2-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "review",
+          "ref": ".pi/artifacts/mastra-clean-code-practices/progress.md#evidence-task-2-attempt-1",
+          "attempt": 1
+        }
+      ],
+      "depends_on": [
+        "task-1"
+      ],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [
+        ".pi/skills/mastra-development/SKILL.md",
+        ".pi/skills/manifest.json",
+        ".pi/tests/skill-system.test.ts"
+      ],
+      "acceptance_criteria": [
+        "The skill is pinned to the standalone source and explicitly distinguishes it from the full Mastra monorepo.",
+        "Composition root, module shape, agents, tools, workflows, shared infrastructure, RAG data contracts, errors, testing, source strengths, anomalies, and adoption checks are detailed.",
+        "The skill contains no portfolio coupling, copied application source, hard-coded local path, or claim that the uninstalled template passed.",
+        "The manifest contains mastra-development exactly once and retains exact bidirectional parity."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test --test-name-pattern=\"Mastra skill extracts clean source practices|manifest has exact bidirectional parity\" .pi/tests/skill-system.test.ts",
+        "! rg -qi \"\\bportfolio\\b|/home/ryanj/work/inspo\" .pi/skills/mastra-development/SKILL.md",
+        "git diff --check -- .pi/skills/mastra-development/SKILL.md .pi/skills/manifest.json .pi/tests/skill-system.test.ts"
+      ],
+      "expected_verification_state": "Commands exit zero once task-1 qualification evidence is complete and the current detailed skill remains consumer-neutral and registered."
+    },
+    {
+      "id": "task-3",
+      "category": "verification",
+      "title": "Verify integration and preserve narrow promotion",
+      "description": "All repository gates pass with only the detailed skill, its contract, registration, and explicit lifecycle evidence in scope; no corpus or runtime capability is promoted.",
+      "status": "passed",
+      "passes": true,
+      "attempt": 1,
+      "evidence_refs": [
+        {
+          "kind": "verification",
+          "ref": ".pi/artifacts/mastra-clean-code-practices/progress.md#evidence-task-3-attempt-1",
+          "attempt": 1
+        },
+        {
+          "kind": "review",
+          "ref": ".pi/artifacts/mastra-clean-code-practices/progress.md#evidence-task-3-attempt-1",
+          "attempt": 1
+        }
+      ],
+      "depends_on": [
+        "task-2"
+      ],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [
+        ".pi/artifacts/mastra-clean-code-practices/tasks.json",
+        ".pi/artifacts/mastra-clean-code-practices/progress.md"
+      ],
+      "acceptance_criteria": [
+        "All retained tests pass, Doctor reports no failing contract checks, and every artifact graph validates.",
+        "The retired .pi/artifacts/.active pointer remains absent.",
+        "No Mastra dependency, copied source tree, or corpus entry is introduced.",
+        "Parent review reconciles the complete tracked and untracked worktree while modifying only owned paths."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test .pi/tests/*.test.ts",
+        "node --experimental-strip-types .pi/scripts/doctor.ts",
+        "for f in .pi/artifacts/*/tasks.json; do node --experimental-strip-types .pi/scripts/task-graph.ts validate \"$f\" >/dev/null || exit; done",
+        "test ! -e .pi/artifacts/.active && test ! -e .pi/corpus/mastra-clean-code-practices && test ! -e .pi/corpus/mastra-development"
+      ],
+      "expected_verification_state": "All commands exit zero after tasks 1 and 2 pass; unrelated dirty-worktree paths remain read-only and do not become task evidence."
+    }
+  ]
+}

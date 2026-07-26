@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -124,9 +124,9 @@ test("CLI uses stable JSON and exit codes 0, 1, and 2", () => {
   const malformed = writeGraph(v1()); writeFileSync(malformed, "{"); const parse = cli(["validate", malformed]); assert.equal(parse.status, 2); assert.equal(JSON.parse(parse.stdout).error.code, "json_parse_error"); const usage = cli([]); assert.equal(usage.status, 2); assert.equal(JSON.parse(usage.stdout).error.code, "usage_error");
 });
 test("CLI frontier honors --max and descendants", () => { const file = writeGraph(v1([task("a"), task("b", { depends_on: ["a"] }), task("c")])); const frontier = cli(["frontier", file, "--max", "1"]); assert.equal(frontier.status, 0, frontier.stderr); assert.deepEqual(JSON.parse(frontier.stdout).selected, ["a"]); const descendants = cli(["descendants", file, "a"]); assert.equal(descendants.status, 0, descendants.stderr); assert.deepEqual(JSON.parse(descendants.stdout).descendants, ["b"]); });
-test("frontier --all is sorted and byte-for-byte read-only", async () => {
-  const root = mkdtempSync(path.join(tmpdir(), "artifact-frontiers-")); writeFileSync(path.join(root, ".active"), "zeta\n"); for (const slug of ["zeta", "alpha"]) { const dir = path.join(root, slug); mkdirSync(dir); writeFileSync(path.join(dir, "tasks.json"), JSON.stringify(v1([task(slug)]), null, 2)); }
-  const activeBefore = readFileSync(path.join(root, ".active")); const alphaBefore = readFileSync(path.join(root, "alpha/tasks.json")); const result = cli(["frontier", "--all", root]); assert.equal(result.status, 0, result.stderr); const output = JSON.parse(result.stdout); assert.equal(output.requires_explicit_slug, true); assert.deepEqual(output.artifacts.map((entry: { slug: string }) => entry.slug), ["alpha", "zeta"]); assert.deepEqual(readFileSync(path.join(root, ".active")), activeBefore); assert.deepEqual(readFileSync(path.join(root, "alpha/tasks.json")), alphaBefore); const { scanArtifactFrontiers } = await api(); assert.deepEqual(await scanArtifactFrontiers(root), output.artifacts);
+test("frontier --all is sorted, byte-for-byte read-only, and creates no ambient selection", async () => {
+  const root = mkdtempSync(path.join(tmpdir(), "artifact-frontiers-")); for (const slug of ["zeta", "alpha"]) { const dir = path.join(root, slug); mkdirSync(dir); writeFileSync(path.join(dir, "tasks.json"), JSON.stringify(v1([task(slug)]), null, 2)); }
+  const retiredPointer = path.join(root, ".active"); const alphaBefore = readFileSync(path.join(root, "alpha/tasks.json")); assert.equal(existsSync(retiredPointer), false); const result = cli(["frontier", "--all", root]); assert.equal(result.status, 0, result.stderr); const output = JSON.parse(result.stdout); assert.equal(output.requires_explicit_slug, true); assert.deepEqual(output.artifacts.map((entry: { slug: string }) => entry.slug), ["alpha", "zeta"]); assert.equal(existsSync(retiredPointer), false); assert.deepEqual(readFileSync(path.join(root, "alpha/tasks.json")), alphaBefore); const { scanArtifactFrontiers } = await api(); assert.deepEqual(await scanArtifactFrontiers(root), output.artifacts);
 });
 
 test("frontier accounts for occupied capacity and excludes serial work while running", async () => {

@@ -44,7 +44,9 @@ Direct parent planning is the default. Fabric workers provide bounded advisory i
 Route only the evidence or judgment that is genuinely missing:
 
 - Use a planning advisory task for material ambiguity, architectural trade-offs, or cross-subsystem sequencing when an independent blueprint materially reduces risk.
-- Use a local-discovery task for local evidence such as codebase patterns, file structure, references, and tests.
+- Use direct exact-source inspection first. A configured code graph may supplement it for target-code relationships only after a target-scoped known-symbol health probe; fall back to `read`, `grep`, and `find` when the probe fails.
+- When a project corpus exists, use its bounded search for curated implementation exemplars. Corpus examples are pattern evidence, not a current-code impact map, and never replace exact source or tests.
+- Use a local-discovery task only for a remaining local evidence gap such as codebase patterns, file structure, references, and tests.
 - Use an external-research task for external evidence such as versioned documentation, upstream source, and ecosystem constraints.
 
 When the next planning decision depends on the answer, run one foreground call through `agents.run` inside `fabric_exec`:
@@ -52,8 +54,6 @@ When the next planning decision depends on the answer, run one foreground call t
 ```typescript
 const planningAdvice = await agents.run({
   name: "planning-advisor",
-  model: "openai-codex/gpt-5.6-luna",
-  thinking: "medium",
   tools: ["read", "grep", "find", "ls"],
   task: "[resolved self-contained advisory envelope]",
 });
@@ -80,9 +80,9 @@ If local and external evidence questions are genuinely independent, run at most 
 ## Non-goals
 [explicit exclusions]
 
-## Boundaries and Testability (conditional)
+## Boundary Design (conditional)
 
-Include this section only when the feature introduces or changes a module boundary; omit it otherwise. Black-box and gray-box are verification perspectives, not module-design categories.
+Include this section only when the feature introduces or changes a module boundary; omit it otherwise.
 
 ### Module Boundaries
 
@@ -98,11 +98,15 @@ Include this section only when the feature introduces or changes a module bounda
 
 A proposed seam must name all three fields. If any of them is missing, do not add the seam.
 
+## Gray-Box Evidence (conditional)
+
+Black-box and gray-box are verification perspectives, not module-design categories. Include this section only for a named evidence gap at the public boundary, independent of whether the feature changes a module boundary; otherwise omit it.
+
 ### Gray-Box Exceptions
 
 | Verification | Internal knowledge used | Why externally observable behavior is insufficient |
 | ------------ | ----------------------- | -------------------------------------------------- |
-| [Check] | [Implementation knowledge] | [Evidence gap at the public boundary] |
+| [Check] | [Implementation knowledge] | [Named evidence gap at the public boundary] |
 
 Gray-box knowledge does not justify mocking internals.
 

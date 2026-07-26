@@ -1,99 +1,89 @@
 # Garbage Collection Workflow
 
-Scans the codebase for drift from quality standards and opens targeted cleanup PRs.
+A bounded, read-only-first workflow for separating useful project policy from generated state, stale history, duplicate guidance, and dead capability references.
 
-> **Pattern:** Fallow analysis → review findings → file issues → optional auto-fix PRs
-> **Trigger:** Manual via `/gc` command or scheduled cadence
+## Invariants
 
-## Fabric Agent Execution
+- Inventory before mutation.
+- Existing repository commands are evidence; PATH presence alone is not project adoption.
+- Never download a scanner implicitly.
+- Runtime state is not source history.
+- No deletion, rename, untracking, branch/worktree, commit, push, PR, or dependency change without its explicit approval.
+- Parent inspection and verification remain authoritative.
 
-Run one-shot children with `agents.run({...})` inside `fabric_exec`; there are no named project agent profiles:
+## Phase 1: Baseline
 
-```typescript
-const result = await agents.run({
-  name: "bounded-worker",
-  task: "[resolved self-contained phase goal, context, non-goals, output, stop conditions, and verification]",
-  tools: ["read", "grep", "find", "ls"],
-});
-return result.text;
-```
-
-- Await one foreground run when its result is required by the next phase.
-- A concurrent wave contains at most three genuinely independent `agents.run` calls issued together with `Promise.all`; process additional work in sequential shards.
-- Do not start a dependent phase until upstream results are available.
-- Use an explicit `tools` allowlist per phase. External research adds only the required configured network source tools; add `bash`, `edit`, or `write` only for approved modifying work.
-- The parent resolves placeholders, synthesizes results, inspects child changes, and runs verification itself.
-## Phase 1: Fallow Scan
-
-Run full structural analysis:
+Capture:
 
 ```bash
-npx fallow --format json --quiet > .pi/artifacts/gc-fallow.json
+git status --short --branch
+git rev-parse HEAD
 ```
 
-Extract key findings:
-- Dead code (unused exports, files, dependencies)
-- Code duplication (clone groups)
-- Complexity hotspots (high cyclomatic complexity)
-- Architecture boundary violations
+Run the narrowest repository-supported retained tests. Record failures before attributing them to cleanup candidates.
 
-## Phase 2: Quality Grade Update
+## Phase 2: Optional Structural Scanner
 
-Grade each domain by scanning findings:
+Use Fallow only when repository evidence and an executable check both succeed—for example, a checked-in configuration/package script plus an already available binary.
 
-| Domain | Definition | Source |
-|---|---|---|
-| Plugin layer | `.pi/extensions/*.ts` | Fallow + structural check |
-| Command layer | `.pi/prompts/*.md` | Manual assessment |
-| Skills layer | `.pi/skills/*/SKILL.md` | Fallow |
-| Hindsight config | `.pi/hindsight.json` | Manual config validation |
-| Hindsight runtime | `.pi/hindsight/` | Runtime-managed; inspect only, never clean |
-
-For each domain, assign grade:
-- **A** — No issues, well-maintained
-- **B** — Minor issues, no blockers
-- **C** — Notable decay, needs cleanup
-- **D** — Significant decay, priority cleanup
-
-Update `.pi/QUALITY.md` with current grades.
-
-## Phase 3: Prioritize Findings
-
-| Severity | Criteria | Action |
-|---|---|---|
-| P0 | Dead code in critical path, security hazard | Immediate fix PR |
-| P1 | Duplication >5 instances, complexity >20 | File issue / schedule PR |
-| P2 | Minor style drift, stale docs | Log for next GC cycle |
-| P3 | Informational | Note only |
-
-## Phase 4: Open Cleanup PRs (Optional)
-
-Partition independent P0/P1 findings into ordered, non-overlapping waves of at most three. Issue only the current wave together:
-
-```typescript
-const fixes = await Promise.all(currentWave.map((finding) => agents.run({
-  name: `gc-fix-${finding.id}`,
-  task: buildGcFixTask(finding),
-  tools: ["read", "grep", "find", "ls", "bash", "edit", "write"],
-  worktree: true,
-})));
-return fixes.map((result) => result.text);
+```bash
+if command -v fallow >/dev/null 2>&1; then
+  fallow --format json --quiet
+else
+  echo "Fallow unavailable; continuing with native inventory" >&2
+fi
 ```
 
-Keep dependent or same-file findings foreground and sequential. After each joined wave, the parent inspects every result, reruns verification, and integrates accepted fixes before continuing later sequential shards. Each child applies and verifies exactly one fix in its isolated worktree and reports the branch/commit. Children must not switch the shared workspace branch or open PRs concurrently.
+Do not run `npx fallow`: it can download code and constitutes an unapproved dependency action.
 
-## Phase 5: Report
+## Phase 3: Native Inventory
+
+Inspect these classes independently:
+
+| Class | Evidence |
+|---|---|
+| Runtime leakage | Tracked mesh, session, cache, OAuth, trace, active-pointer, or memory-bank files; `.pi/hindsight.json` is configuration while `.pi/hindsight/` is runtime-managed and never cleaned automatically |
+| Broken workflow | References to absent paths, commands, tools, or package scripts |
+| Policy duplication | Repeated instructions with multiple authorities |
+| Skill noise | Overlapping skills, unused packs, oversized startup catalog |
+| Artifact growth | Attempt logs or completed task state with no durable decision value |
+| Distribution gaps | README, license, CI, bootstrap, package pins, doctor checks |
+
+For genuinely independent classes, the parent may issue at most three read-only `agents.run` calls inside `fabric_exec`, together with `Promise.all`. Process additional classes in sequential shards. Children receive exact scopes and `tools: ["read", "grep", "find", "ls"]`; they do not edit or schedule siblings, and the parent verifies and synthesizes their findings.
+
+## Phase 4: Classify
+
+| Classification | Meaning |
+|---|---|
+| Keep | Current source of truth with demonstrated use |
+| Simplify | Valuable responsibility, excessive implementation or duplication |
+| Archive | Durable historical value but not active runtime input |
+| Ignore/untrack | Generated local state that should remain on disk only |
+| Delete-candidate | No remaining behavior, reference, or historical value |
+
+A delete-candidate report must list exact paths, references checked, behavior/history lost, and the non-destructive alternative.
+
+## Phase 5: Optional Application
+
+Only after the user selects findings and grants each required approval:
+
+1. Apply bounded changes to owned paths.
+2. Inspect the complete tracked and untracked worktree diff.
+3. Run focused verification, then the retained suite when shared behavior changed.
+4. Report remaining candidates separately.
+
+Do not automatically open PRs. Branch, commit, push, and PR creation are distinct user decisions.
+
+## Report
 
 ```text
-## GC Report — $(date -u +%Y-%m-%d)
+## GC Report — <UTC date>
 
-| Domain | Grade | Issues | Trend |
-|--------|-------|--------|-------|
-| Plugins | A | 0 | → |
-| Commands | B | 2 | ↓ |
-| Skills | A | 0 | → |
-| Docs | B | 1 | ↓ |
+Baseline: <branch/head/status/tests>
 
-**P0:** 0 | **P1:** 2 | **P2:** 1 | **P3:** 3
-**PRs opened:** 1
+| Finding | Classification | Paths | Evidence | Proposed action | Approval |
+|---|---|---|---|---|---|
+
+Estimated reduction: <files/lines/startup context>
+Remaining risks: <list>
 ```

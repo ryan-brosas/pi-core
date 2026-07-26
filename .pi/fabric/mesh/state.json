@@ -10525,6 +10525,1443 @@
         "kind": "main",
         "sessionId": "019f9942-79ac-7f5b-aaf5-304e9946ce80"
       }
+    },
+    "topology/hosts/42a9620995d820d3714aa3f822f473e282304aeeb1e1b5cc99c1a52936e4b581": {
+      "key": "topology/hosts/42a9620995d820d3714aa3f822f473e282304aeeb1e1b5cc99c1a52936e4b581",
+      "value": {
+        "format": 1,
+        "id": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "rootId": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "identity": {
+          "id": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+          "name": "main",
+          "kind": "main",
+          "sessionId": "019fa013-c173-710d-8df5-6aeeb31da4a3"
+        },
+        "startedAt": 1785097077874,
+        "updatedAt": 1785103973953,
+        "expiresAt": 1785103988953
+      },
+      "version": 1918,
+      "updatedAt": 1785103973955,
+      "updatedBy": {
+        "id": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "name": "main",
+        "kind": "main",
+        "sessionId": "019fa013-c173-710d-8df5-6aeeb31da4a3"
+      }
+    },
+    "sessions/019fa013-c173-710d-8df5-6aeeb31da4a3": {
+      "key": "sessions/019fa013-c173-710d-8df5-6aeeb31da4a3",
+      "value": {
+        "id": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "name": "Peer 019fa013",
+        "kind": "peer",
+        "status": "running",
+        "runner": "pi",
+        "transport": "host",
+        "cwd": "/home/ryanj/work/projects/pi-core",
+        "sessionId": "019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "model": "openai-codex/gpt-5.6-sol",
+        "thinking": "max",
+        "startedAt": 1785097077874,
+        "updatedAt": 1785103973953,
+        "pendingMessages": false,
+        "local": false
+      },
+      "version": 1918,
+      "updatedAt": 1785103973959,
+      "updatedBy": {
+        "id": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "name": "main",
+        "kind": "main",
+        "sessionId": "019fa013-c173-710d-8df5-6aeeb31da4a3"
+      }
+    },
+    "topology/participants/42a9620995d820d3714aa3f822f473e282304aeeb1e1b5cc99c1a52936e4b581": {
+      "key": "topology/participants/42a9620995d820d3714aa3f822f473e282304aeeb1e1b5cc99c1a52936e4b581",
+      "value": {
+        "format": 1,
+        "id": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "kind": "root",
+        "rootId": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "ownerHostId": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "ownerIdentityId": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "name": "main",
+        "status": "running",
+        "runner": "pi",
+        "transport": "host",
+        "capabilities": [
+          "steer",
+          "followUp",
+          "fabric"
+        ],
+        "cwd": "/home/ryanj/work/projects/pi-core",
+        "sessionId": "019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "model": "openai-codex/gpt-5.6-sol",
+        "thinking": "max",
+        "startedAt": 1785097077874,
+        "updatedAt": 1785103973953,
+        "pendingMessages": false,
+        "controlProtocol": "v1"
+      },
+      "version": 1918,
+      "updatedAt": 1785103973963,
+      "updatedBy": {
+        "id": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "name": "main",
+        "kind": "main",
+        "sessionId": "019fa013-c173-710d-8df5-6aeeb31da4a3"
+      }
+    },
+    "topology/participants/798ef9e904dea6f6cb5a18fd0af4d93db032032d63d521ce76dbe258e47a1ae5": {
+      "key": "topology/participants/798ef9e904dea6f6cb5a18fd0af4d93db032032d63d521ce76dbe258e47a1ae5",
+      "value": {
+        "format": 1,
+        "id": "265b236f9414437783e3b34cd192642c",
+        "kind": "agent",
+        "rootId": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "ownerHostId": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "ownerIdentityId": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "parentId": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "name": "ship-task-1",
+        "status": "completed",
+        "runner": "pi",
+        "transport": "tmux",
+        "capabilities": [
+          "attach"
+        ],
+        "cwd": "/home/ryanj/work/projects/pi-core",
+        "sessionId": "pi-fabric-265b236f9414",
+        "model": "openai-codex/gpt-5.6-sol",
+        "thinking": "max",
+        "startedAt": 1785097489713,
+        "updatedAt": 1785097979592,
+        "finishedAt": 1785097979592,
+        "turns": 15,
+        "toolCalls": 46,
+        "usage": {
+          "input": 88932,
+          "output": 19112,
+          "cacheRead": 840704,
+          "cacheWrite": 0,
+          "cost": 1.4383719999999998
+        },
+        "controlProtocol": "v1"
+      },
+      "version": 23,
+      "updatedAt": 1785097979680,
+      "updatedBy": {
+        "id": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "name": "main",
+        "kind": "main",
+        "sessionId": "019fa013-c173-710d-8df5-6aeeb31da4a3"
+      }
+    },
+    "topology/participants/8a63ec21f4663dcd0829efb6c6f5a3b94f9f33a8aff2d886daa211ec44979bb5": {
+      "key": "topology/participants/8a63ec21f4663dcd0829efb6c6f5a3b94f9f33a8aff2d886daa211ec44979bb5",
+      "value": {
+        "format": 1,
+        "id": "ed60007188244dd294624402c1d7071a",
+        "kind": "agent",
+        "rootId": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "ownerHostId": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "ownerIdentityId": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "parentId": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "name": "review-task-1",
+        "status": "completed",
+        "runner": "pi",
+        "transport": "tmux",
+        "capabilities": [
+          "attach"
+        ],
+        "cwd": "/home/ryanj/work/projects/pi-core",
+        "sessionId": "pi-fabric-ed6000718824",
+        "model": "openai-codex/gpt-5.6-sol",
+        "thinking": "max",
+        "startedAt": 1785098044722,
+        "updatedAt": 1785098552105,
+        "finishedAt": 1785098552105,
+        "turns": 7,
+        "toolCalls": 23,
+        "usage": {
+          "input": 69279,
+          "output": 17356,
+          "cacheRead": 235520,
+          "cacheWrite": 0,
+          "cost": 0.9848350000000001
+        },
+        "controlProtocol": "v1"
+      },
+      "version": 10,
+      "updatedAt": 1785098552179,
+      "updatedBy": {
+        "id": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "name": "main",
+        "kind": "main",
+        "sessionId": "019fa013-c173-710d-8df5-6aeeb31da4a3"
+      }
+    },
+    "topology/participants/297cada1ce74704dc2468548384d1938b7c2c1ec6b923e58d5c00ad876bcaeb0": {
+      "key": "topology/participants/297cada1ce74704dc2468548384d1938b7c2c1ec6b923e58d5c00ad876bcaeb0",
+      "value": {
+        "format": 1,
+        "id": "be6e8ea3681e473a818318382808aeff",
+        "kind": "agent",
+        "rootId": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "ownerHostId": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "ownerIdentityId": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "parentId": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "name": "ship-fix-task-1-source-limits",
+        "status": "completed",
+        "runner": "pi",
+        "transport": "tmux",
+        "capabilities": [
+          "attach"
+        ],
+        "cwd": "/home/ryanj/work/projects/pi-core",
+        "sessionId": "pi-fabric-be6e8ea3681e",
+        "model": "openai-codex/gpt-5.6-sol",
+        "thinking": "max",
+        "startedAt": 1785098847770,
+        "updatedAt": 1785099141416,
+        "finishedAt": 1785099141416,
+        "turns": 10,
+        "toolCalls": 22,
+        "usage": {
+          "input": 63309,
+          "output": 11236,
+          "cacheRead": 378368,
+          "cacheWrite": 0,
+          "cost": 0.8428090000000001
+        },
+        "controlProtocol": "v1"
+      },
+      "version": 14,
+      "updatedAt": 1785099141649,
+      "updatedBy": {
+        "id": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "name": "main",
+        "kind": "main",
+        "sessionId": "019fa013-c173-710d-8df5-6aeeb31da4a3"
+      }
+    },
+    "topology/participants/f11baad38bc3479a490cadf7d58f6e9f0c682100d2ec82600442b24ddaab1a29": {
+      "key": "topology/participants/f11baad38bc3479a490cadf7d58f6e9f0c682100d2ec82600442b24ddaab1a29",
+      "value": {
+        "format": 1,
+        "id": "bf00c27d2e2143bb97d7aab4f7cea93f",
+        "kind": "agent",
+        "rootId": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "ownerHostId": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "ownerIdentityId": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "parentId": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "name": "review-task-1-after-fix",
+        "status": "completed",
+        "runner": "pi",
+        "transport": "tmux",
+        "capabilities": [
+          "attach"
+        ],
+        "cwd": "/home/ryanj/work/projects/pi-core",
+        "sessionId": "pi-fabric-bf00c27d2e21",
+        "model": "openai-codex/gpt-5.6-sol",
+        "thinking": "max",
+        "startedAt": 1785099171343,
+        "updatedAt": 1785099313715,
+        "finishedAt": 1785099313715,
+        "turns": 5,
+        "toolCalls": 26,
+        "usage": {
+          "input": 75070,
+          "output": 5907,
+          "cacheRead": 172032,
+          "cacheWrite": 0,
+          "cost": 0.638576
+        },
+        "controlProtocol": "v1"
+      },
+      "version": 9,
+      "updatedAt": 1785099313851,
+      "updatedBy": {
+        "id": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "name": "main",
+        "kind": "main",
+        "sessionId": "019fa013-c173-710d-8df5-6aeeb31da4a3"
+      }
+    },
+    "topology/participants/0b8bba6201dbefb2a8e738deb6906c2ae86f75f6b70bde00c21e0748aef423d5": {
+      "key": "topology/participants/0b8bba6201dbefb2a8e738deb6906c2ae86f75f6b70bde00c21e0748aef423d5",
+      "value": {
+        "format": 1,
+        "id": "f69be734ac1d44d0aa1dd175a3be51b2",
+        "kind": "agent",
+        "rootId": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "ownerHostId": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "ownerIdentityId": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "parentId": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "name": "ship-task-2",
+        "status": "completed",
+        "runner": "pi",
+        "transport": "tmux",
+        "capabilities": [
+          "attach"
+        ],
+        "cwd": "/home/ryanj/work/projects/pi-core",
+        "sessionId": "pi-fabric-f69be734ac1d",
+        "model": "openai-codex/gpt-5.6-sol",
+        "thinking": "max",
+        "startedAt": 1785099534905,
+        "updatedAt": 1785099775697,
+        "finishedAt": 1785099775697,
+        "turns": 15,
+        "toolCalls": 25,
+        "usage": {
+          "input": 92105,
+          "output": 8882,
+          "cacheRead": 591360,
+          "cacheWrite": 0,
+          "cost": 1.022665
+        },
+        "controlProtocol": "v1"
+      },
+      "version": 22,
+      "updatedAt": 1785099775792,
+      "updatedBy": {
+        "id": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "name": "main",
+        "kind": "main",
+        "sessionId": "019fa013-c173-710d-8df5-6aeeb31da4a3"
+      }
+    },
+    "topology/participants/639aa5799bb0c1a4cf1e96c11922781608df1a98bf6937f3dc41c9b616ddecb3": {
+      "key": "topology/participants/639aa5799bb0c1a4cf1e96c11922781608df1a98bf6937f3dc41c9b616ddecb3",
+      "value": {
+        "format": 1,
+        "id": "a8f038cee3764c20ab7b45e122bf1c5f",
+        "kind": "agent",
+        "rootId": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "ownerHostId": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "ownerIdentityId": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "parentId": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "name": "review-task-2",
+        "status": "completed",
+        "runner": "pi",
+        "transport": "tmux",
+        "capabilities": [
+          "attach"
+        ],
+        "cwd": "/home/ryanj/work/projects/pi-core",
+        "sessionId": "pi-fabric-a8f038cee376",
+        "model": "openai-codex/gpt-5.6-sol",
+        "thinking": "max",
+        "startedAt": 1785099807111,
+        "updatedAt": 1785100305478,
+        "finishedAt": 1785100305478,
+        "turns": 19,
+        "toolCalls": 48,
+        "usage": {
+          "input": 96030,
+          "output": 20713,
+          "cacheRead": 1104896,
+          "cacheWrite": 0,
+          "cost": 1.653988
+        },
+        "controlProtocol": "v1"
+      },
+      "version": 23,
+      "updatedAt": 1785100305507,
+      "updatedBy": {
+        "id": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "name": "main",
+        "kind": "main",
+        "sessionId": "019fa013-c173-710d-8df5-6aeeb31da4a3"
+      }
+    },
+    "topology/participants/1e3435ccb256cf4f690f5731671e4756624d013f10a4041507b1051674a27a2e": {
+      "key": "topology/participants/1e3435ccb256cf4f690f5731671e4756624d013f10a4041507b1051674a27a2e",
+      "value": {
+        "format": 1,
+        "id": "1ea0da89e1ea4618bfd7e9c70904a810",
+        "kind": "agent",
+        "rootId": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "ownerHostId": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "ownerIdentityId": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "parentId": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "name": "ship-fix-task-2-canonical-source",
+        "status": "completed",
+        "runner": "pi",
+        "transport": "tmux",
+        "capabilities": [
+          "attach"
+        ],
+        "cwd": "/home/ryanj/work/projects/pi-core",
+        "sessionId": "pi-fabric-1ea0da89e1ea",
+        "model": "openai-codex/gpt-5.6-sol",
+        "thinking": "max",
+        "startedAt": 1785100359666,
+        "updatedAt": 1785100650162,
+        "finishedAt": 1785100650162,
+        "turns": 21,
+        "toolCalls": 33,
+        "usage": {
+          "input": 85444,
+          "output": 10581,
+          "cacheRead": 959488,
+          "cacheWrite": 0,
+          "cost": 1.224394
+        },
+        "controlProtocol": "v1"
+      },
+      "version": 26,
+      "updatedAt": 1785100650217,
+      "updatedBy": {
+        "id": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "name": "main",
+        "kind": "main",
+        "sessionId": "019fa013-c173-710d-8df5-6aeeb31da4a3"
+      }
+    },
+    "topology/hosts/25b34a0453547cecc568b3d863c387a3e4c48492e2a480320b173bf66479f210": {
+      "key": "topology/hosts/25b34a0453547cecc568b3d863c387a3e4c48492e2a480320b173bf66479f210",
+      "value": {
+        "format": 1,
+        "id": "session:019fa046-1bdd-77fa-9c0e-90ad0bc11c15",
+        "rootId": "session:019fa046-1bdd-77fa-9c0e-90ad0bc11c15",
+        "identity": {
+          "id": "session:019fa046-1bdd-77fa-9c0e-90ad0bc11c15",
+          "name": "main",
+          "kind": "main",
+          "sessionId": "019fa046-1bdd-77fa-9c0e-90ad0bc11c15"
+        },
+        "startedAt": 1785100377178,
+        "updatedAt": 1785103972238,
+        "expiresAt": 1785103987238
+      },
+      "version": 720,
+      "updatedAt": 1785103972242,
+      "updatedBy": {
+        "id": "session:019fa046-1bdd-77fa-9c0e-90ad0bc11c15",
+        "name": "main",
+        "kind": "main",
+        "sessionId": "019fa046-1bdd-77fa-9c0e-90ad0bc11c15"
+      }
+    },
+    "sessions/019fa046-1bdd-77fa-9c0e-90ad0bc11c15": {
+      "key": "sessions/019fa046-1bdd-77fa-9c0e-90ad0bc11c15",
+      "value": {
+        "id": "session:019fa046-1bdd-77fa-9c0e-90ad0bc11c15",
+        "name": "Peer 019fa046",
+        "kind": "peer",
+        "status": "idle",
+        "runner": "pi",
+        "transport": "host",
+        "cwd": "/home/ryanj/work/projects/pi-core",
+        "sessionId": "019fa046-1bdd-77fa-9c0e-90ad0bc11c15",
+        "model": "openai-codex/gpt-5.6-sol",
+        "thinking": "max",
+        "startedAt": 1785100377177,
+        "updatedAt": 1785103972238,
+        "pendingMessages": false,
+        "local": false
+      },
+      "version": 720,
+      "updatedAt": 1785103972246,
+      "updatedBy": {
+        "id": "session:019fa046-1bdd-77fa-9c0e-90ad0bc11c15",
+        "name": "main",
+        "kind": "main",
+        "sessionId": "019fa046-1bdd-77fa-9c0e-90ad0bc11c15"
+      }
+    },
+    "topology/participants/25b34a0453547cecc568b3d863c387a3e4c48492e2a480320b173bf66479f210": {
+      "key": "topology/participants/25b34a0453547cecc568b3d863c387a3e4c48492e2a480320b173bf66479f210",
+      "value": {
+        "format": 1,
+        "id": "session:019fa046-1bdd-77fa-9c0e-90ad0bc11c15",
+        "kind": "root",
+        "rootId": "session:019fa046-1bdd-77fa-9c0e-90ad0bc11c15",
+        "ownerHostId": "session:019fa046-1bdd-77fa-9c0e-90ad0bc11c15",
+        "ownerIdentityId": "session:019fa046-1bdd-77fa-9c0e-90ad0bc11c15",
+        "name": "main",
+        "status": "idle",
+        "runner": "pi",
+        "transport": "host",
+        "capabilities": [
+          "steer",
+          "followUp",
+          "fabric"
+        ],
+        "cwd": "/home/ryanj/work/projects/pi-core",
+        "sessionId": "019fa046-1bdd-77fa-9c0e-90ad0bc11c15",
+        "model": "openai-codex/gpt-5.6-sol",
+        "thinking": "max",
+        "startedAt": 1785100377177,
+        "updatedAt": 1785103972238,
+        "pendingMessages": false,
+        "controlProtocol": "v1"
+      },
+      "version": 720,
+      "updatedAt": 1785103972367,
+      "updatedBy": {
+        "id": "session:019fa046-1bdd-77fa-9c0e-90ad0bc11c15",
+        "name": "main",
+        "kind": "main",
+        "sessionId": "019fa046-1bdd-77fa-9c0e-90ad0bc11c15"
+      }
+    },
+    "topology/hosts/92ffdae21e118078a3f909556850235c930c9a1606a48d8fcbb7d0bd430a17c6": {
+      "key": "topology/hosts/92ffdae21e118078a3f909556850235c930c9a1606a48d8fcbb7d0bd430a17c6",
+      "value": {
+        "format": 1,
+        "id": "session:019fa02d-c83b-7d62-b961-160926e4b910",
+        "rootId": "session:019fa02d-c83b-7d62-b961-160926e4b910",
+        "identity": {
+          "id": "session:019fa02d-c83b-7d62-b961-160926e4b910",
+          "name": "main",
+          "kind": "main",
+          "sessionId": "019fa02d-c83b-7d62-b961-160926e4b910"
+        },
+        "startedAt": 1785100384366,
+        "updatedAt": 1785103969580,
+        "expiresAt": 1785103984580
+      },
+      "version": 1461,
+      "updatedAt": 1785103969582,
+      "updatedBy": {
+        "id": "session:019fa02d-c83b-7d62-b961-160926e4b910",
+        "name": "main",
+        "kind": "main",
+        "sessionId": "019fa02d-c83b-7d62-b961-160926e4b910"
+      }
+    },
+    "sessions/019fa02d-c83b-7d62-b961-160926e4b910": {
+      "key": "sessions/019fa02d-c83b-7d62-b961-160926e4b910",
+      "value": {
+        "id": "session:019fa02d-c83b-7d62-b961-160926e4b910",
+        "name": "Peer 019fa02d",
+        "kind": "peer",
+        "status": "running",
+        "runner": "pi",
+        "transport": "host",
+        "cwd": "/home/ryanj/work/projects/pi-core",
+        "sessionId": "019fa02d-c83b-7d62-b961-160926e4b910",
+        "model": "openai-codex/gpt-5.6-sol",
+        "thinking": "max",
+        "startedAt": 1785100384366,
+        "updatedAt": 1785103969580,
+        "pendingMessages": false,
+        "local": false
+      },
+      "version": 1460,
+      "updatedAt": 1785103969585,
+      "updatedBy": {
+        "id": "session:019fa02d-c83b-7d62-b961-160926e4b910",
+        "name": "main",
+        "kind": "main",
+        "sessionId": "019fa02d-c83b-7d62-b961-160926e4b910"
+      }
+    },
+    "topology/participants/92ffdae21e118078a3f909556850235c930c9a1606a48d8fcbb7d0bd430a17c6": {
+      "key": "topology/participants/92ffdae21e118078a3f909556850235c930c9a1606a48d8fcbb7d0bd430a17c6",
+      "value": {
+        "format": 1,
+        "id": "session:019fa02d-c83b-7d62-b961-160926e4b910",
+        "kind": "root",
+        "rootId": "session:019fa02d-c83b-7d62-b961-160926e4b910",
+        "ownerHostId": "session:019fa02d-c83b-7d62-b961-160926e4b910",
+        "ownerIdentityId": "session:019fa02d-c83b-7d62-b961-160926e4b910",
+        "name": "main",
+        "status": "running",
+        "runner": "pi",
+        "transport": "host",
+        "capabilities": [
+          "steer",
+          "followUp",
+          "fabric"
+        ],
+        "cwd": "/home/ryanj/work/projects/pi-core",
+        "sessionId": "019fa02d-c83b-7d62-b961-160926e4b910",
+        "model": "openai-codex/gpt-5.6-sol",
+        "thinking": "max",
+        "startedAt": 1785100384366,
+        "updatedAt": 1785103969580,
+        "pendingMessages": false,
+        "controlProtocol": "v1"
+      },
+      "version": 1461,
+      "updatedAt": 1785103969589,
+      "updatedBy": {
+        "id": "session:019fa02d-c83b-7d62-b961-160926e4b910",
+        "name": "main",
+        "kind": "main",
+        "sessionId": "019fa02d-c83b-7d62-b961-160926e4b910"
+      }
+    },
+    "topology/participants/d7c52d046dcb96a7680dfca73345384f2c05bdea90d01ee84c5a2ee27a3f543a": {
+      "key": "topology/participants/d7c52d046dcb96a7680dfca73345384f2c05bdea90d01ee84c5a2ee27a3f543a",
+      "value": {
+        "format": 1,
+        "id": "95d4a316088b4d65b196d7c6423030a9",
+        "kind": "agent",
+        "rootId": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "ownerHostId": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "ownerIdentityId": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "parentId": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "name": "review-task-2-after-fix",
+        "status": "completed",
+        "runner": "pi",
+        "transport": "tmux",
+        "capabilities": [
+          "attach"
+        ],
+        "cwd": "/home/ryanj/work/projects/pi-core",
+        "sessionId": "pi-fabric-95d4a316088b",
+        "model": "openai-codex/gpt-5.6-sol",
+        "thinking": "max",
+        "startedAt": 1785100684879,
+        "updatedAt": 1785100987812,
+        "finishedAt": 1785100987812,
+        "turns": 12,
+        "toolCalls": 36,
+        "usage": {
+          "input": 85466,
+          "output": 11476,
+          "cacheRead": 472576,
+          "cacheWrite": 0,
+          "cost": 1.007898
+        },
+        "controlProtocol": "v1"
+      },
+      "version": 16,
+      "updatedAt": 1785100987889,
+      "updatedBy": {
+        "id": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "name": "main",
+        "kind": "main",
+        "sessionId": "019fa013-c173-710d-8df5-6aeeb31da4a3"
+      }
+    },
+    "topology/participants/94df71cc3d8da2482cb48be7f1fd26119a2150df4267d1520f0ef175e13a0b10": {
+      "key": "topology/participants/94df71cc3d8da2482cb48be7f1fd26119a2150df4267d1520f0ef175e13a0b10",
+      "value": {
+        "format": 1,
+        "id": "200995327acd44db8e24adb1a63b36f3",
+        "kind": "agent",
+        "rootId": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "ownerHostId": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "ownerIdentityId": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "parentId": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "name": "ship-task-3",
+        "status": "completed",
+        "runner": "pi",
+        "transport": "tmux",
+        "capabilities": [
+          "attach"
+        ],
+        "cwd": "/home/ryanj/work/projects/pi-core",
+        "sessionId": "pi-fabric-200995327acd",
+        "model": "openai-codex/gpt-5.6-sol",
+        "thinking": "max",
+        "startedAt": 1785101153515,
+        "updatedAt": 1785101865431,
+        "finishedAt": 1785101865431,
+        "turns": 34,
+        "toolCalls": 45,
+        "usage": {
+          "input": 99324,
+          "output": 28055,
+          "cacheRead": 1890816,
+          "cacheWrite": 0,
+          "cost": 2.283678
+        },
+        "controlProtocol": "v1"
+      },
+      "version": 44,
+      "updatedAt": 1785101865700,
+      "updatedBy": {
+        "id": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "name": "main",
+        "kind": "main",
+        "sessionId": "019fa013-c173-710d-8df5-6aeeb31da4a3"
+      }
+    },
+    "topology/participants/13336c8c990dce670b05890eaac805d1533ccced82a2755a5f0aea902fcc9e3e": {
+      "key": "topology/participants/13336c8c990dce670b05890eaac805d1533ccced82a2755a5f0aea902fcc9e3e",
+      "value": {
+        "format": 1,
+        "id": "88737092211c40129c1122008e3519bf",
+        "kind": "agent",
+        "rootId": "session:019fa02d-c83b-7d62-b961-160926e4b910",
+        "ownerHostId": "session:019fa02d-c83b-7d62-b961-160926e4b910",
+        "ownerIdentityId": "session:019fa02d-c83b-7d62-b961-160926e4b910",
+        "parentId": "session:019fa02d-c83b-7d62-b961-160926e4b910",
+        "name": "astro-skill-red-2",
+        "status": "completed",
+        "runner": "pi",
+        "transport": "tmux",
+        "capabilities": [
+          "attach"
+        ],
+        "cwd": "/home/ryanj/work/projects/pi-core",
+        "sessionId": "pi-fabric-88737092211c",
+        "model": "openai-codex/gpt-5.6-sol",
+        "thinking": "max",
+        "startedAt": 1785101312888,
+        "updatedAt": 1785101384160,
+        "finishedAt": 1785101384160,
+        "turns": 1,
+        "toolCalls": 0,
+        "usage": {
+          "input": 11544,
+          "output": 2036,
+          "cacheRead": 0,
+          "cacheWrite": 0,
+          "cost": 0.11880000000000002
+        },
+        "controlProtocol": "v1"
+      },
+      "version": 3,
+      "updatedAt": 1785101384309,
+      "updatedBy": {
+        "id": "session:019fa02d-c83b-7d62-b961-160926e4b910",
+        "name": "main",
+        "kind": "main",
+        "sessionId": "019fa02d-c83b-7d62-b961-160926e4b910"
+      }
+    },
+    "topology/participants/df33fb58b673de169cc2e694f8959c232682d025b1d3ecb36915d31ef579b728": {
+      "key": "topology/participants/df33fb58b673de169cc2e694f8959c232682d025b1d3ecb36915d31ef579b728",
+      "value": {
+        "format": 1,
+        "id": "054d29bce95e4d06bc4af397ef14af59",
+        "kind": "agent",
+        "rootId": "session:019fa02d-c83b-7d62-b961-160926e4b910",
+        "ownerHostId": "session:019fa02d-c83b-7d62-b961-160926e4b910",
+        "ownerIdentityId": "session:019fa02d-c83b-7d62-b961-160926e4b910",
+        "parentId": "session:019fa02d-c83b-7d62-b961-160926e4b910",
+        "name": "astro-skill-red-1",
+        "status": "completed",
+        "runner": "pi",
+        "transport": "tmux",
+        "capabilities": [
+          "attach"
+        ],
+        "cwd": "/home/ryanj/work/projects/pi-core",
+        "sessionId": "pi-fabric-054d29bce95e",
+        "model": "openai-codex/gpt-5.6-sol",
+        "thinking": "max",
+        "startedAt": 1785101312886,
+        "updatedAt": 1785101363542,
+        "finishedAt": 1785101363542,
+        "turns": 1,
+        "toolCalls": 0,
+        "usage": {
+          "input": 11559,
+          "output": 1863,
+          "cacheRead": 0,
+          "cacheWrite": 0,
+          "cost": 0.11368500000000001
+        },
+        "controlProtocol": "v1"
+      },
+      "version": 3,
+      "updatedAt": 1785101363605,
+      "updatedBy": {
+        "id": "session:019fa02d-c83b-7d62-b961-160926e4b910",
+        "name": "main",
+        "kind": "main",
+        "sessionId": "019fa02d-c83b-7d62-b961-160926e4b910"
+      }
+    },
+    "topology/participants/be5d37fd71e079a30d408fe5f2c0ee427f1d2c5c9d692feec66eac883a8905db": {
+      "key": "topology/participants/be5d37fd71e079a30d408fe5f2c0ee427f1d2c5c9d692feec66eac883a8905db",
+      "value": {
+        "format": 1,
+        "id": "3a58dfc7387f497380bf029d811c5688",
+        "kind": "agent",
+        "rootId": "session:019fa02d-c83b-7d62-b961-160926e4b910",
+        "ownerHostId": "session:019fa02d-c83b-7d62-b961-160926e4b910",
+        "ownerIdentityId": "session:019fa02d-c83b-7d62-b961-160926e4b910",
+        "parentId": "session:019fa02d-c83b-7d62-b961-160926e4b910",
+        "name": "astro-skill-green-1",
+        "status": "completed",
+        "runner": "pi",
+        "transport": "tmux",
+        "capabilities": [
+          "attach"
+        ],
+        "cwd": "/home/ryanj/work/projects/pi-core",
+        "sessionId": "pi-fabric-3a58dfc7387f",
+        "model": "openai-codex/gpt-5.6-sol",
+        "thinking": "max",
+        "startedAt": 1785101384525,
+        "updatedAt": 1785101536188,
+        "finishedAt": 1785101536188,
+        "turns": 3,
+        "toolCalls": 4,
+        "usage": {
+          "input": 15811,
+          "output": 5408,
+          "cacheRead": 22528,
+          "cacheWrite": 0,
+          "cost": 0.25255900000000003
+        },
+        "controlProtocol": "v1"
+      },
+      "version": 5,
+      "updatedAt": 1785101536446,
+      "updatedBy": {
+        "id": "session:019fa02d-c83b-7d62-b961-160926e4b910",
+        "name": "main",
+        "kind": "main",
+        "sessionId": "019fa02d-c83b-7d62-b961-160926e4b910"
+      }
+    },
+    "topology/participants/d930d9aa13c2aeb56f68f94bf25f3b464974bc83227770a4bee3c0f5ac549be7": {
+      "key": "topology/participants/d930d9aa13c2aeb56f68f94bf25f3b464974bc83227770a4bee3c0f5ac549be7",
+      "value": {
+        "format": 1,
+        "id": "36236ea45cc64ec5a870d65dac4eaec6",
+        "kind": "agent",
+        "rootId": "session:019fa02d-c83b-7d62-b961-160926e4b910",
+        "ownerHostId": "session:019fa02d-c83b-7d62-b961-160926e4b910",
+        "ownerIdentityId": "session:019fa02d-c83b-7d62-b961-160926e4b910",
+        "parentId": "session:019fa02d-c83b-7d62-b961-160926e4b910",
+        "name": "astro-skill-green-2",
+        "status": "completed",
+        "runner": "pi",
+        "transport": "tmux",
+        "capabilities": [
+          "attach"
+        ],
+        "cwd": "/home/ryanj/work/projects/pi-core",
+        "sessionId": "pi-fabric-36236ea45cc6",
+        "model": "openai-codex/gpt-5.6-sol",
+        "thinking": "max",
+        "startedAt": 1785101384525,
+        "updatedAt": 1785101521655,
+        "finishedAt": 1785101521655,
+        "turns": 4,
+        "toolCalls": 5,
+        "usage": {
+          "input": 18863,
+          "output": 4514,
+          "cacheRead": 36352,
+          "cacheWrite": 0,
+          "cost": 0.247911
+        },
+        "controlProtocol": "v1"
+      },
+      "version": 6,
+      "updatedAt": 1785101521877,
+      "updatedBy": {
+        "id": "session:019fa02d-c83b-7d62-b961-160926e4b910",
+        "name": "main",
+        "kind": "main",
+        "sessionId": "019fa02d-c83b-7d62-b961-160926e4b910"
+      }
+    },
+    "topology/hosts/e93eb0e512130597a935ef6b4870cd788c33d3c418bc9d83f70abec3c4a34509": {
+      "key": "topology/hosts/e93eb0e512130597a935ef6b4870cd788c33d3c418bc9d83f70abec3c4a34509",
+      "value": {
+        "format": 1,
+        "id": "session:019fa03a-076c-7f0d-86f4-358ec15c0f02",
+        "rootId": "session:019fa03a-076c-7f0d-86f4-358ec15c0f02",
+        "identity": {
+          "id": "session:019fa03a-076c-7f0d-86f4-358ec15c0f02",
+          "name": "main",
+          "kind": "main",
+          "sessionId": "019fa03a-076c-7f0d-86f4-358ec15c0f02"
+        },
+        "startedAt": 1785101524897,
+        "updatedAt": 1785103969971,
+        "expiresAt": 1785103984971
+      },
+      "version": 1047,
+      "updatedAt": 1785103969973,
+      "updatedBy": {
+        "id": "session:019fa03a-076c-7f0d-86f4-358ec15c0f02",
+        "name": "main",
+        "kind": "main",
+        "sessionId": "019fa03a-076c-7f0d-86f4-358ec15c0f02"
+      }
+    },
+    "sessions/019fa03a-076c-7f0d-86f4-358ec15c0f02": {
+      "key": "sessions/019fa03a-076c-7f0d-86f4-358ec15c0f02",
+      "value": {
+        "id": "session:019fa03a-076c-7f0d-86f4-358ec15c0f02",
+        "name": "Peer 019fa03a",
+        "kind": "peer",
+        "status": "idle",
+        "runner": "pi",
+        "transport": "host",
+        "cwd": "/home/ryanj/work/projects/pi-core",
+        "sessionId": "019fa03a-076c-7f0d-86f4-358ec15c0f02",
+        "model": "openai-codex/gpt-5.6-sol",
+        "thinking": "max",
+        "startedAt": 1785101524897,
+        "updatedAt": 1785103969971,
+        "pendingMessages": false,
+        "local": false
+      },
+      "version": 1046,
+      "updatedAt": 1785103969978,
+      "updatedBy": {
+        "id": "session:019fa03a-076c-7f0d-86f4-358ec15c0f02",
+        "name": "main",
+        "kind": "main",
+        "sessionId": "019fa03a-076c-7f0d-86f4-358ec15c0f02"
+      }
+    },
+    "topology/participants/e93eb0e512130597a935ef6b4870cd788c33d3c418bc9d83f70abec3c4a34509": {
+      "key": "topology/participants/e93eb0e512130597a935ef6b4870cd788c33d3c418bc9d83f70abec3c4a34509",
+      "value": {
+        "format": 1,
+        "id": "session:019fa03a-076c-7f0d-86f4-358ec15c0f02",
+        "kind": "root",
+        "rootId": "session:019fa03a-076c-7f0d-86f4-358ec15c0f02",
+        "ownerHostId": "session:019fa03a-076c-7f0d-86f4-358ec15c0f02",
+        "ownerIdentityId": "session:019fa03a-076c-7f0d-86f4-358ec15c0f02",
+        "name": "main",
+        "status": "idle",
+        "runner": "pi",
+        "transport": "host",
+        "capabilities": [
+          "steer",
+          "followUp",
+          "fabric"
+        ],
+        "cwd": "/home/ryanj/work/projects/pi-core",
+        "sessionId": "019fa03a-076c-7f0d-86f4-358ec15c0f02",
+        "model": "openai-codex/gpt-5.6-sol",
+        "thinking": "max",
+        "startedAt": 1785101524897,
+        "updatedAt": 1785103969971,
+        "pendingMessages": false,
+        "controlProtocol": "v1"
+      },
+      "version": 1047,
+      "updatedAt": 1785103969983,
+      "updatedBy": {
+        "id": "session:019fa03a-076c-7f0d-86f4-358ec15c0f02",
+        "name": "main",
+        "kind": "main",
+        "sessionId": "019fa03a-076c-7f0d-86f4-358ec15c0f02"
+      }
+    },
+    "topology/participants/fbfbffb456e586c6beb630b77c82a881c7f285cdfd346286e858a74b957c0261": {
+      "key": "topology/participants/fbfbffb456e586c6beb630b77c82a881c7f285cdfd346286e858a74b957c0261",
+      "value": {
+        "format": 1,
+        "id": "e1ad5c4be35049ffa10300c01aa75276",
+        "kind": "agent",
+        "rootId": "session:019fa02d-c83b-7d62-b961-160926e4b910",
+        "ownerHostId": "session:019fa02d-c83b-7d62-b961-160926e4b910",
+        "ownerIdentityId": "session:019fa02d-c83b-7d62-b961-160926e4b910",
+        "parentId": "session:019fa02d-c83b-7d62-b961-160926e4b910",
+        "name": "astro-web-practices-full-review",
+        "status": "completed",
+        "runner": "pi",
+        "transport": "tmux",
+        "capabilities": [
+          "attach"
+        ],
+        "cwd": "/home/ryanj/work/projects/pi-core",
+        "sessionId": "pi-fabric-e1ad5c4be350",
+        "model": "openai-codex/gpt-5.6-sol",
+        "thinking": "max",
+        "startedAt": 1785101592970,
+        "updatedAt": 1785102376681,
+        "finishedAt": 1785102376681,
+        "turns": 34,
+        "toolCalls": 145,
+        "usage": {
+          "input": 350671,
+          "output": 34368,
+          "cacheRead": 3515904,
+          "cacheWrite": 0,
+          "cost": 4.542347
+        },
+        "controlProtocol": "v1"
+      },
+      "version": 40,
+      "updatedAt": 1785102376831,
+      "updatedBy": {
+        "id": "session:019fa02d-c83b-7d62-b961-160926e4b910",
+        "name": "main",
+        "kind": "main",
+        "sessionId": "019fa02d-c83b-7d62-b961-160926e4b910"
+      }
+    },
+    "topology/participants/ce3e1f529bf6d5588a4744728a5465630bb9ee8f033987d1a47f1b7608cce8fc": {
+      "key": "topology/participants/ce3e1f529bf6d5588a4744728a5465630bb9ee8f033987d1a47f1b7608cce8fc",
+      "value": {
+        "format": 1,
+        "id": "bc210814bbc442f0911cd10827de33d7",
+        "kind": "agent",
+        "rootId": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "ownerHostId": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "ownerIdentityId": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "parentId": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "name": "ship-review-final",
+        "status": "completed",
+        "runner": "pi",
+        "transport": "tmux",
+        "capabilities": [
+          "attach"
+        ],
+        "cwd": "/home/ryanj/work/projects/pi-core",
+        "sessionId": "pi-fabric-bc210814bbc4",
+        "model": "openai-codex/gpt-5.6-sol",
+        "thinking": "max",
+        "startedAt": 1785102033592,
+        "updatedAt": 1785102491511,
+        "finishedAt": 1785102491511,
+        "turns": 10,
+        "toolCalls": 65,
+        "usage": {
+          "input": 159070,
+          "output": 20552,
+          "cacheRead": 815616,
+          "cacheWrite": 0,
+          "cost": 1.8197180000000002
+        },
+        "controlProtocol": "v1"
+      },
+      "version": 17,
+      "updatedAt": 1785102491678,
+      "updatedBy": {
+        "id": "session:019fa013-c173-710d-8df5-6aeeb31da4a3",
+        "name": "main",
+        "kind": "main",
+        "sessionId": "019fa013-c173-710d-8df5-6aeeb31da4a3"
+      }
+    },
+    "topology/participants/75a70fe89ef18a0306b461b839e3b731de910cbf25d234d56ad8b44af13857a6": {
+      "key": "topology/participants/75a70fe89ef18a0306b461b839e3b731de910cbf25d234d56ad8b44af13857a6",
+      "value": {
+        "format": 1,
+        "id": "9aa9f553c2da42af9e5426b81a995ee2",
+        "kind": "agent",
+        "rootId": "session:019fa03a-076c-7f0d-86f4-358ec15c0f02",
+        "ownerHostId": "session:019fa03a-076c-7f0d-86f4-358ec15c0f02",
+        "ownerIdentityId": "session:019fa03a-076c-7f0d-86f4-358ec15c0f02",
+        "parentId": "session:019fa03a-076c-7f0d-86f4-358ec15c0f02",
+        "name": "resume-citations-impact-map",
+        "status": "completed",
+        "runner": "pi",
+        "transport": "tmux",
+        "capabilities": [
+          "attach"
+        ],
+        "cwd": "/home/ryanj/work/projects/pi-core",
+        "sessionId": "pi-fabric-9aa9f553c2da",
+        "model": "openai-codex/gpt-5.6-sol",
+        "thinking": "max",
+        "startedAt": 1785102598801,
+        "updatedAt": 1785102938613,
+        "finishedAt": 1785102938613,
+        "turns": 5,
+        "toolCalls": 30,
+        "usage": {
+          "input": 41924,
+          "output": 13850,
+          "cacheRead": 79872,
+          "cacheWrite": 0,
+          "cost": 0.6650560000000001
+        },
+        "controlProtocol": "v1"
+      },
+      "version": 8,
+      "updatedAt": 1785102938699,
+      "updatedBy": {
+        "id": "session:019fa03a-076c-7f0d-86f4-358ec15c0f02",
+        "name": "main",
+        "kind": "main",
+        "sessionId": "019fa03a-076c-7f0d-86f4-358ec15c0f02"
+      }
+    },
+    "topology/participants/0fea3d9c2daf18ef253dcc75b96df3371c15b3e5decdc1e5133bfd6bc6cd0b88": {
+      "key": "topology/participants/0fea3d9c2daf18ef253dcc75b96df3371c15b3e5decdc1e5133bfd6bc6cd0b88",
+      "value": {
+        "format": 1,
+        "id": "956298b793174cc181dec77d02b627fd",
+        "kind": "agent",
+        "rootId": "session:019fa03a-076c-7f0d-86f4-358ec15c0f02",
+        "ownerHostId": "session:019fa03a-076c-7f0d-86f4-358ec15c0f02",
+        "ownerIdentityId": "session:019fa03a-076c-7f0d-86f4-358ec15c0f02",
+        "parentId": "session:019fa03a-076c-7f0d-86f4-358ec15c0f02",
+        "name": "qol-viewer-qualification",
+        "status": "completed",
+        "runner": "pi",
+        "transport": "tmux",
+        "capabilities": [
+          "attach"
+        ],
+        "cwd": "/home/ryanj/work/projects/pi-core",
+        "sessionId": "pi-fabric-956298b79317",
+        "model": "openai-codex/gpt-5.6-sol",
+        "thinking": "max",
+        "startedAt": 1785102598757,
+        "updatedAt": 1785103352786,
+        "finishedAt": 1785103352786,
+        "turns": 24,
+        "toolCalls": 114,
+        "usage": {
+          "input": 115959,
+          "output": 26988,
+          "cacheRead": 1484288,
+          "cacheWrite": 0,
+          "cost": 2.1315790000000003
+        },
+        "controlProtocol": "v1"
+      },
+      "version": 31,
+      "updatedAt": 1785103352999,
+      "updatedBy": {
+        "id": "session:019fa03a-076c-7f0d-86f4-358ec15c0f02",
+        "name": "main",
+        "kind": "main",
+        "sessionId": "019fa03a-076c-7f0d-86f4-358ec15c0f02"
+      }
+    },
+    "topology/participants/0c31e66743bfee51ac8ca1f78f50bc0b48553a2a426df18f0ad8433e95d7f5a8": {
+      "key": "topology/participants/0c31e66743bfee51ac8ca1f78f50bc0b48553a2a426df18f0ad8433e95d7f5a8",
+      "value": {
+        "format": 1,
+        "id": "b4d8728be9b5408e9c49664b93824d5c",
+        "kind": "agent",
+        "rootId": "session:019fa03a-076c-7f0d-86f4-358ec15c0f02",
+        "ownerHostId": "session:019fa03a-076c-7f0d-86f4-358ec15c0f02",
+        "ownerIdentityId": "session:019fa03a-076c-7f0d-86f4-358ec15c0f02",
+        "parentId": "session:019fa03a-076c-7f0d-86f4-358ec15c0f02",
+        "name": "citation-viewer-ux-a11y",
+        "status": "completed",
+        "runner": "pi",
+        "transport": "tmux",
+        "capabilities": [
+          "attach"
+        ],
+        "cwd": "/home/ryanj/work/projects/pi-core",
+        "sessionId": "pi-fabric-b4d8728be9b5",
+        "model": "openai-codex/gpt-5.6-sol",
+        "thinking": "max",
+        "startedAt": 1785102598784,
+        "updatedAt": 1785103068948,
+        "finishedAt": 1785103068948,
+        "turns": 6,
+        "toolCalls": 29,
+        "usage": {
+          "input": 79486,
+          "output": 16433,
+          "cacheRead": 149504,
+          "cacheWrite": 0,
+          "cost": 0.9651719999999999
+        },
+        "controlProtocol": "v1"
+      },
+      "version": 12,
+      "updatedAt": 1785103069015,
+      "updatedBy": {
+        "id": "session:019fa03a-076c-7f0d-86f4-358ec15c0f02",
+        "name": "main",
+        "kind": "main",
+        "sessionId": "019fa03a-076c-7f0d-86f4-358ec15c0f02"
+      }
+    },
+    "topology/hosts/c84d0338bbca7efd7779fa5eb2a4ac53b89a0116483f7b9bd5cc118c200bbb44": {
+      "key": "topology/hosts/c84d0338bbca7efd7779fa5eb2a4ac53b89a0116483f7b9bd5cc118c200bbb44",
+      "value": {
+        "format": 1,
+        "id": "session:019fa072-c106-7a46-829b-306e56e601f8",
+        "rootId": "session:019fa072-c106-7a46-829b-306e56e601f8",
+        "identity": {
+          "id": "session:019fa072-c106-7a46-829b-306e56e601f8",
+          "name": "main",
+          "kind": "main",
+          "sessionId": "019fa072-c106-7a46-829b-306e56e601f8"
+        },
+        "startedAt": 1785103304891,
+        "updatedAt": 1785103970058,
+        "expiresAt": 1785103985058
+      },
+      "version": 216,
+      "updatedAt": 1785103970059,
+      "updatedBy": {
+        "id": "session:019fa072-c106-7a46-829b-306e56e601f8",
+        "name": "main",
+        "kind": "main",
+        "sessionId": "019fa072-c106-7a46-829b-306e56e601f8"
+      }
+    },
+    "sessions/019fa072-c106-7a46-829b-306e56e601f8": {
+      "key": "sessions/019fa072-c106-7a46-829b-306e56e601f8",
+      "value": {
+        "id": "session:019fa072-c106-7a46-829b-306e56e601f8",
+        "name": "Peer 019fa072",
+        "kind": "peer",
+        "status": "running",
+        "runner": "pi",
+        "transport": "host",
+        "cwd": "/home/ryanj/work/projects/pi-core",
+        "sessionId": "019fa072-c106-7a46-829b-306e56e601f8",
+        "model": "openai-codex/gpt-5.6-sol",
+        "thinking": "max",
+        "startedAt": 1785103304890,
+        "updatedAt": 1785103970058,
+        "pendingMessages": false,
+        "local": false
+      },
+      "version": 216,
+      "updatedAt": 1785103970063,
+      "updatedBy": {
+        "id": "session:019fa072-c106-7a46-829b-306e56e601f8",
+        "name": "main",
+        "kind": "main",
+        "sessionId": "019fa072-c106-7a46-829b-306e56e601f8"
+      }
+    },
+    "topology/participants/c84d0338bbca7efd7779fa5eb2a4ac53b89a0116483f7b9bd5cc118c200bbb44": {
+      "key": "topology/participants/c84d0338bbca7efd7779fa5eb2a4ac53b89a0116483f7b9bd5cc118c200bbb44",
+      "value": {
+        "format": 1,
+        "id": "session:019fa072-c106-7a46-829b-306e56e601f8",
+        "kind": "root",
+        "rootId": "session:019fa072-c106-7a46-829b-306e56e601f8",
+        "ownerHostId": "session:019fa072-c106-7a46-829b-306e56e601f8",
+        "ownerIdentityId": "session:019fa072-c106-7a46-829b-306e56e601f8",
+        "name": "main",
+        "status": "running",
+        "runner": "pi",
+        "transport": "host",
+        "capabilities": [
+          "steer",
+          "followUp",
+          "fabric"
+        ],
+        "cwd": "/home/ryanj/work/projects/pi-core",
+        "sessionId": "019fa072-c106-7a46-829b-306e56e601f8",
+        "model": "openai-codex/gpt-5.6-sol",
+        "thinking": "max",
+        "startedAt": 1785103304890,
+        "updatedAt": 1785103970058,
+        "pendingMessages": false,
+        "controlProtocol": "v1"
+      },
+      "version": 216,
+      "updatedAt": 1785103970067,
+      "updatedBy": {
+        "id": "session:019fa072-c106-7a46-829b-306e56e601f8",
+        "name": "main",
+        "kind": "main",
+        "sessionId": "019fa072-c106-7a46-829b-306e56e601f8"
+      }
+    },
+    "topology/participants/9915309272a55cdd10af97d54150429f86424d83c93fd7b086ded670ad58912e": {
+      "key": "topology/participants/9915309272a55cdd10af97d54150429f86424d83c93fd7b086ded670ad58912e",
+      "value": {
+        "format": 1,
+        "id": "98a526f8adae4c4290bcf03afc6ef788",
+        "kind": "agent",
+        "rootId": "session:019fa02d-c83b-7d62-b961-160926e4b910",
+        "ownerHostId": "session:019fa02d-c83b-7d62-b961-160926e4b910",
+        "ownerIdentityId": "session:019fa02d-c83b-7d62-b961-160926e4b910",
+        "parentId": "session:019fa02d-c83b-7d62-b961-160926e4b910",
+        "name": "astro-remediation-local-evidence",
+        "status": "running",
+        "runner": "pi",
+        "transport": "tmux",
+        "capabilities": [
+          "steer",
+          "followUp",
+          "stop",
+          "attach"
+        ],
+        "cwd": "/home/ryanj/work/projects/pi-core",
+        "sessionId": "pi-fabric-98a526f8adae",
+        "model": "openai-codex/gpt-5.6-sol",
+        "thinking": "max",
+        "startedAt": 1785103682205,
+        "updatedAt": 1785103899336,
+        "turns": 12,
+        "toolCalls": 89,
+        "usage": {
+          "input": 122581,
+          "output": 9208,
+          "cacheRead": 808448,
+          "cacheWrite": 0,
+          "cost": 1.2933690000000002
+        },
+        "controlProtocol": "v1"
+      },
+      "version": 15,
+      "updatedAt": 1785103899565,
+      "updatedBy": {
+        "id": "session:019fa02d-c83b-7d62-b961-160926e4b910",
+        "name": "main",
+        "kind": "main",
+        "sessionId": "019fa02d-c83b-7d62-b961-160926e4b910"
+      }
+    },
+    "topology/participants/e4264eca779fb5ecea1d7d21bfc34c736e602ebefabc2baee050dca73d99c01d": {
+      "key": "topology/participants/e4264eca779fb5ecea1d7d21bfc34c736e602ebefabc2baee050dca73d99c01d",
+      "value": {
+        "format": 1,
+        "id": "b5b5d895f3eb485b82e0c025e66da493",
+        "kind": "agent",
+        "rootId": "session:019fa02d-c83b-7d62-b961-160926e4b910",
+        "ownerHostId": "session:019fa02d-c83b-7d62-b961-160926e4b910",
+        "ownerIdentityId": "session:019fa02d-c83b-7d62-b961-160926e4b910",
+        "parentId": "session:019fa02d-c83b-7d62-b961-160926e4b910",
+        "name": "astro-remediation-upstream-evidence",
+        "status": "running",
+        "runner": "pi",
+        "transport": "tmux",
+        "capabilities": [
+          "steer",
+          "followUp",
+          "stop",
+          "attach"
+        ],
+        "cwd": "/home/ryanj/work/projects/pi-core",
+        "sessionId": "pi-fabric-b5b5d895f3eb",
+        "model": "openai-codex/gpt-5.6-sol",
+        "thinking": "max",
+        "startedAt": 1785103682204,
+        "updatedAt": 1785103969039,
+        "turns": 18,
+        "toolCalls": 18,
+        "usage": {
+          "input": 66398,
+          "output": 4810,
+          "cacheRead": 591360,
+          "cacheWrite": 0,
+          "cost": 0.7719699999999999
+        },
+        "controlProtocol": "v1"
+      },
+      "version": 35,
+      "updatedAt": 1785103969079,
+      "updatedBy": {
+        "id": "session:019fa02d-c83b-7d62-b961-160926e4b910",
+        "name": "main",
+        "kind": "main",
+        "sessionId": "019fa02d-c83b-7d62-b961-160926e4b910"
+      }
+    },
+    "topology/hosts/f1b923a55e975654e378b0aa6865238c946af088946dbb0c8f21880be4cbf560": {
+      "key": "topology/hosts/f1b923a55e975654e378b0aa6865238c946af088946dbb0c8f21880be4cbf560",
+      "value": {
+        "format": 1,
+        "id": "runtime:019fa078-8da8-7d22-8c42-605b35b5e783",
+        "rootId": "session:019fa02d-c83b-7d62-b961-160926e4b910",
+        "identity": {
+          "id": "b5b5d895f3eb485b82e0c025e66da493",
+          "name": "astro-remediation-upstream-evidence",
+          "kind": "agent",
+          "sessionId": "019fa078-8da8-7d22-8c42-605b35b5e783"
+        },
+        "startedAt": 1785103685322,
+        "updatedAt": 1785103970347,
+        "expiresAt": 1785103985347
+      },
+      "version": 76,
+      "updatedAt": 1785103970349,
+      "updatedBy": {
+        "id": "b5b5d895f3eb485b82e0c025e66da493",
+        "name": "astro-remediation-upstream-evidence",
+        "kind": "agent",
+        "sessionId": "019fa078-8da8-7d22-8c42-605b35b5e783"
+      }
+    },
+    "topology/hosts/1210dcea1be689ee4a006088c0c4d18d4a0d91e16f36a845798a55055c9545aa": {
+      "key": "topology/hosts/1210dcea1be689ee4a006088c0c4d18d4a0d91e16f36a845798a55055c9545aa",
+      "value": {
+        "format": 1,
+        "id": "session:019fa07b-105d-7b74-9501-f14d4e7fd275",
+        "rootId": "session:019fa07b-105d-7b74-9501-f14d4e7fd275",
+        "identity": {
+          "id": "session:019fa07b-105d-7b74-9501-f14d4e7fd275",
+          "name": "main",
+          "kind": "main",
+          "sessionId": "019fa07b-105d-7b74-9501-f14d4e7fd275"
+        },
+        "startedAt": 1785103847689,
+        "updatedAt": 1785103972712,
+        "expiresAt": 1785103987712
+      },
+      "version": 26,
+      "updatedAt": 1785103972714,
+      "updatedBy": {
+        "id": "session:019fa07b-105d-7b74-9501-f14d4e7fd275",
+        "name": "main",
+        "kind": "main",
+        "sessionId": "019fa07b-105d-7b74-9501-f14d4e7fd275"
+      }
+    },
+    "sessions/019fa07b-105d-7b74-9501-f14d4e7fd275": {
+      "key": "sessions/019fa07b-105d-7b74-9501-f14d4e7fd275",
+      "value": {
+        "id": "session:019fa07b-105d-7b74-9501-f14d4e7fd275",
+        "name": "Peer 019fa07b",
+        "kind": "peer",
+        "status": "idle",
+        "runner": "pi",
+        "transport": "host",
+        "cwd": "/home/ryanj/work/projects/pi-core",
+        "sessionId": "019fa07b-105d-7b74-9501-f14d4e7fd275",
+        "model": "openai-codex/gpt-5.6-sol",
+        "thinking": "max",
+        "startedAt": 1785103847688,
+        "updatedAt": 1785103972712,
+        "pendingMessages": false,
+        "local": false
+      },
+      "version": 26,
+      "updatedAt": 1785103972718,
+      "updatedBy": {
+        "id": "session:019fa07b-105d-7b74-9501-f14d4e7fd275",
+        "name": "main",
+        "kind": "main",
+        "sessionId": "019fa07b-105d-7b74-9501-f14d4e7fd275"
+      }
+    },
+    "topology/participants/1210dcea1be689ee4a006088c0c4d18d4a0d91e16f36a845798a55055c9545aa": {
+      "key": "topology/participants/1210dcea1be689ee4a006088c0c4d18d4a0d91e16f36a845798a55055c9545aa",
+      "value": {
+        "format": 1,
+        "id": "session:019fa07b-105d-7b74-9501-f14d4e7fd275",
+        "kind": "root",
+        "rootId": "session:019fa07b-105d-7b74-9501-f14d4e7fd275",
+        "ownerHostId": "session:019fa07b-105d-7b74-9501-f14d4e7fd275",
+        "ownerIdentityId": "session:019fa07b-105d-7b74-9501-f14d4e7fd275",
+        "name": "main",
+        "status": "idle",
+        "runner": "pi",
+        "transport": "host",
+        "capabilities": [
+          "steer",
+          "followUp",
+          "fabric"
+        ],
+        "cwd": "/home/ryanj/work/projects/pi-core",
+        "sessionId": "019fa07b-105d-7b74-9501-f14d4e7fd275",
+        "model": "openai-codex/gpt-5.6-sol",
+        "thinking": "max",
+        "startedAt": 1785103847688,
+        "updatedAt": 1785103972712,
+        "pendingMessages": false,
+        "controlProtocol": "v1"
+      },
+      "version": 26,
+      "updatedAt": 1785103972723,
+      "updatedBy": {
+        "id": "session:019fa07b-105d-7b74-9501-f14d4e7fd275",
+        "name": "main",
+        "kind": "main",
+        "sessionId": "019fa07b-105d-7b74-9501-f14d4e7fd275"
+      }
     }
   },
   "versions": {
@@ -10894,7 +12331,99 @@
     "topology/participants/08f51db3a19fd018a24deb717d1c355f9d4ea48189f12484c5ea41fe3b57de04": 135,
     "topology/hosts/714e725b01af01007afa07a9e64f022b7d0351d885c7f65599a912d92146e207": 135,
     "sessions/019f9942-79ac-7f5b-aaf5-304e9946ce80": 135,
-    "topology/participants/714e725b01af01007afa07a9e64f022b7d0351d885c7f65599a912d92146e207": 135
+    "topology/participants/714e725b01af01007afa07a9e64f022b7d0351d885c7f65599a912d92146e207": 135,
+    "topology/hosts/1c238254465b55b1ec1a571597c77345f3fcf14ea63fa135283801ddea0cac18": 2,
+    "sessions/019f9f48-d51a-7927-a422-f562a80c3d4f": 1,
+    "topology/participants/1c238254465b55b1ec1a571597c77345f3fcf14ea63fa135283801ddea0cac18": 2,
+    "topology/hosts/ae3a69f92dd4b6296864c22d6d97dfb9a54e482d028f0e6ed6ce04f806b4dfd3": 1102,
+    "sessions/019f9fe2-f9a7-7046-8f46-b0c911daeb0e": 1101,
+    "topology/participants/ae3a69f92dd4b6296864c22d6d97dfb9a54e482d028f0e6ed6ce04f806b4dfd3": 1102,
+    "topology/participants/183bbf55ccd77d44e989adbb194eb9f68cc359633ed06da95110e409d1f0b2ff": 42,
+    "topology/participants/1c86e64421b2b8d20f78c24ffd4d8be63dcdd2f6ed0c9ad359034fefc46cc0fd": 34,
+    "topology/participants/96e5afea4b49a3c4fecf1f3646dd0dfa90bae05ee7eeab25e39328cd98c5bb6d": 40,
+    "topology/hosts/bca02737332a0ba8b46a12cc6752ed4e793ca141b72b6982529cdbe933ee6a0d": 214,
+    "topology/hosts/c82ad53a7b27abb37b12a58f981876ea761a93f71690f79db91dabc4ef56bf45": 284,
+    "topology/hosts/c1b86ee32fbaa5a30489af1458f55e066b0b165b6ef85f6a6df32a5505cfd84a": 247,
+    "topology/hosts/612102d18eb51e0926c12bd7952da719d053224efeb1efb6518d66465e89f370": 926,
+    "sessions/019f9ff4-3f0a-7117-b637-19ef26b053e5": 917,
+    "topology/participants/612102d18eb51e0926c12bd7952da719d053224efeb1efb6518d66465e89f370": 926,
+    "topology/hosts/42a9620995d820d3714aa3f822f473e282304aeeb1e1b5cc99c1a52936e4b581": 1918,
+    "sessions/019fa013-c173-710d-8df5-6aeeb31da4a3": 1918,
+    "topology/participants/42a9620995d820d3714aa3f822f473e282304aeeb1e1b5cc99c1a52936e4b581": 1918,
+    "topology/hosts/8ae73a63d7aaa961973bfbdb267d112d9582780996b8a5638f93e4368c272389": 224,
+    "sessions/019fa018-fe38-7fd7-9059-aa21771a6ca6": 223,
+    "topology/participants/8ae73a63d7aaa961973bfbdb267d112d9582780996b8a5638f93e4368c272389": 224,
+    "topology/participants/798ef9e904dea6f6cb5a18fd0af4d93db032032d63d521ce76dbe258e47a1ae5": 23,
+    "topology/hosts/85f3bdd5447866e44d68c224de5b17c8be325a01f5381acde6ac51c7dfb91ce1": 139,
+    "topology/hosts/15872f9d48913b27beb6826cdcbd0f4295b6f580d6e4be9e7cb7b9265388029e": 2,
+    "sessions/019fa01d-c54d-758d-a1b6-cc197a3cf64f": 1,
+    "topology/participants/15872f9d48913b27beb6826cdcbd0f4295b6f580d6e4be9e7cb7b9265388029e": 2,
+    "topology/hosts/015b4fd21df26eb9ecdd8c766569fa240b5936e3c01d64146880706d92219ec7": 2,
+    "sessions/019fa01e-027e-7895-8c5a-4bc606f9781f": 1,
+    "topology/participants/015b4fd21df26eb9ecdd8c766569fa240b5936e3c01d64146880706d92219ec7": 2,
+    "topology/participants/8a63ec21f4663dcd0829efb6c6f5a3b94f9f33a8aff2d886daa211ec44979bb5": 10,
+    "topology/hosts/45faf2d026fb375d4f1717e169308293fe89e45299a5228def75b53e4b008ff5": 126,
+    "topology/hosts/9c52ec2c5fec0b71f0d39c094944093d81acfeea2070037d0338027a1b3e5578": 2,
+    "sessions/019fa022-f1cb-77d1-9cdf-2d859694d10b": 1,
+    "topology/participants/9c52ec2c5fec0b71f0d39c094944093d81acfeea2070037d0338027a1b3e5578": 2,
+    "topology/hosts/277e633dd94e7c0e43394ca39e8bec9bb94d4c3c9faa071a658df9dadd02486d": 66,
+    "sessions/019fa027-f854-7594-98f5-a29d8f42b4a3": 65,
+    "topology/participants/277e633dd94e7c0e43394ca39e8bec9bb94d4c3c9faa071a658df9dadd02486d": 66,
+    "topology/hosts/b7ff1cf89993e58b16ec7fb00fd8814c079390273d29cd69378e2d367ec989fc": 1294,
+    "sessions/019fa02b-140b-73de-96a0-59e8d3fab60d": 1293,
+    "topology/participants/b7ff1cf89993e58b16ec7fb00fd8814c079390273d29cd69378e2d367ec989fc": 1294,
+    "topology/hosts/92ffdae21e118078a3f909556850235c930c9a1606a48d8fcbb7d0bd430a17c6": 1461,
+    "sessions/019fa02d-c83b-7d62-b961-160926e4b910": 1460,
+    "topology/participants/92ffdae21e118078a3f909556850235c930c9a1606a48d8fcbb7d0bd430a17c6": 1461,
+    "topology/participants/297cada1ce74704dc2468548384d1938b7c2c1ec6b923e58d5c00ad876bcaeb0": 14,
+    "topology/hosts/877aa150d6aa632446f5511f60347e0b65b596f8be72cb9a254bf80f9843c471": 82,
+    "topology/participants/f11baad38bc3479a490cadf7d58f6e9f0c682100d2ec82600442b24ddaab1a29": 9,
+    "topology/hosts/a131aac3095654a79a8ce3814cfb6dc4dcabbab3b7f2708e108cc3c93fd5ccd3": 51,
+    "topology/participants/67bef6f0ae7aa759a63ee3e59a4c6766401be204a4975fd2aa6bd27245cd4cdb": 36,
+    "topology/participants/de170b9d1794b00228a1bd3bc866f8d17f787aba078c6b8e2786178450662957": 36,
+    "topology/participants/fcaed1a6dd85f75cc5ff335aac5929ee316847fc2ea915647e3a067d2a8551ab": 80,
+    "topology/hosts/783f5b84f84ba8902b3b93e7e00966d4e505373ecbf0f05767d1dcb159d5c290": 257,
+    "topology/participants/0b8bba6201dbefb2a8e738deb6906c2ae86f75f6b70bde00c21e0748aef423d5": 22,
+    "topology/hosts/0fcfb02e1bbe8418623008c1ebaed888b07cca047096e7bd7bb13d306261fd9e": 70,
+    "topology/hosts/e93eb0e512130597a935ef6b4870cd788c33d3c418bc9d83f70abec3c4a34509": 1047,
+    "sessions/019fa03a-076c-7f0d-86f4-358ec15c0f02": 1046,
+    "topology/participants/e93eb0e512130597a935ef6b4870cd788c33d3c418bc9d83f70abec3c4a34509": 1047,
+    "topology/hosts/671955921fd91d257042883e4153567f758ab11edd24973ae655df3c47f1b50a": 140,
+    "sessions/019fa03c-5fd8-7319-96c8-bb85ede41a8c": 139,
+    "topology/participants/671955921fd91d257042883e4153567f758ab11edd24973ae655df3c47f1b50a": 140,
+    "topology/participants/639aa5799bb0c1a4cf1e96c11922781608df1a98bf6937f3dc41c9b616ddecb3": 23,
+    "topology/hosts/9264cad099b25c60b550a715c08f122fc420ea809c7b5bee4aea272adef94ad4": 149,
+    "topology/participants/1e3435ccb256cf4f690f5731671e4756624d013f10a4041507b1051674a27a2e": 26,
+    "topology/hosts/c84ae90b175244675ec61fc8c135fee73b4dfc19b0a7bfeac93ec802af63b92a": 92,
+    "topology/hosts/25b34a0453547cecc568b3d863c387a3e4c48492e2a480320b173bf66479f210": 720,
+    "sessions/019fa046-1bdd-77fa-9c0e-90ad0bc11c15": 720,
+    "topology/participants/25b34a0453547cecc568b3d863c387a3e4c48492e2a480320b173bf66479f210": 720,
+    "topology/participants/d7c52d046dcb96a7680dfca73345384f2c05bdea90d01ee84c5a2ee27a3f543a": 16,
+    "topology/hosts/592ec65ea6a365ddab68f4501e47189b169dbf83a841f71d2c85da3e3298775a": 98,
+    "topology/participants/94df71cc3d8da2482cb48be7f1fd26119a2150df4267d1520f0ef175e13a0b10": 44,
+    "topology/hosts/f57a11299f3b96c8c70bd3b96139c8246f29d3a087d37e0674387f45aa25c691": 187,
+    "topology/participants/13336c8c990dce670b05890eaac805d1533ccced82a2755a5f0aea902fcc9e3e": 3,
+    "topology/participants/df33fb58b673de169cc2e694f8959c232682d025b1d3ecb36915d31ef579b728": 3,
+    "topology/participants/be5d37fd71e079a30d408fe5f2c0ee427f1d2c5c9d692feec66eac883a8905db": 5,
+    "topology/participants/d930d9aa13c2aeb56f68f94bf25f3b464974bc83227770a4bee3c0f5ac549be7": 6,
+    "topology/participants/fbfbffb456e586c6beb630b77c82a881c7f285cdfd346286e858a74b957c0261": 40,
+    "topology/participants/ce3e1f529bf6d5588a4744728a5465630bb9ee8f033987d1a47f1b7608cce8fc": 17,
+    "topology/hosts/11384187eddb2ecad6dd4d806492f3bdc4b1989e3fb94b5e71ee32ed42e5af8d": 139,
+    "topology/participants/75a70fe89ef18a0306b461b839e3b731de910cbf25d234d56ad8b44af13857a6": 8,
+    "topology/participants/0fea3d9c2daf18ef253dcc75b96df3371c15b3e5decdc1e5133bfd6bc6cd0b88": 31,
+    "topology/participants/0c31e66743bfee51ac8ca1f78f50bc0b48553a2a426df18f0ad8433e95d7f5a8": 12,
+    "topology/hosts/f24d0a682c7527d6e20ab37bfaf59a2a46d5ff1a891d965cd1259bbb1ee90cf2": 118,
+    "topology/hosts/463c7542a89421d03a0b6b5d696f00863f6be7e50a947d963295932def806dfb": 93,
+    "topology/hosts/9dc81ca2ddc4029e12bb010f5520d44b83f05fa7feed6560f734e96b3f7de10c": 255,
+    "topology/hosts/c84d0338bbca7efd7779fa5eb2a4ac53b89a0116483f7b9bd5cc118c200bbb44": 216,
+    "sessions/019fa072-c106-7a46-829b-306e56e601f8": 216,
+    "topology/participants/c84d0338bbca7efd7779fa5eb2a4ac53b89a0116483f7b9bd5cc118c200bbb44": 216,
+    "topology/participants/9915309272a55cdd10af97d54150429f86424d83c93fd7b086ded670ad58912e": 15,
+    "topology/participants/e4264eca779fb5ecea1d7d21bfc34c736e602ebefabc2baee050dca73d99c01d": 35,
+    "topology/hosts/f1b923a55e975654e378b0aa6865238c946af088946dbb0c8f21880be4cbf560": 76,
+    "topology/hosts/1210dcea1be689ee4a006088c0c4d18d4a0d91e16f36a845798a55055c9545aa": 26,
+    "sessions/019fa07b-105d-7b74-9501-f14d4e7fd275": 26,
+    "topology/participants/1210dcea1be689ee4a006088c0c4d18d4a0d91e16f36a845798a55055c9545aa": 26
   },
   "tombstoneOrder": [
     "sessions/019f96cc-d0ef-741d-a17d-dc627f52b776",
@@ -10932,6 +12461,59 @@
     "topology/hosts/f2524ebada4d3bf9ed6c41006851542976e073ac243a4b21c14eb1a2a71c35fd",
     "sessions/019f992c-d7fa-7fbb-87c1-5a40acf7eecf",
     "topology/participants/c80c71051bc78954117de8a2753251e53d69275b2130be35157054cf16ba9a7c",
-    "topology/hosts/c80c71051bc78954117de8a2753251e53d69275b2130be35157054cf16ba9a7c"
+    "topology/hosts/c80c71051bc78954117de8a2753251e53d69275b2130be35157054cf16ba9a7c",
+    "sessions/019f9f48-d51a-7927-a422-f562a80c3d4f",
+    "topology/participants/1c238254465b55b1ec1a571597c77345f3fcf14ea63fa135283801ddea0cac18",
+    "topology/hosts/1c238254465b55b1ec1a571597c77345f3fcf14ea63fa135283801ddea0cac18",
+    "topology/hosts/bca02737332a0ba8b46a12cc6752ed4e793ca141b72b6982529cdbe933ee6a0d",
+    "topology/hosts/c82ad53a7b27abb37b12a58f981876ea761a93f71690f79db91dabc4ef56bf45",
+    "topology/hosts/c1b86ee32fbaa5a30489af1458f55e066b0b165b6ef85f6a6df32a5505cfd84a",
+    "sessions/019fa01d-c54d-758d-a1b6-cc197a3cf64f",
+    "topology/participants/15872f9d48913b27beb6826cdcbd0f4295b6f580d6e4be9e7cb7b9265388029e",
+    "topology/hosts/15872f9d48913b27beb6826cdcbd0f4295b6f580d6e4be9e7cb7b9265388029e",
+    "sessions/019fa01e-027e-7895-8c5a-4bc606f9781f",
+    "topology/participants/015b4fd21df26eb9ecdd8c766569fa240b5936e3c01d64146880706d92219ec7",
+    "topology/hosts/015b4fd21df26eb9ecdd8c766569fa240b5936e3c01d64146880706d92219ec7",
+    "topology/hosts/85f3bdd5447866e44d68c224de5b17c8be325a01f5381acde6ac51c7dfb91ce1",
+    "sessions/019fa022-f1cb-77d1-9cdf-2d859694d10b",
+    "topology/participants/9c52ec2c5fec0b71f0d39c094944093d81acfeea2070037d0338027a1b3e5578",
+    "topology/hosts/9c52ec2c5fec0b71f0d39c094944093d81acfeea2070037d0338027a1b3e5578",
+    "sessions/019fa018-fe38-7fd7-9059-aa21771a6ca6",
+    "topology/participants/8ae73a63d7aaa961973bfbdb267d112d9582780996b8a5638f93e4368c272389",
+    "topology/hosts/8ae73a63d7aaa961973bfbdb267d112d9582780996b8a5638f93e4368c272389",
+    "sessions/019f9ff4-3f0a-7117-b637-19ef26b053e5",
+    "topology/participants/612102d18eb51e0926c12bd7952da719d053224efeb1efb6518d66465e89f370",
+    "topology/hosts/612102d18eb51e0926c12bd7952da719d053224efeb1efb6518d66465e89f370",
+    "sessions/019f9fe2-f9a7-7046-8f46-b0c911daeb0e",
+    "topology/participants/183bbf55ccd77d44e989adbb194eb9f68cc359633ed06da95110e409d1f0b2ff",
+    "topology/participants/1c86e64421b2b8d20f78c24ffd4d8be63dcdd2f6ed0c9ad359034fefc46cc0fd",
+    "topology/participants/96e5afea4b49a3c4fecf1f3646dd0dfa90bae05ee7eeab25e39328cd98c5bb6d",
+    "topology/participants/ae3a69f92dd4b6296864c22d6d97dfb9a54e482d028f0e6ed6ce04f806b4dfd3",
+    "topology/hosts/ae3a69f92dd4b6296864c22d6d97dfb9a54e482d028f0e6ed6ce04f806b4dfd3",
+    "topology/hosts/45faf2d026fb375d4f1717e169308293fe89e45299a5228def75b53e4b008ff5",
+    "sessions/019fa027-f854-7594-98f5-a29d8f42b4a3",
+    "topology/participants/277e633dd94e7c0e43394ca39e8bec9bb94d4c3c9faa071a658df9dadd02486d",
+    "topology/hosts/277e633dd94e7c0e43394ca39e8bec9bb94d4c3c9faa071a658df9dadd02486d",
+    "topology/hosts/877aa150d6aa632446f5511f60347e0b65b596f8be72cb9a254bf80f9843c471",
+    "topology/hosts/a131aac3095654a79a8ce3814cfb6dc4dcabbab3b7f2708e108cc3c93fd5ccd3",
+    "topology/hosts/0fcfb02e1bbe8418623008c1ebaed888b07cca047096e7bd7bb13d306261fd9e",
+    "topology/hosts/783f5b84f84ba8902b3b93e7e00966d4e505373ecbf0f05767d1dcb159d5c290",
+    "topology/hosts/9264cad099b25c60b550a715c08f122fc420ea809c7b5bee4aea272adef94ad4",
+    "sessions/019fa03c-5fd8-7319-96c8-bb85ede41a8c",
+    "topology/participants/671955921fd91d257042883e4153567f758ab11edd24973ae655df3c47f1b50a",
+    "topology/hosts/671955921fd91d257042883e4153567f758ab11edd24973ae655df3c47f1b50a",
+    "topology/participants/67bef6f0ae7aa759a63ee3e59a4c6766401be204a4975fd2aa6bd27245cd4cdb",
+    "topology/participants/de170b9d1794b00228a1bd3bc866f8d17f787aba078c6b8e2786178450662957",
+    "topology/participants/fcaed1a6dd85f75cc5ff335aac5929ee316847fc2ea915647e3a067d2a8551ab",
+    "topology/hosts/c84ae90b175244675ec61fc8c135fee73b4dfc19b0a7bfeac93ec802af63b92a",
+    "topology/hosts/592ec65ea6a365ddab68f4501e47189b169dbf83a841f71d2c85da3e3298775a",
+    "topology/hosts/f57a11299f3b96c8c70bd3b96139c8246f29d3a087d37e0674387f45aa25c691",
+    "topology/hosts/11384187eddb2ecad6dd4d806492f3bdc4b1989e3fb94b5e71ee32ed42e5af8d",
+    "topology/hosts/463c7542a89421d03a0b6b5d696f00863f6be7e50a947d963295932def806dfb",
+    "topology/hosts/f24d0a682c7527d6e20ab37bfaf59a2a46d5ff1a891d965cd1259bbb1ee90cf2",
+    "topology/hosts/9dc81ca2ddc4029e12bb010f5520d44b83f05fa7feed6560f734e96b3f7de10c",
+    "sessions/019fa02b-140b-73de-96a0-59e8d3fab60d",
+    "topology/participants/b7ff1cf89993e58b16ec7fb00fd8814c079390273d29cd69378e2d367ec989fc",
+    "topology/hosts/b7ff1cf89993e58b16ec7fb00fd8814c079390273d29cd69378e2d367ec989fc"
   ]
 }

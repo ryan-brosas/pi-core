@@ -123,20 +123,20 @@ Assess test coverage:
 - Edge cases covered"
 ```
 
-## Integration with OpenCode Workflow
+## Integration with the Pi Workflow
 
 ### For Task-Constrained Research
 
-When researching within task boundaries:
+Resolve an explicit incomplete feature slug before including lifecycle context:
 
 ```bash
-# 1. Include plan spec in context
-gemini -p "@src/ @.pi/artifacts/$(cat .pi/artifacts/.active)/spec.md
+SLUG="<explicit-feature-slug>"
+test -f ".pi/artifacts/$SLUG/spec.md"
+gemini -p "@src/ @.pi/artifacts/$SLUG/spec.md
 Research implementations matching spec constraints"
-
-# 2. Save findings to plan files
-# Append findings under a Research section in .pi/artifacts/$(cat .pi/artifacts/.active)/progress.md
 ```
+
+Return findings in chat by default. Append a Research section to `.pi/artifacts/$SLUG/progress.md` only when the user requested persistence or the findings settle a durable decision for that feature.
 
 ### Delegating Large Research to Gemini
 

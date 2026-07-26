@@ -32,7 +32,7 @@ return result.text;
 - **Concurrency:** 1
 - **Prompt:**
 
-Search the codebase for the pattern: {pattern}. Use grep or csearch to find every occurrence. List each file with line numbers, grouped by subdirectory. If the pattern has common variations, include those too. Return results in this format:
+Search the codebase for the pattern: {pattern}. Use `grep` and `find` to locate the explicit pattern and named common variations. List each file with line numbers, grouped by subdirectory. Return the exact queries and roots used, then results in this format:
 
 ## Directory: [path]
 - `file.ts:42` — [brief context]
@@ -57,9 +57,13 @@ Review only this occurrence shard for the pattern '{pattern}': {occurrence_shard
 
 Keep each finding under 100 words.
 
+## Parent Completeness Gate
+
+Before synthesis, the parent must rerun the exact local grep/search variants against the same explicit roots and exclusions, then reconcile the occurrence count and file set with Phase 1. Inspect every mismatch before review results are accepted. The parent must not claim all, exhaustive, or complete coverage when query variants, generated paths, ignored paths, or tool limits leave uncertainty.
+
 ## Final Synthesis (Main Agent)
 
-After Phase 2 completes, synthesize the audit findings directly from {phase_2_output}.
+After Phase 2 and the parent completeness gate complete, synthesize the audit findings directly from the verified occurrence set and {phase_2_output}.
 
 Produce:
 1. **Issues ranked by severity** — Critical, important, minor with file:line references

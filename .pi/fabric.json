@@ -11,9 +11,8 @@
     "retainRuns": false,
     "notifyOnComplete": false,
     "transport": "auto",
-    "maxConcurrent": 8,
-    "thinking": "max",
-    "model": "openai-codex/gpt-5.6-sol"
+    "maxConcurrent": 3,
+    "thinking": "max"
   },
   "ui": {
     "widget": "hidden",

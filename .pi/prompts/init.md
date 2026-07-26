@@ -1,25 +1,15 @@
 ---
 description: Initialize project setup — AGENTS.md, planning context, user profile, and tech stack
-argument-hint: "[--deep] [--context|--user|--all]"
+argument-hint: "[--refresh] [--deep] [--context|--user|--all]"
 ---
 
 # Init: $ARGUMENTS
 
-Initialize project setup. Run once per project.
+Initialize project setup. Run once per target project. `--refresh` identifies a newly copied target project whose private Pi template must stay local.
 
 > **Next step for fresh projects:** `/plan` to create first implementation plan.  
 > **Next step for existing codebases:** `/research` for deep codebase analysis, or just start describing what you want to build.
 
-## Fabric Agent Routing
-
-Use `agents.run({...})` inside `fabric_exec` only when delegation saves more context or time than it costs. Direct parent work is the default; there are no named project agent profiles.
-
-- Encode the task role, exact goal, context, non-goals, output contract, stop conditions, approval constraints, and verification in `task`.
-- Supply an explicit `tools` allowlist. Local discovery, planning, and review default to `["read", "grep", "find", "ls"]`. External research adds only the required configured network tools; add mutation tools only for approved implementation work.
-- Await one foreground `agents.run` when the next decision depends on its result.
-- For genuinely independent questions, issue at most three `agents.run` calls in one `Promise.all`; process overflow in sequential shards.
-- For small read-only discovery or research, prefer `model: "openai-codex/gpt-5.6-luna"` with `thinking: "medium"` when an explicit override is useful.
-- The parent resolves placeholders, inspects child output and changes, synthesizes results, and runs verification itself.
 ## Idempotency Rules
 
 | File | Rule |
@@ -28,6 +18,7 @@ Use `agents.run({...})` inside `fabric_exec` only when delegation saves more con
 | `.pi/tech-stack.md` | Overwrite with detected values (auto-regenerated) |
 | `.pi/roadmap.md` / `.pi/state.md` | Skip if exists, ask before overwrite |
 | `.pi/user.md` | Skip if exists, ask before overwrite |
+| `.gitignore` (`--refresh`) | In an untracked target copy, preserve existing content and ensure one root-anchored `/.pi/`; stop if `.pi` is already tracked |
 
 ## Skills
 
@@ -41,6 +32,7 @@ Load `verification-before-completion` inside Mode 1 only (after AGENTS.md creati
 
 | Argument | Default | Description |
 |---|---|---|
+| `--refresh` | false | Bootstrap a new target project and keep the proprietary `.pi/` template out of normal Git tracking |
 | `--deep` | false | Bounded evidence gathering for AGENTS.md; stop when required decisions reach medium-or-higher confidence |
 | `--context` | false | Init planning context (roadmap.md, state.md) |
 | `--user` | false | Init user profile (user.md) |
@@ -48,10 +40,12 @@ Load `verification-before-completion` inside Mode 1 only (after AGENTS.md creati
 
 **Mode rules:**
 - No flags (default): Core project setup — AGENTS.md + tech-stack.md
+- `--refresh`: Run core setup for a new target project and protect the copied `.pi/` template with a root-anchored `/.pi/` rule after the source/target preflight
 - `--context`: Planning context (roadmap.md, state.md)
 - `--user`: User profile (user.md)
-- `--all`: Everything
+- `--all`: Core setup + context + user profile; it does not imply `--refresh`
 - `--deep` applies to AGENTS.md generation only
+- `--refresh` may combine with the other documented flags; those flags add their modes. Stop on unknown arguments before detection.
 
 **Brownfield auto-detection:** Existing codebase = any `src/`, `lib/`, or `app/` directory with `.ts`, `.js`, `.tsx`, `.jsx`, `.py`, `.go`, or `.rs` files. Affects Mode 2 discovery scope.
 
@@ -66,6 +60,12 @@ read(".pi/templates/agents-policy.md");
 ```
 
 ### Phase 1: Detect Project
+
+For `--refresh`, perform the source/target preflight before executable validation:
+
+- Resolve and display the exact Git root.
+- Run `git ls-files -- .pi`. If any `.pi` path is tracked, classify the checkout as the template source or an already-versioned project and stop the refresh path; do not modify `.gitignore` or untrack files.
+- If no `.pi` paths are tracked, classify it as an eligible new target project.
 
 Detect and validate before including a fact:
 - Primary branch, runtime, package manager, dependencies, and lockfile policy
@@ -101,17 +101,17 @@ Before any target-file write, show these classifications in order:
 6. **Omissions** — unresolved or unsupported facts/workflows.
 7. **Line-budget exception** — whether preserving existing content can exceed the normal limit.
 
-The preview must list additions, preserved sections, repairs, omissions, and any line-budget exception. If the user selects Cancel, change no target file.
+The preview must list additions, preserved sections, repairs, omissions, and any line-budget exception. With `--refresh`, it must also show the resolved Git root, zero tracked `.pi` paths, and whether the root `.gitignore` will be created, updated, or left unchanged. If the source/target preflight found tracked `.pi` paths, stop instead of offering the write. If the user selects Cancel, change no target file.
 
 ```typescript
 question({
   questions: [
     {
       header: "Proceed?",
-      question: "Create or merge AGENTS.md and write tech-stack.md with the previewed configuration?",
+      question: "Apply the previewed AGENTS.md, tech-stack.md, and eligible --refresh .gitignore protection?",
       options: [
-        { label: "Yes (Recommended)", description: "Create or merge both files" },
-        { label: "AGENTS.md only", description: "Skip tech-stack.md" },
+        { label: "Yes (Recommended)", description: "Create or merge the previewed files" },
+        { label: "AGENTS.md only", description: "Skip tech-stack.md; apply the confirmed .gitignore refresh when requested" },
         { label: "Cancel", description: "No target file is changed" },
       ],
     },
@@ -144,6 +144,16 @@ Write detected values to `.pi/tech-stack.md`. Hindsight automatic retain capture
 
 Do not infer project adoption from PATH alone. Offer Fallow setup only when repository/configuration evidence shows it belongs to this project and executable validation succeeds. If initialization would install a dependency or create configuration, request explicit approval before acting.
 
+### Phase 6: Protect the Private Template (`--refresh` only)
+
+`--refresh` is for a new target project receiving a private Pi template. The ignore rule prevents accidental Git inclusion; it is not a security boundary and does not prevent force-add, copying, backups, or other publication paths.
+
+1. Re-run `git ls-files -- .pi` immediately before writing.
+2. If any `.pi` path is tracked, stop and do not modify `.gitignore`. Report that the checkout is the template source or already versions `.pi`; never untrack it automatically.
+3. If no `.pi` paths are tracked, preserve all existing `.gitignore` content and append `/.pi/` on its own line unless an effective rule already ignores the project-root `.pi` directory. Never add a duplicate.
+4. Re-read `.gitignore` and verify the effective rule with `git check-ignore --no-index -v .pi/prompts/init.md`. Report the matching source and pattern; do not claim protection if the probe fails.
+5. Do not run `git rm`, `git rm --cached`, or otherwise untrack existing files.
+
 ---
 
 ## Mode 2: Planning Context (`--context`)
@@ -152,21 +162,17 @@ Initialize project planning context with roadmap and state files.
 
 ### Phase 1: Discovery (brownfield)
 
-If the project has existing code (brownfield — see auto-detection above), run parallel codebase analysis:
+If the project has existing code (brownfield — see auto-detection above), run this bounded parallel analysis inside one `fabric_exec` program:
 
 ```typescript
 const [architecture, domains] = await Promise.all([
   agents.run({
     name: "init-architecture-map",
-    model: "openai-codex/gpt-5.6-luna",
-    thinking: "medium",
     tools: ["read", "grep", "find", "ls"],
     task: `Analyze architecture and runtime flow only: entry points, data flow, dependency direction, and cross-layer wiring. Do not inventory domains. Return file:line evidence for key architectural decisions and flows.`,
   }),
   agents.run({
     name: "init-domain-map",
-    model: "openai-codex/gpt-5.6-luna",
-    thinking: "medium",
     tools: ["read", "grep", "find", "ls"],
     task: `Inventory domain boundaries only: top-level domains, module ownership, public boundaries, and cross-domain coupling. Do not repeat runtime data-flow analysis. Return file:line evidence and unresolved boundary ambiguities.`,
   }),
@@ -316,10 +322,11 @@ The file is written for on-demand reference — not injected via `instructions[]
 Report what was created or merged:
 1. AGENTS.md (if core setup ran), explicitly labeled `created` or `merged`
 2. tech-stack.md (if core setup ran)
-3. roadmap.md + state.md (if `--context`)
-4. user.md (if `--user`)
-5. If AGENTS.md changed, tell the user to run `/reload` or start a new session before Pi loads it. State that the generated policy is not active earlier in the current turn.
-6. Recommended next command: `/plan` to start planning, `/research` to explore the codebase, or just describe what you want to build.
+3. `.gitignore` (if `--refresh`), labeled `created`, `updated`, `unchanged`, or `blocked because .pi is tracked`
+4. roadmap.md + state.md (if `--context`)
+5. user.md (if `--user`)
+6. If AGENTS.md changed, tell the user to run `/reload` or start a new session before Pi loads it. State that the generated policy is not active earlier in the current turn.
+7. Recommended next command: `/plan` to start planning, `/research` to explore the codebase, or just describe what you want to build.
 
 ---
 

@@ -1,8 +1,9 @@
 ---
 description: Create detailed implementation plan with TDD steps
+argument-hint: "<slug>"
 ---
 
-# Plan
+# Plan: $ARGUMENTS
 
 Create a detailed implementation plan with TDD steps. Optional deep-planning between `/create` and `/ship`.
 
@@ -10,19 +11,9 @@ Create a detailed implementation plan with TDD steps. Optional deep-planning bet
 >
 > **When to use:** Complex tasks where spec verification steps aren't enough guidance. Skip for simple tasks.
 
-## Fabric Agent Routing
+## Planning Worker Routing
 
-Use `agents.run({...})` inside `fabric_exec` only when delegation saves more context or time than it costs. Direct parent work is the default; there are no named project agent profiles.
-
-- Encode the task role, exact goal, context, non-goals, output contract, stop conditions, approval constraints, and verification in `task`.
-- Supply an explicit `tools` allowlist. Local discovery, planning, and review default to `["read", "grep", "find", "ls"]`. External research adds only the required configured network tools; add mutation tools only for approved implementation work.
-- Await one foreground `agents.run` when the next decision depends on its result.
-- For genuinely independent questions, issue at most three `agents.run` calls in one `Promise.all`; process overflow in sequential shards.
-- For small read-only discovery or research, prefer `model: "openai-codex/gpt-5.6-luna"` with `thinking: "medium"` when an explicit override is useful.
-- The parent resolves placeholders, inspects child output and changes, synthesizes results, and runs verification itself.
-### Planning Worker Routing
-
-`/plan` remains parent-owned synthesis. The parent plans inline by default.
+`/plan` remains parent-owned synthesis. The parent plans inline by default. All delegated calls below execute inside `fabric_exec`.
 
 Invoke one foreground planning-advisory Fabric run only when an independent blueprint materially reduces risk:
 
@@ -43,8 +34,6 @@ After constructing the resolved planning envelope below, use this foreground cal
 ```typescript
 const planningResult = await agents.run({
   name: "planning-advisor",
-  model: "openai-codex/gpt-5.6-luna",
-  thinking: "medium",
   task: planningEnvelope,
   tools: ["read", "grep", "find", "ls"],
 });
@@ -72,7 +61,7 @@ Every planning child receives a resolved, self-contained **planning envelope** c
 - **Stop conditions:** scope thresholds, ambiguity limits, missing evidence, or approval gates
 - **Approval constraints:** read-only inspection only; identify actions requiring parent approval without performing them
 
-Never send unresolved placeholders. Children must not spawn other agents, schedule sibling work, mutate `.active`, `tasks.json`, `progress.md`, or other lifecycle state, implement production code, or write files. The parent verifies worker evidence and resolves conflicts. The parent alone writes or validates canonical `plan.md` and `tasks.json`. Never hand planning advisory output to a child to render or write canonical `plan.md` or `tasks.json`.
+Never send unresolved placeholders. Children must not spawn other agents, schedule sibling work, select another slug, mutate `tasks.json`, `progress.md`, or other lifecycle state, implement production code, or write files. The parent verifies worker evidence and resolves conflicts. The parent alone writes or validates canonical `plan.md` and `tasks.json`. Never hand planning advisory output to a child to render or write canonical `plan.md` or `tasks.json`.
 
 ## Load Skills
 
@@ -82,9 +71,11 @@ read(".pi/skills/planning-and-task-breakdown/SKILL.md");
 
 ## Parse Arguments
 
-| Argument | Default  | Description                       |
-| -------- | -------- | --------------------------------- |
-| none     | —        | Plan based on current spec        |
+| Argument | Default | Description |
+| --- | --- | --- |
+| `<slug>` | required | Explicit feature artifact to plan |
+
+Resolve `SLUG` solely from the argument and set `ARTIFACT_DIR=.pi/artifacts/$SLUG`. A missing slug is a stop condition: request `/plan <slug>`. Reject unsafe, nonexistent, completed, or ambiguous artifact selections rather than inferring scope.
 
 ## Before You Plan
 
@@ -123,36 +114,19 @@ Look for:
 - How similar features were implemented before
 - Any "fix:", "revert:", "hotfix:" commits near your scope (footgun zones)
 
-### Step 3: Run local-discovery task (if Level 2-3 work)
+### Step 3: Record local evidence gaps
 
-```typescript
-const localEvidence = await agents.run({
-  name: "planning-local-evidence",
-  model: "openai-codex/gpt-5.6-luna",
-  thinking: "medium",
-  tools: ["read", "grep", "find", "ls"],
-  task: `Search the codebase for patterns, conventions, and existing implementations related to: [FEATURE].
+List the exact paths, symbols, tests, and contracts already established by current-session evidence and history. Mark anything material that remains unknown. Do not dispatch local discovery yet: first complete the guards and select the discovery level in Phases 1–2.
 
-  Run these searches:
-  - grep for relevant function names and patterns
-  - Find similar existing features
-  - Check test patterns for this domain
-  - Look for any TODO/FIXME comments in relevant files
-
-  Return: existing patterns to follow, files to be aware of, and any gotchas.`,
-});
-return localEvidence.text;
-```
-
-**Only after completing Phase 0** do you proceed to planning. The research phases must use this context.
+**Only after completing Phase 0** do you proceed. Later research must use this institutional context rather than restart from a blank slate.
 
 ## Phase 1: Guards
 
 Verify:
 
-- `.pi/artifacts/$(cat .pi/artifacts/.active)/spec.md` exists (if not, tell user to run `/create` first)
-- The authoritative `tasks.json` exists and passes `node --experimental-strip-types .pi/scripts/task-graph.ts validate <tasks.json>` before planning.
-- If `.pi/artifacts/$(cat .pi/artifacts/.active)/plan.md` already exists, stop for explicit approval: overwrite or skip?
+- `$ARTIFACT_DIR/spec.md` exists (if not, tell the user to run `/create` first)
+- `$ARTIFACT_DIR/tasks.json` exists and passes `node --experimental-strip-types .pi/scripts/task-graph.ts validate "$ARTIFACT_DIR/tasks.json"` before planning.
+- If `$ARTIFACT_DIR/plan.md` already exists, stop for explicit approval: overwrite or skip?
 
 ### Approval Checkpoints
 
@@ -160,7 +134,7 @@ Invoking `/plan` authorizes creation of the first canonical `plan.md`. It does n
 
 - Overwriting an existing `plan.md` requires explicit approval.
 - Creating unrelated extra files requires explicit approval.
-- Changing `.active` or mutating an unrelated active artifact requires explicit approval.
+- Changing lifecycle identity or mutating an unrelated artifact requires explicit approval.
 - Committing, merging, integrating, pushing, or deploying requires explicit approval.
 - Adding dependencies or running a destructive operation requires explicit approval.
 
@@ -218,7 +192,20 @@ Gather only the implementation context required by the selected level:
 
 - **Level 2:** Use one foreground external-research `agents.run` call with the exact question because planning depends on its answer.
 - **Level 3:** The parent first defines distinct `{angle}` values (for example: ecosystem precedent, security constraints, operational risk, migration path). Issue at most three resolved Fabric runs in the current wave with `Promise.all`, then inspect the results. Process additional questions in later sequential shards before synthesis. Never repeat the same broad task across children.
-- Local discovery uses a separate read-only Fabric run with a bounded file/symbol question. The parent joins research, resolves conflicts, and writes the plan.
+Before external research or decomposition, the direct parent verifies the exact local source. CodeGraphContext may supplement this as a gray-box impact map only after a target-scoped health probe resolves a known target symbol or path; otherwise fall back to `read`, `grep`, and `find`. A project corpus is a separate curated-exemplar source: when `.pi/scripts/corpus.ts` and `.pi/corpus/` exist, run a bounded intent search and read only selected exemplar files. Neither source replaces current code or tests.
+
+When a material local gap remains after direct inspection, run one bounded read-only discovery task after the level is selected:
+
+```typescript
+const localEvidence = await agents.run({
+  name: "planning-local-evidence",
+  tools: ["read", "grep", "find", "ls"],
+  task: `Inspect only the resolved feature paths and symbols. Map entry points, direct and transitive dependents, public contracts, nearby tests, and uncertainty. Return exact file:line evidence; do not edit.`,
+});
+return localEvidence.text;
+```
+
+The parent joins local and external research, resolves conflicts, verifies cited source, and writes the plan.
 
 ## Phase 4: Goal-Backward Analysis
 
@@ -342,7 +329,7 @@ Wave 3: C (depends on B)
 
 ## Phase 7: Write Plan
 
-Write `.pi/artifacts/$(cat .pi/artifacts/.active)/plan.md`:
+Write `$ARTIFACT_DIR/plan.md`:
 
 ### Required Plan Header
 
@@ -381,9 +368,9 @@ Write `.pi/artifacts/$(cat .pi/artifacts/.active)/plan.md`:
 | ----------- | ----- | ------- | -------------- |
 | [Component] | [API] | `fetch` | [Failure mode] |
 
-### Boundaries and Testability (conditional)
+### Boundary Design (conditional)
 
-Include this section only when the feature introduces or changes a module boundary; omit it otherwise. Black-box and gray-box are verification perspectives, not module-design categories.
+Include this section only when the feature introduces or changes a module boundary; omit it otherwise.
 
 #### Module Boundaries
 
@@ -399,11 +386,15 @@ Include this section only when the feature introduces or changes a module bounda
 
 A proposed seam must name all three fields. If any of them is missing, do not add the seam.
 
+### Gray-Box Evidence (conditional)
+
+Black-box and gray-box are verification perspectives, not module-design categories. Include this section only for a named evidence gap at the public boundary, independent of whether the feature changes a module boundary; otherwise omit it.
+
 #### Gray-Box Exceptions
 
 | Verification | Internal knowledge used | Why externally observable behavior is insufficient |
 | ------------ | ----------------------- | -------------------------------------------------- |
-| [Check] | [Implementation knowledge] | [Evidence gap at the public boundary] |
+| [Check] | [Implementation knowledge] | [Named evidence gap at the public boundary] |
 
 Gray-box knowledge does not justify mocking internals.
 
@@ -448,27 +439,22 @@ Before executing, scan the plan against AGENTS.md hard constraints. This catches
 
 Scan `plan.md` content for these patterns:
 
-| Violation Pattern                                 | AGENTS.md Rule                              | Severity     |
-| ------------------------------------------------- | ------------------------------------------- | ------------ |
-| `git add .` or `git add -A`                       | Multi-Agent Safety: stage specific files    | **CRITICAL** |
-| `--force` push or `force push`                    | Git Safety: never force push main           | **CRITICAL** |
-| `--no-verify`                                     | Git Safety: never bypass hooks              | **CRITICAL** |
-| `as any` or `@ts-ignore` without justification    | Quality Bar: strong typing                  | **WARNING**  |
-| New package/dependency without approval step      | Guardrails: no new deps without approval    | **WARNING**  |
-| Task modifying >3 files without plan confirmation | Guardrails: no surprise edits               | **WARNING**  |
-| `reset --hard` or `checkout .` or `clean -fd`     | Git Restore: never without explicit request | **CRITICAL** |
-| Secret/credential patterns                        | Security: never expose credentials          | **CRITICAL** |
+| Violation Pattern                             | AGENTS.md Rule                                      | Severity     |
+| --------------------------------------------- | --------------------------------------------------- | ------------ |
+| `git add .` or `git add -A`                   | Stage only reviewed, owned paths                    | **CRITICAL** |
+| `--force` push or `force push`                | Destructive action: exact two-confirmation gate     | **CRITICAL** |
+| New package/dependency without approval step  | Dependencies require explicit approval              | **WARNING**  |
+| `reset --hard`, `checkout .`, or `clean -fd`  | Destructive action: exact two-confirmation gate     | **CRITICAL** |
+| Secret/credential patterns                    | Never expose or commit credentials                  | **CRITICAL** |
 
 ### Check Process
 
 ```bash
-ACTIVE_SLUG=$(cat .pi/artifacts/.active 2>/dev/null)
-if [ -z "$ACTIVE_SLUG" ]; then echo "No active feature."; exit 1; fi
-ARTIFACT_DIR=".pi/artifacts/$ACTIVE_SLUG"
+if [ -z "$SLUG" ]; then echo "No explicitly resolved feature slug."; exit 1; fi
+ARTIFACT_DIR=".pi/artifacts/$SLUG"
 # Scan plan for violation patterns (fixed-string mode to avoid regex false positives)
 grep -inF "git add ." "$ARTIFACT_DIR/plan.md"
 grep -inF "git add -A" "$ARTIFACT_DIR/plan.md"
-grep -inF -- "--no-verify" "$ARTIFACT_DIR/plan.md"
 grep -inF "force push" "$ARTIFACT_DIR/plan.md"
 grep -inF -- "--force" "$ARTIFACT_DIR/plan.md"
 grep -inF "reset --hard" "$ARTIFACT_DIR/plan.md"
@@ -476,11 +462,7 @@ grep -inF "checkout ." "$ARTIFACT_DIR/plan.md"
 grep -inF "clean -fd" "$ARTIFACT_DIR/plan.md"
 ```
 
-Also check:
-
-- Count files per task: if any task lists >3 files in its `files:` metadata, flag as WARNING
-- Check for `as any` or `@ts-ignore` usage that lacks a documented reason
-- Check if any task adds new dependencies (look for `npm install`, `pnpm add`, `yarn add`, `pip install`, `cargo add`)
+Also check whether any task adds or upgrades a dependency. Require an explicit approval checkpoint and source-backed justification; do not infer a package manager or installation command.
 
 ### Violation Response
 
@@ -510,13 +492,13 @@ When planning is complete:
 
 1. Validate the authoritative task graph:
    ```bash
-   node --experimental-strip-types .pi/scripts/task-graph.ts validate .pi/artifacts/$(cat .pi/artifacts/.active)/tasks.json
+   node --experimental-strip-types .pi/scripts/task-graph.ts validate "$ARTIFACT_DIR/tasks.json"
    ```
 2. Confirm `spec.md`, `plan.md`, and `tasks.json` are consistent. If they diverge, update `tasks.json` first; it owns scheduling.
 3. Summarize the ready frontier, any blocked tasks, and open questions.
-4. Transition to `/ship` with the explicitly selected active slug and validated graph.
+4. Transition to `/ship $SLUG` with the explicitly selected slug and validated graph.
 
-`.active` remains unchanged during handoff. Any later active-artifact switch is exceptional, parent-owned, and requires explicit approval. Do not implement or commit during the planning handoff.
+Pass the explicitly selected slug unchanged to `/ship $SLUG`; no ambient selection pointer is read or written. Do not implement or commit during the planning handoff.
 
 ## Phase 10: Report
 
@@ -528,8 +510,8 @@ Output:
 4. **Dependency Waves:** [N] waves for parallel execution
 5. **Task count:** [N] tasks, [M] TDD steps
 6. **Files affected:** [List]
-7. **Plan location:** `.pi/artifacts/$(cat .pi/artifacts/.active)/plan.md`
-8. **Next step:** `/ship`
+7. **Plan location:** `.pi/artifacts/$SLUG/plan.md`
+8. **Next step:** `/ship $SLUG`
 
 ---
 

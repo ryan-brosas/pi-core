@@ -1,0 +1,38 @@
+name: test
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  contract-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Run repository doctor
+        run: node --experimental-strip-types .pi/scripts/doctor.ts
+
+      - name: Run retained tests
+        run: node --experimental-strip-types --test .pi/tests/*.test.ts
+
+      - name: Validate artifact task graphs
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          graphs=(.pi/artifacts/*/tasks.json)
+          for graph in "${graphs[@]}"; do
+            node --experimental-strip-types .pi/scripts/task-graph.ts validate "$graph"
+          done

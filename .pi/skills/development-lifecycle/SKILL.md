@@ -1,6 +1,6 @@
 ---
 name: development-lifecycle
-description: Use when starting, planning, shipping, or verifying a work session — describes how `/create`, `/plan`, `/ship`, `/verify`, and `/research` interact with the 4 canonical artifact files at `.pi/artifacts/`.
+description: Use when choosing Quick, Standard, or Complex delivery and coordinating `/create`, `/plan`, `/ship`, `/verify`, and `/research` with optional graph-backed artifacts.
 version: 2.0.0
 tags: [workflow, artifacts, planning, work-sessions]
 tools: [read, write, edit, grep, bash]
@@ -8,20 +8,20 @@ tools: [read, write, edit, grep, bash]
 
 # Development Lifecycle
 
-## The 4 Active-Work Artifact Files
+## Graph-Backed Artifact Files
 
-`.pi/artifacts/.active` contains the current slug. Its directory `.pi/artifacts/<slug>/` contains:
+Graph-backed commands use an explicit `.pi/artifacts/<slug>/` identity supplied by the caller. Missing, unsafe, or ambiguous slugs stop; no ambient file or previous command selects work.
 
 | File | Purpose | Maintained by |
 |---|---|---|
 | `spec.md` | Requirements, scope, and success criteria | `/create` |
-| `plan.md` | Explanatory task details and derived wave snapshots | `/plan` when needed |
+| `plan.md` | Optional boundary detail and derived wave snapshots | `/plan <slug>` when complex |
 | `tasks.json` | Authoritative persisted work graph and task status | `/create`, `/plan`, `/ship`, `/verify` |
-| `progress.md` | Attempt-scoped execution, review, verification, and blocker evidence | `/research`, `/ship`, `/verify` |
+| `progress.md` | Attempt-scoped execution, review, verification, and blocker evidence | `/ship`, `/verify` |
 
-Durable cross-feature knowledge belongs in project Hindsight. Automatically recalled Hindsight context is used first, and automatic Hindsight retain captures ordinary durable session deltas. Active attempt evidence remains in the active slug.
+Durable cross-feature knowledge belongs in project Hindsight. Automatically recalled Hindsight context is used first, and automatic Hindsight retain captures ordinary durable session deltas. Attempt evidence remains under its explicit slug.
 
-When `/research` has no demonstrably related active slug, it writes `.pi/artifacts/<research-slug>/research.md` without changing `.active`. This is a standalone report, not a fifth active-work artifact.
+`/research` is read-only by default. It persists only with `--save`, explicit user instruction, or a durable decision tied to an existing related artifact; it never creates lifecycle state merely to prove research occurred.
 
 ## Contract–Seam–Feedback Kernel
 
@@ -37,26 +37,54 @@ This is the sole named lifecycle authority. Define the observable contract befor
 | `progress.md` | Attempt evidence and advisory route decision |
 | Hindsight | Durable cross-feature memory |
 
+## Pattern Discovery and Promotion
+
+Use each evidence source for one question; none replaces another:
+
+| Source | Answers | Guard |
+|---|---|---|
+| Current source and tests | What exists and works now? | Authoritative; read entry points, contracts, dependents, and nearby tests |
+| Configured code graph | What relationships and impact may matter? | Scope to the exact repository, health-probe a known target symbol or path, verify against source, and fall back to `read`, `grep`, and `find` when unhealthy or ambiguous |
+| Project corpus | What reviewed implementation shape is worth imitating? | Run bounded `node --experimental-strip-types .pi/scripts/corpus.ts search .pi/corpus <intent>`; a curated exemplar is neither an impact map nor compatibility proof |
+| Inspo or upstream code | What might become a pattern? | Candidate evidence only until qualified |
+
+Promotion reuses the existing lifecycle and does not create a new workflow or artifact type. For any decision to adopt, adapt, import, or promote a pattern found through MCP, the corpus, inspo, or upstream source, load `complex-pattern-adoption`. Pattern adoption and promotion always use Complex delivery; a read-only lookup that makes no adoption decision may stop after evidence retrieval.
+
+1. **Discover** a named current problem; do not harvest code without a decision it supports.
+2. **Qualify** the candidate with its exact commit, license, and canonical or focused tests; record observed failures as well as passes.
+3. **Extract** the observable contract, justified seam and enabling point, real alternative, and smallest useful source and test pair. Adapt the invariant rather than importing an architecture.
+4. **Trial** it through Complex delivery with a failing public-boundary check and the smallest safe vertical slice.
+5. **Verify** observable success and controlled failure first; use gray-box evidence only for a named gap.
+6. **Promote** only to the narrowest durable level:
+
+| Proven value | Destination |
+|---|---|
+| Feature-specific implementation | Target source and tests only |
+| Durable decision and rationale | Project Hindsight |
+| Reusable reviewed exemplar | `.pi/corpus/<slug>/` with pinned origin and validation evidence |
+| Rule proven by two successful applications | One relevant skill or lifecycle authority; prompts reference it rather than restating it |
+
+Clean-looking code alone is not promotable, and a corpus entry never becomes target behavior without a current contract and verification.
+
 ## Slash Commands (Lifecycle Hooks)
 
-- `/create <idea>` — create the active slug and write `spec.md`. Loaded from `brainstorming` + `spec-driven-development`.
-- `/plan` — create or refine the active `plan.md`. Loaded from `planning-and-task-breakdown`.
-- `/ship` — execute the authoritative `tasks.json`, consult `plan.md` only as an explanatory view, and record `progress.md`; stop if plan and graph task IDs diverge. Loaded from `shipping-and-launch`.
-- `/verify` — run the evidence gate and append results to `progress.md`. Loaded from `verification-before-completion`.
-- `/research` — persist findings in related active `progress.md`, or create a standalone `research.md` when active work is missing or unrelated; feed the result into `/create` or `/plan`.
+- `/create <idea>` — derive a candidate slug, check that exact artifact, then create `.pi/artifacts/<slug>/spec.md` and `tasks.json`.
+- `/plan <slug>` — add optional implementation detail for complex work.
+- `/ship <slug>` — execute the authoritative graph and record attempt evidence; stop if plan and graph IDs diverge.
+- `/verify <slug|path|all>` — run evidence gates with or without a lifecycle artifact.
+- `/research <topic> [--save]` — answer in chat by default and feed durable decisions into `/create` or `/plan` when needed.
 
 ## Workflow
 
-```
-   /create  ──>  /plan  ──>  /ship  ──>  /verify
-      │            │           │           │
-   spec.md      plan.md     tasks.json   evidence
-   .active      waves       progress.md  progress.md
+```text
+Quick:    request ───────────────────────────────> verify
+Standard: create <slug> ─────────> ship <slug> ─> verify <slug>
+Complex:  create <slug> ─> plan <slug> ─> ship <slug> ─> verify <slug>
 ```
 
-**`/research` is sideways** — it feeds `/plan` or `/create`, not the linear path. These four canonical active-work files remain the complete lifecycle contract: `tasks.json` is authoritative, `plan.md` explains derived views, and `progress.md` stores evidence.
+**`/research` is sideways** — it feeds a decision into `/create` or `/plan`, not the linear path. `tasks.json` remains authoritative for graph-backed work, `plan.md` explains derived views, and `progress.md` stores attempt evidence.
 
-Feedback routes are advisory recommendations; record the route decision in `progress.md`.
+Feedback routes are advisory recommendations; for graph-backed work, record the route decision in `progress.md`.
 
 | Finding | Recommended route |
 |---|---|
@@ -65,17 +93,17 @@ Feedback routes are advisory recommendations; record the route decision in `prog
 | Architecture or design gap | `plan` |
 | Known implementation defect | `ship` |
 
-Selecting a route does not automatically invoke any command or phase; it never mutates `.active` or changes lifecycle state automatically.
+Selecting a route does not automatically invoke any command or phase, select a slug, or change lifecycle state.
 
 ## When to Use Each Phase
 
 | Phase | Trigger | Skip if |
 |---|---|---|
-| `/create` | New feature / product / PRD | Trivial one-liner |
-| `/plan` | Multi-file change, ambiguous spec | Single known file, clear spec |
-| `/ship` | Before merge / commit | No code change this session |
-| `/verify` | Before "done" claim, always | Never skip |
-| `/research` | Open-ended question, no answer path | The answer is in the code or docs already |
+| `/create` | Bounded feature needing a durable contract | Known low-risk Quick change |
+| `/plan` | Cross-boundary sequencing or unresolved design | Lite spec is executable as written |
+| `/ship` | Execute a selected graph-backed feature | Quick direct change |
+| `/verify` | Before every "done" claim | Never skip applicable evidence |
+| `/research` | A material unknown needs external/current evidence | Local code or existing docs answer it |
 
 ## Fabric Agent Routing
 
@@ -89,27 +117,27 @@ Direct parent work is the default. Route bounded task shapes through `agents.run
 | Small implementation | Surgical bounded edit | Inspect changes and test |
 | Architecture/plan | Advisory blueprint | Resolve decisions and own final plan |
 
-Keep dependencies foreground and sequential. For genuinely independent work, run at most three calls in one `Promise.all` wave and process overflow in sequential shards. Small read-only discovery or research should prefer `openai-codex/gpt-5.6-luna` with `thinking: "medium"` when available. The parent inspects child output and verifies all results.
+Keep dependencies foreground and sequential. For genuinely independent work, run at most three calls in one `Promise.all` wave and process overflow in sequential shards. Use configured model defaults unless a measured task need justifies an override. The parent inspects child output and verifies all results.
 
 ## Compact Handoff
 
-At a pause, session boundary, or child integration point, append a compact handoff to the active `progress.md`: current goal, completed commits, next dependency, blockers, changed files, and last verification evidence. If bounded shared context would exceed about 500 tokens, an optional `worker-context.md` may hold it; reference that path from `progress.md` and delete or refresh it when stale. It is not a fifth canonical artifact or a state database.
+For graph-backed work, a pause or child integration point may append a compact handoff to `<slug>/progress.md`: current goal, completed commits, next dependency, blockers, changed files, and last verification evidence. Keep it concise; do not create a separate state database for Quick work.
 
 ## Lifecycle Rules
-1. **No silent skipping** — if you skip a phase, name it in the response ("skipped /plan: single-file fix with clear spec"). This becomes the audit trail.
-2. **Resolve `.active` first** — all feature-specific reads and writes use `.pi/artifacts/$(cat .pi/artifacts/.active)/`. `/research` must verify topic relevance before using it and otherwise write a standalone report without changing `.active`.
-3. **`tasks.json` is the authoritative work graph** — `/create` emits version 2, `/plan` refines the same IDs, and displayed waves are derived snapshots only.
-4. **`progress.md` is the evidence log** — attempts, failures, reviews, and current-attempt verification evidence go there.
-5. **Hindsight is the durable memory authority** — use automatic recall first, bounded `hindsight_recall` or `hindsight_reflect` only for material gaps, automatic retain for ordinary session deltas, and `hindsight_retain` only for raw high-value content requiring immediate persistence.
-6. **`/verify` is non-negotiable** — every "done" claim cites evidence.
+1. **Choose the smallest mode** — Quick work does not need artifacts; name `/plan` omissions only when a graph-backed feature would reasonably require one.
+2. **Require an explicit slug** — graph-backed planning and execution stop when the caller does not supply a valid slug; scope is never inferred from ambient state.
+3. **`tasks.json` is authoritative when present** — `/create` emits version 2, `/plan` preserves IDs, and displayed waves are derived only.
+4. **`progress.md` is attempt evidence, not a diary** — record failures, reviews, and current verification; omit routine narration.
+5. **Hindsight is durable memory** — use automatic recall first, bounded `hindsight_recall` or `hindsight_reflect` only for material gaps, automatic retain for ordinary deltas, and `hindsight_retain` only for raw high-value content requiring immediate persistence.
+6. **Verification is non-negotiable** — every "done" claim cites applicable evidence.
 
 ## Red Flags
 
-- An active-feature command finds `.active` missing or pointing to a nonexistent slug; standalone `/research` is the exception.
-- `/research` attaches findings to an active slug without establishing topic relevance.
-- Commands read root-level `TODO.md`/`PLAN.md` while the active slug uses lowercase artifacts.
-- `progress.md` is empty after implementation or investigation.
-- "Done" claim without `/verify` evidence.
+- A graph-backed command proceeds without an explicitly supplied valid slug.
+- Ambient state, a previous command, or a child selects lifecycle scope.
+- `/research` writes an artifact without `--save`, explicit approval, or a durable related decision.
+- `progress.md` contains routine narration rather than attempt evidence.
+- A "done" claim lacks current applicable verification.
 
 ## Skill Result Contract
 
@@ -117,8 +145,8 @@ At a pause, session boundary, or child integration point, append a compact hando
 <skill_result>
   <skill>development-lifecycle</skill>
   <status>success|partial|blocked|failure</status>
-  <evidence>Phase(s) used named, artifact files updated, /verify evidence cited</evidence>
-  <artifacts>Active spec.md / plan.md / tasks.json / progress.md paths, or standalone research.md, touched</artifacts>
-  <risks>Skipped phases, stale entries, or none</risks>
+  <evidence>Selected mode, applicable phases, and current verification</evidence>
+  <artifacts>Explicit slug paths for graph-backed work, or none for Quick/read-only work</artifacts>
+  <risks>Skipped required gates, stale evidence, or none</risks>
 </skill_result>
 ```

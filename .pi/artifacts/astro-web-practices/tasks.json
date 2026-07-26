@@ -1,0 +1,117 @@
+{
+  "version": 2,
+  "slug": "astro-web-practices",
+  "title": "Astro Web Practices and Template Import",
+  "status": "complete",
+  "execution": {
+    "mode": "sequential",
+    "max_concurrent_agents": 1,
+    "reason": "Registration RED evidence precedes source copying, which precedes integrated verification."
+  },
+  "tasks": [
+    {
+      "id": "task-1",
+      "category": "qualification",
+      "title": "Qualify pinned Astro and pi.dev sources",
+      "description": "Record exact source identities, compatible licenses, inventory, and safety caveats before importing files.",
+      "status": "passed",
+      "passes": true,
+      "attempt": 1,
+      "evidence_refs": [
+        { "kind": "review", "ref": ".pi/artifacts/astro-web-practices/progress.md#source-qualification", "attempt": 1 }
+      ],
+      "depends_on": [],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [
+        ".pi/artifacts/astro-web-practices/spec.md",
+        ".pi/artifacts/astro-web-practices/plan.md",
+        ".pi/artifacts/astro-web-practices/progress.md"
+      ],
+      "acceptance_criteria": [
+        "Astro and pi.dev are pinned to exact 40-character commits with MIT license evidence.",
+        "The source inventory records seven skills and 24 examples.",
+        "Destructive instructions found in upstream maintainer references are documented as subordinate to Pi Core approval gates."
+      ],
+      "verification": [
+        "test \"$(git -C /home/ryanj/work/inspo/creative/web/astro rev-parse HEAD)\" = 0fc519de12d69088052b76e096a4adfdc789c30c",
+        "test \"$(git -C /home/ryanj/work/inspo/creative/web/pi-website rev-parse HEAD)\" = 2f5e410b97474d0a34ec2500aa1aa58d6c3f992c",
+        "test \"$(find /home/ryanj/work/inspo/creative/web/astro/.agents/skills -mindepth 1 -maxdepth 1 -type d | wc -l)\" -eq 7 && test \"$(find /home/ryanj/work/inspo/creative/web/astro/examples -mindepth 1 -maxdepth 1 -type d | wc -l)\" -eq 24"
+      ],
+      "expected_verification_state": "All identity and inventory checks exit zero; safety caveats remain explicit."
+    },
+    {
+      "id": "task-2",
+      "category": "skills-templates",
+      "title": "Copy Astro skills and duplicate the template library",
+      "description": "Create the eight skill directories and the pinned Astro example mirror without overwriting existing paths.",
+      "status": "passed",
+      "passes": true,
+      "attempt": 1,
+      "evidence_refs": [
+        { "kind": "test", "ref": ".pi/artifacts/astro-web-practices/progress.md#task-2-red-green", "attempt": 1 },
+        { "kind": "review", "ref": ".pi/artifacts/astro-web-practices/progress.md#task-2-copy-parity", "attempt": 1 }
+      ],
+      "depends_on": ["task-1"],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [
+        ".pi/skills/analyze-github-action-logs/",
+        ".pi/skills/astro-developer/",
+        ".pi/skills/astro-pr-writer/",
+        ".pi/skills/changeset/",
+        ".pi/skills/merge/",
+        ".pi/skills/triage/",
+        ".pi/skills/writing-comments/",
+        ".pi/skills/astro-web-practices/",
+        ".pi/templates/astro/",
+        ".pi/skills/manifest.json",
+        ".pi/tests/skill-system.test.ts"
+      ],
+      "acceptance_criteria": [
+        "All seven upstream skill source files are copied byte-for-byte and each copied skill includes the MIT license.",
+        "All 24 Astro examples are duplicated recursively under .pi/templates/astro/examples.",
+        "The Pi-native Astro skill includes example-selection, semantic HTML, CSS, hydration, accessibility, and verification guidance.",
+        "The registration test fails before target creation for the intended missing-path reason and passes afterward."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test --test-name-pattern=\"Astro upstream skills|manifest has exact bidirectional parity\" .pi/tests/skill-system.test.ts",
+        "diff -qr /home/ryanj/work/inspo/creative/web/astro/examples .pi/templates/astro/examples",
+        "git diff --check -- .pi/skills .pi/templates/astro .pi/tests/skill-system.test.ts"
+      ],
+      "expected_verification_state": "The expected RED failure is retained, then all focused checks and source parity checks pass."
+    },
+    {
+      "id": "task-3",
+      "category": "verification",
+      "title": "Verify Pi Core integration",
+      "description": "Run repository gates and review owned paths while preserving concurrent work.",
+      "status": "passed",
+      "passes": true,
+      "attempt": 1,
+      "evidence_refs": [
+        { "kind": "verification", "ref": ".pi/artifacts/astro-web-practices/progress.md#task-3-integration", "attempt": 1 },
+        { "kind": "review", "ref": ".pi/artifacts/astro-web-practices/progress.md#task-3-owned-path-review", "attempt": 1 }
+      ],
+      "depends_on": ["task-2"],
+      "parallel": false,
+      "conflicts_with": [],
+      "files": [
+        ".pi/artifacts/astro-web-practices/tasks.json",
+        ".pi/artifacts/astro-web-practices/progress.md"
+      ],
+      "acceptance_criteria": [
+        "Focused and full retained tests pass or any unrelated failure is reported without modification.",
+        "Doctor and every artifact task graph are checked.",
+        "Owned paths contain no deletion and no unrelated work is changed."
+      ],
+      "verification": [
+        "node --experimental-strip-types --test .pi/tests/*.test.ts",
+        "node --experimental-strip-types .pi/scripts/doctor.ts",
+        "for f in .pi/artifacts/*/tasks.json; do node --experimental-strip-types .pi/scripts/task-graph.ts validate \"$f\" >/dev/null || exit; done",
+        "git diff --check -- .pi/artifacts/astro-web-practices .pi/skills .pi/templates/astro .pi/tests/skill-system.test.ts"
+      ],
+      "expected_verification_state": "Applicable gates exit zero; unrelated dirty paths remain untouched and are not claimed as owned."
+    }
+  ]
+}

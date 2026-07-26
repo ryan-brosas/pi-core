@@ -1,6 +1,6 @@
 ---
 description: Research a topic before implementation
-argument-hint: "<topic> [--quick|--thorough]"
+argument-hint: "<topic> [--quick|--thorough] [--save] [--slug <slug>]"
 ---
 
 # Research: $ARGUMENTS
@@ -9,16 +9,8 @@ Gather information before implementation. Find answers, document findings, stop 
 
 > Research can happen at any phase when you need external information or codebase understanding.
 
-## Fabric Agent Routing
+Delegated research is advisory rather than source evidence; the parent verifies citations directly with configured source tools before synthesis.
 
-Use `agents.run({...})` inside `fabric_exec` only when delegation saves more context or time than it costs. Direct parent work is the default; there are no named project agent profiles.
-
-- Encode the task role, exact goal, context, non-goals, output contract, stop conditions, approval constraints, and verification in `task`.
-- Supply an explicit `tools` allowlist. Local discovery, planning, and review default to `["read", "grep", "find", "ls"]`. External research adds only the required configured network tools; add mutation tools only for approved implementation work.
-- Await one foreground `agents.run` when the next decision depends on its result.
-- For genuinely independent questions, issue at most three `agents.run` calls in one `Promise.all`; process overflow in sequential shards.
-- For small read-only discovery or research, prefer `model: "openai-codex/gpt-5.6-luna"` with `thinking: "medium"` when an explicit override is useful.
-- An `agents.run` lifecycle operation is not provider evidence. The parent directly invokes configured source tools to verify citations, resolves placeholders, inspects child output, synthesizes results, and runs verification itself.
 ## Complexity Detection
 
 Before starting, analyze the research topic complexity:
@@ -49,13 +41,20 @@ Before starting, analyze the research topic complexity:
 
 ## Artifact Destination
 
-Always persist completed research before the final response:
+Research is read-only by default and returns in chat. Persist it only when one of these conditions holds:
 
-1. Inspect `.pi/artifacts/.active` without assuming it is relevant.
-2. If the active slug is valid and demonstrably related to the research topic, append a dated `## Research: [topic]` section to `.pi/artifacts/<active-slug>/progress.md`.
-3. If `.active` is missing, invalid, or unrelated, derive a stable kebab-case slug from the topic, create `.pi/artifacts/<research-slug>/`, and write the report to `.pi/artifacts/<research-slug>/research.md`. If that file already contains research for the same topic, append a dated section instead of overwriting it. Do not change or overwrite `.pi/artifacts/.active`.
-4. When relevance is uncertain, use the standalone `research.md` path. Never attach research to an unrelated active feature.
-5. Cite the artifact path in the final response.
+1. The user supplied `--save` or explicitly requested a durable report.
+2. The user supplied `--slug <slug>` for an existing related feature whose durable decision record should receive the findings.
+3. The report is too large for a useful chat result and the user approved creating a file.
+
+When persistence is justified:
+
+- With an explicit `--slug <slug>`, verify that the feature exists, is incomplete, and is demonstrably related before appending a dated `## Research: [topic]` section to its `progress.md`.
+- Without `--slug`, derive a stable standalone slug and write `.pi/artifacts/<research-slug>/research.md`, after obtaining approval if this creates a new file.
+- Never infer feature ownership or artifact destination from ambient state, prior commands, or unrelated work.
+- Cite the artifact path in the final response.
+
+Do not create lifecycle artifacts merely to prove that research occurred.
 
 ## Workflow Execution (Complex Research)
 
@@ -70,7 +69,7 @@ If complexity is detected as complex:
    - `{question}` → the research topic from $ARGUMENTS
    - `{phase_N_output}` → actual output from completed phases
 4. **Aggregate results** between phases
-5. **Persist the final synthesis** using the Artifact Destination policy above
+5. **Persist only when required** by the Artifact Destination policy above
 
 **Announce:** "This is complex research requiring multi-angle analysis. Invoking deep-research workflow."
 
@@ -83,10 +82,12 @@ If complexity is simple, execute directly:
 | Argument         | Default  | Description                         |
 | ---------------- | -------- | ----------------------------------- |
 | Topic            | required | What to research                    |
-| `--quick`        | false    | ~10 tool calls, single question     |
-| `--thorough`     | false    | ~100+ calls, comprehensive analysis |
+| `--quick`        | false    | Up to 5 source calls for one bounded question |
+| `--thorough`     | false    | Up to 20 source calls across distinct unresolved questions |
+| `--save`         | false    | Persist a durable report using the Artifact Destination policy |
+| `--slug <slug>`  | none     | Explicitly selected related feature destination |
 
-Default depth: ~30 tool calls for moderate exploration.
+Default depth: up to 10 source calls. These are ceilings, not targets; stop as soon as the implementation decision has medium-or-higher-confidence evidence.
 
 ### Before You Research
 
@@ -94,7 +95,7 @@ Default depth: ~30 tool calls for moderate exploration.
 - **Don't over-research**: Stop when you have enough to proceed
 - **Use source priority**: Codebase → Docs → Source → GitHub → Web
 - **Verify confidence**: Medium+ confidence required before stopping
-- **Document findings**: Persist every completed report using the Artifact Destination policy above
+- **Document findings**: Return a concise cited synthesis; persist only under the Artifact Destination policy above
 
 ### Available Tools
 
@@ -108,7 +109,7 @@ Default depth: ~30 tool calls for moderate exploration.
 
 ### Phase 1: Load Context
 
-If `.pi/artifacts/.active` resolves to a valid, related slug, read its `spec.md` and extract questions that need answering. Ignore unrelated active work.
+If `--slug <slug>` was supplied, read only that exact artifact’s `spec.md` and extract questions that need answering after confirming relevance. Without `--slug`, no feature artifact is selected.
 
 #### Context Search (Required)
 
@@ -141,13 +142,13 @@ Use automatically recalled Hindsight project context first to skip answered ques
 ### Phase 3: Stop When
 
 - All questions answered with medium+ confidence
-- Tool budget exhausted for depth level
-- Last 5 tool calls yielded no new insights
+- The selected source-call ceiling is reached
+- The last 3 source calls yielded no decision-relevant evidence
 - Blocked and need human input
 
 ### Phase 4: Document
 
-Persist the report using the Artifact Destination policy above. Include:
+Produce the report in chat, or persist it when required by the Artifact Destination policy. Include:
 
 - Questions asked → answered/partial/unanswered with confidence
 - Key findings with sources (file paths, docs)
@@ -172,6 +173,6 @@ Report:
 | Need           | Command      |
 | -------------- | ------------ |
 | Create + start | `/create`    |
-| Plan details   | `/plan <id>` |
-| Pick up work   | `/ship <id>` |
+| Plan details   | `/plan <slug>` |
+| Pick up work   | `/ship <slug>` |
 | Audit codebase | `/audit`     |

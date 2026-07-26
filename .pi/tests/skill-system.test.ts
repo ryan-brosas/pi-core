@@ -123,13 +123,260 @@ test("delegation and handoff patterns are wired into existing local skills", () 
   assert.match(lifecycle, /progress\.md|worker-context\.md/);
 });
 
-test("research prompt always persists a research artifact", () => {
+test("verification discovers repository gates and never invents package commands", () => {
+  const protocol = readRequired(".pi/skills/verification-before-completion/references/VERIFICATION_PROTOCOL.md");
+  assert.match(protocol, /AGENTS\.md[\s\S]*(?:CI|workflow)[\s\S]*(?:manifest|script)/i);
+  assert.match(protocol, /not configured|unavailable[\s\S]{0,120}(?:N\/A|not applicable)/i);
+  assert.match(protocol, /node --experimental-strip-types --test \.pi\/tests\/\*\.test\.ts/);
+  assert.doesNotMatch(protocol, /\bnpm run\b|\bnpx\b|\bpnpm\b|\byarn\b/);
+
+  const verify = readRequired(".pi/prompts/verify.md");
+  assert.match(verify, /applicable[^\n]*repository-configured|repository-configured[^\n]*applicable/i);
+});
+
+test("create and plan establish exact local evidence in a valid order", () => {
+  const create = readRequired(".pi/prompts/create.md");
+  const skip = boundedTextBetween(create, /^\*\*If Skip:\*\*[ \t]*$/m, /^\*\*While independent Fabric runs execute\*\*/m, "create skip research");
+  assert.match(skip, /direct parent[^\n]*(?:read|inspect)[^\n]*exact source/i);
+  assert.match(skip, /affected paths|tests|impact map/i);
+
+  const validation = boundedTextBetween(create, /^## Phase 8: Validate PRD[ \t]*$/m, /^## Phase 9: Prepare Workspace[ \t]*$/m, "create validation");
+  assert.match(validation, /Full PRD[^\n]*Technical Context|Technical Context[^\n]*Full PRD/i);
+  assert.match(validation, /Lite PRD[^\n]*(?:omit|not applicable)|(?:omit|not applicable)[^\n]*Lite PRD/i);
+  assert.doesNotMatch(validation, /actual `?src\//i);
+
+  const plan = readRequired(".pi/prompts/plan.md");
+  const guardIndex = plan.indexOf("## Phase 1: Guards");
+  const assessmentIndex = plan.indexOf("## Phase 2: Discovery Assessment");
+  const discoveryDispatchIndex = plan.indexOf('name: "planning-local-evidence"');
+  assert.ok(guardIndex >= 0 && assessmentIndex > guardIndex, "guards must precede discovery assessment");
+  assert.ok(discoveryDispatchIndex > assessmentIndex, "local-discovery dispatch must follow guards and level selection");
+  assert.doesNotMatch(plan, /never force push main|Quality Bar: strong typing|Task modifying >3 files|--no-verify/i);
+});
+
+test("lifecycle separates impact discovery from evidence-gated pattern promotion", () => {
+  const lifecycle = readRequired(".pi/skills/development-lifecycle/SKILL.md");
+  const promotion = boundedTextBetween(
+    lifecycle,
+    /^## Pattern Discovery and Promotion[ \t]*$/m,
+    /^## Slash Commands \(Lifecycle Hooks\)[ \t]*$/m,
+    "pattern promotion",
+  );
+  assert.match(promotion, /code graph[^\n]*(?:impact|call|dependenc|relationship)/i);
+  assert.match(promotion, /known (?:target )?(?:symbol|path)[^\n]*(?:health|probe|resolve)/i);
+  assert.match(promotion, /fall back[^\n]*(?:read|grep|find)/i);
+  assert.match(promotion, /corpus[^\n]*curated[^\n]*(?:exemplar|pattern)/i);
+  assert.match(promotion, /corpus\.ts search|search[^\n]*\.pi\/corpus/i);
+  assert.match(promotion, /exact commit[^\n]*license[^\n]*(?:canonical|focused)[^\n]*tests?/i);
+  assert.match(promotion, /smallest[^\n]*source[^\n]*test[^\n]*pair/i);
+  assert.match(promotion, /feature-specific[^\n]*target source/i);
+  assert.match(promotion, /durable decision[^\n]*Hindsight/i);
+  assert.match(promotion, /reusable[^\n]*(?:exemplar|pattern)[^\n]*corpus/i);
+  assert.match(promotion, /two successful applications[^\n]*(?:skill|lifecycle)/i);
+  assert.match(promotion, /does not create[^\n]*new workflow|no new workflow/i);
+});
+
+test("MCP and corpus pattern adoption always uses the Complex on-demand skill", () => {
+  const skill = readRequired(".pi/skills/complex-pattern-adoption/SKILL.md");
+  assert.match(skill, /^name:\s*complex-pattern-adoption$/m);
+  assert.match(skill, /always[^\n]*Complex|Complex[^\n]*always/i);
+  assert.match(skill, /\/create[^\n]*\/plan[^\n]*\/ship[^\n]*\/verify|\/create[\s\S]{0,160}\/plan[\s\S]{0,160}\/ship[\s\S]{0,160}\/verify/i);
+  assert.match(skill, /explicit[^\n]*slug/i);
+  assert.match(skill, /code graph[^\n]*(?:health-probe|health probe)[^\n]*known[^\n]*(?:symbol|path)/i);
+  assert.match(skill, /verify[^\n]*graph[^\n]*current source|graph[^\n]*fall back[^\n]*(?:read|grep|find)/i);
+  assert.match(skill, /corpus\.ts validate[\s\S]{0,240}corpus\.ts stale[\s\S]{0,240}corpus\.ts search/i);
+  assert.match(skill, /MCP[^\n]*(?:transport|evidence)[^\n]*(?:not|never)[^\n]*(?:authority|proof|source of truth)/i);
+  assert.match(skill, /exact commit[^\n]*license[^\n]*(?:canonical|focused)[^\n]*tests?/i);
+  assert.match(skill, /record[^\n]*failures?[^\n]*passes?|passes?[^\n]*failures?/i);
+  assert.match(skill, /observable contract/i);
+  assert.match(skill, /seam[^\n]*enabling point[^\n]*(?:alternative|substitute)/i);
+  assert.match(skill, /black-box[^\n]*(?:first|before)|public boundary[^\n]*(?:first|before)/i);
+  assert.match(skill, /gray-box[^\n]*named[^\n]*(?:gap|consequence)/i);
+  assert.match(skill, /(?:do not|never)[^\n]*(?:auto-copy|copy automatically|automatic promotion)/i);
+  assert.match(skill, /parent[^\n]*(?:inspect|verify)|(?:inspect|verify)[^\n]*parent/i);
+
+  const lifecycle = readRequired(".pi/skills/development-lifecycle/SKILL.md");
+  const promotion = boundedTextBetween(
+    lifecycle,
+    /^## Pattern Discovery and Promotion[ \t]*$/m,
+    /^## Slash Commands \(Lifecycle Hooks\)[ \t]*$/m,
+    "pattern promotion",
+  );
+  assert.match(promotion, /complex-pattern-adoption/i);
+  assert.match(promotion, /(?:adoption|promotion)[^\n]*always[^\n]*Complex|always[^\n]*Complex[^\n]*(?:adoption|promotion)/i);
+});
+
+test("Mastra skill extracts clean source practices without canonizing template anomalies", () => {
+  const skill = readRequired(".pi/skills/mastra-development/SKILL.md");
+  assert.match(skill, /^name:\s*mastra-development$/m);
+  assert.doesNotMatch(skill, /\bportfolio\b/i, "the source-pattern skill must not be shaped around one consumer");
+  assert.match(skill, /https:\/\/github\.com\/mastra-ai\/template-chat-with-pdf/i);
+  assert.match(skill, /4b954b41350dcd8139d135abb677ab9ddfae4f6c/i);
+  assert.match(skill, /commit date[^\n]*2026-05-28/i);
+  assert.match(skill, /observed source surface[^\n]*one registration root[^\n]*one agent[^\n]*two tools[^\n]*one vector[- ]store module[^\n]*one three[- ]step workflow/i);
+  assert.match(skill, /(?:package declaration|package metadata)[^\n]*Apache-2\.0/i);
+  assert.match(skill, /standalone template[^\n]*(?:not|isn['’]t)[^\n]*(?:full )?Mastra (?:repository|monorepo)/i);
+
+  const sourceQualification = boundedTextBetween(
+    skill,
+    /^## Source Qualification[ \t]*$/m,
+    /^## Clean-Code Kernel[ \t]*$/m,
+    "Mastra source qualification",
+  );
+  assert.match(sourceQualification, /canonical repository:[^\n]*`https:\/\/github\.com\/mastra-ai\/mastra`/i);
+  assert.match(sourceQualification, /canonical byte-matched (?:merge )?commit:[^\n]*`fb88481957c029167092cef2c47eeaffeb411ce7`/i);
+  assert.match(sourceQualification, /canonical root `LICENSE\.md`[^\n]*raw-byte SHA-256[^\n]*`2b16edbc165d42dee8248296cb22979a26930fad9efaef4ebe263698a416c19c`/i);
+  assert.match(sourceQualification, /outside[^\n]*`ee\/`[^\n]*Apache-2\.0[^\n]*`templates\/`[^\n]*(?:covered|applies|scope)/i);
+  assert.match(skill, /source reading[^\n]*MCP graph (?:resolution|evidence)[^\n]*prove structure[^\n]*(?:not|never)[^\n]*runtime compatibility[^\n]*(?:or|and)[^\n]*correctness/i);
+  assert.match(skill, /MCP[^\n]*(?:health-probe|health probe)[^\n]*known[^\n]*(?:symbol|path)/i);
+  assert.match(skill, /official[^\n]*(?:docs|source)[^\n]*(?:installed|exact|version)/i);
+  assert.match(skill, /(?:never|do not)[^\n]*claim[^\n]*uninstalled template(?: itself)?[^\n]*passed/i);
+
+  for (const heading of [
+    "## Source Qualification",
+    "## Clean-Code Kernel",
+    "## Recommended Module Shape",
+    "## Composition Root",
+    "## Agent Modules",
+    "## Tool Modules",
+    "## Workflow Modules",
+    "## Shared Infrastructure",
+    "## RAG Data Contracts",
+    "## Error Design",
+    "## Testing Strategy",
+    "## Template Strengths",
+    "## Template Anomalies",
+    "## Adoption Checklist",
+    "## Corpus Rule",
+  ]) {
+    assert.ok(skill.includes(`\n${heading}\n`), `missing detailed section: ${heading}`);
+  }
+
+  assert.match(skill, /(?:small|focused)[^\n]*modules?[^\n]*(?:one|single)[^\n]*(?:responsibility|reason to change)/i);
+  assert.match(skill, /composition root[\s\S]{0,320}agents[\s\S]{0,120}workflows[\s\S]{0,120}vectors[\s\S]{0,120}storage[\s\S]{0,120}logger/i);
+  assert.match(skill, /createTool[^\n]*(?:inputSchema|Zod)/i);
+  assert.match(skill, /createStep[\s\S]{0,240}inputSchema[\s\S]{0,180}outputSchema/i);
+  assert.match(skill, /createWorkflow[\s\S]{0,240}inputSchema[\s\S]{0,180}outputSchema/i);
+  assert.match(skill, /\.then\([^\n]*\)[^\n]*(?:pipeline|flow|order)|(?:pipeline|flow|order)[^\n]*\.then\(/i);
+  assert.match(skill, /stable[^\n]*(?:id|identifier)[^\n]*description/i);
+  assert.match(skill, /shared[^\n]*vector store[^\n]*(?:index name|index constant)|(?:index name|index constant)[^\n]*shared[^\n]*vector store/i);
+  assert.match(skill, /documentId[^\n]*documentTitle[^\n]*(?:url|source)[^\n]*pageNumber[^\n]*totalPages/i);
+  assert.match(skill, /HACK[^\n]*(?:limitation|tradeoff)[\s\S]{0,240}(?:production alternative|cleaner approach)/i);
+  assert.match(skill, /pure[^\n]*(?:helper|core|function)/i);
+  assert.match(skill, /(?:do not|never)[^\n]*(?:abstract|abstraction|seam)[^\n]*(?:variance|second implementation|alternative)/i);
+  assert.match(skill, /(?:do not|never)[^\n]*(?:copy|import)[^\n]*entire[^\n]*(?:repo|template)/i);
+
+  const anomalies = /["'`]latest["'`][\s\S]*no lockfile[\s\S]*no retained tests[\s\S]*no LICENSE file[\s\S]*swallow[^\n]*errors?[\s\S]*\bany\b[\s\S]*(?:SSRF|arbitrary URL)[\s\S]*random[\s\S]*hard-coded model[\s\S]*similarity search[^\n]*registry[\s\S]*delete[^\n]*before[^\n]*upsert[\s\S]*(?:base64|document ID)/i;
+  assert.match(skill, anomalies);
+  assert.match(skill, /documentId[^\n]*optional[^\n]*schema[^\n]*instructions[^\n]*(?:mandatory|required)/i);
+  assert.match(skill, /page ranges?[^\n]*(?:positive[^\n]*ordered|ordered[^\n]*positive)[^\n]*bounds?/i);
+  assert.match(skill, /local[^\n]*file-backed storage[^\n]*development[^\n]*(?:not|production)/i);
+  assert.match(skill, /agent instruction[^\n]*(?:large|long)[^\n]*behavior tests[^\n]*decomposition/i);
+  assert.match(skill, /corpus[^\n]*(?:only|after)[^\n]*(?:target|application)[^\n]*(?:passes|verified|works)/i);
+});
+
+test("shipping requires behavior-first evidence and fixes only owned paths", () => {
+  const ship = readRequired(".pi/prompts/ship.md");
+  assert.match(ship, /read\("\.pi\/skills\/test-driven-development\/SKILL\.md"\)/);
+  assert.match(ship, /black-box acceptance/i);
+  assert.match(ship, /observable[^\n]*(?:success|acceptance)[^\n]*(?:controlled failure|error)|controlled failure[^\n]*observable/i);
+  assert.doesNotMatch(ship, /Goal-Backward Verification \(if plan\.md exists\)/);
+  assert.match(ship, /classif[^\n]*(?:owned|unrelated|runtime)[\s\S]{0,220}(?:tracked and untracked|tracked[^\n]*untracked)/i);
+  assert.match(ship, /only[^\n]*owned[^\n]*(?:auto-fix|modifying|fix)/i);
+  assert.match(ship, /unrelated[^\n]*(?:read-only|report)[^\n]*(?:do not|never)[^\n]*(?:fix|modify)/i);
+  assert.doesNotMatch(ship, /review-state\.json/i, "iterative review state must remain parent-owned unless a new file is approved");
+  const iterativeReview = boundedTextBetween(ship, /^### Iterative Quality Loop Mode[ \t]*$/m, /^### Goal-Backward Verification[ \t]*$/m, "iterative review loop");
+  assert.match(iterativeReview, /loop state[^\n]*parent memory|parent-owned in-memory loop state/i);
+  assert.match(iterativeReview, /do not create a state file[^\n]*separately approves[^\n]*exact new path/i);
+  assert.match(iterativeReview, /VERIFY \+ RE-REVIEW[^\n]*parent-owned in-memory loop state/i);
+  assert.doesNotMatch(iterativeReview, /(?:cat|write|create)[^\n]*review[- ]state[^\n]*\.(?:json|md|yaml)/i);
+  assert.match(ship, /append[^\n]*(?:task state|evidence)[^\n]*(?:before|independent|whether or not)[^\n]*(?:commit|integration)|(?:commit|integration)[^\n]*optional[^\n]*(?:task state|evidence)/i);
+
+  const verify = readRequired(".pi/prompts/verify.md");
+  assert.match(verify, /slug mode[^\n]*progress\.md/i);
+  assert.match(verify, /path\/all mode[^\n]*(?:chat|report)[^\n]*(?:never|do not)[^\n]*(?:create|write)[^\n]*lifecycle artifact/i);
+
+  const protocol = readRequired(".pi/skills/verification-before-completion/references/VERIFICATION_PROTOCOL.md");
+  for (const [label, text] of [["ship", ship], ["verification protocol", protocol]] as const) {
+    assert.doesNotMatch(text, /HEAD~1/, `${label}: never guess the review base`);
+    assert.match(text, /primary[^\n]*(?:branch|ref)[\s\S]{0,180}merge-base|merge-base[\s\S]{0,180}primary[^\n]*(?:branch|ref)/i, `${label}: resolve a verified primary-branch merge base`);
+    assert.match(text, /git rev-parse --verify "\$PRIMARY_REF"[\s\S]{0,180}git merge-base "\$PRIMARY_REF" HEAD/i, `${label}: verify the declared ref before computing the merge base`);
+  }
+
+  const readme = readRequired("README.md");
+  assert.match(readme, /impact map[^\n]*(?:when useful|optional|when needed)|(?:when useful|optional|when needed)[^\n]*impact map/i);
+  assert.match(readme, /optional code graph|code graph[^\n]*optional/i);
+  assert.match(readme, /(?:preserve|add|create|select)[^\n]*seam[^\n]*(?:only|justified)|seam[^\n]*(?:only|justified)/i);
+  assert.match(readme, /gray-box[^\n]*only[^\n]*named[^\n]*(?:gap|evidence)/i);
+
+  const tdd = boundedTextBetween(ship, /^### TDD Execution Flow[ \t]*$/m, /^### Task Commit Protocol[ \t]*$/m, "ship TDD flow");
+  assert.doesNotMatch(tdd, /where practical|When task specifies TDD/i);
+  assert.doesNotMatch(tdd, /^\s*\d+\. Commit:/m, "TDD evidence must not imply Git approval");
+
+  const fix = readRequired(".pi/prompts/fix.md");
+  assert.match(fix, /test-driven-development\/SKILL\.md/);
+  assert.match(fix, /failing observable regression test|observable regression test[^\n]*fail/i);
+});
+
+test("audit completeness is reconciled by the parent", () => {
+  const prompt = readRequired(".pi/prompts/audit.md");
+  const workflow = readRequired(".pi/workflows/audit-pattern.md");
+  for (const [label, text] of [["audit prompt", prompt], ["audit workflow", workflow]] as const) {
+    assert.match(text, /parent[^\n]*(?:rerun|repeat)[^\n]*(?:exact|local)[^\n]*(?:search|grep)/i, label);
+    assert.match(text, /reconcile[^\n]*(?:count|occurrence|match)/i, label);
+    assert.match(text, /(?:cannot|do not|must not) claim[^\n]*(?:all|exhaustive|complete)/i, label);
+    assert.doesNotMatch(text, /csearch/i, label);
+  }
+});
+
+test("subagent handoffs use an explicit slug and approval-gated files", () => {
+  const skill = readRequired(".pi/skills/subagent-driven-development/SKILL.md");
+  assert.match(skill, /explicitly resolved[^\n]*\.pi\/artifacts\/<slug>\/(?:tasks\.json|progress\.md)/i);
+  assert.doesNotMatch(skill, /explicitly active|active `worker-context\.md`|active `progress\.md`/i);
+  assert.match(skill, /worker-context\.md[^\n]*explicit[^\n]*approval|explicit[^\n]*approval[^\n]*worker-context\.md/i);
+  assert.match(skill, /approval[^\n]*(?:absent|not granted)[^\n]*inline|inline[^\n]*approval/i);
+});
+
+test("research is read-only by default and persists only to an explicit destination", () => {
   const research = readRequired(".pi/prompts/research.md");
-  assert.match(research, /always persist/i);
-  assert.match(research, /active slug[^\n]*(demonstrably related|matches)[^\n]*progress\.md/i);
-  assert.match(research, /(missing|invalid|unrelated)[\s\S]*derive[^\n]*slug[\s\S]*research\.md/i);
-  assert.match(research, /do not (change|overwrite)[^\n]*\.active/i);
-  assert.doesNotMatch(research, /otherwise return the report directly without writing an artifact/i);
+  assert.match(research, /read-only by default/i);
+  assert.match(research, /--save|explicitly requested a durable report/i);
+  assert.match(research, /--slug[^\n]*(?:explicit|selected)|(?:explicit|selected)[^\n]*--slug/i);
+  assert.match(research, /explicit[^\n]*slug[^\n]*demonstrably related[^\n]*progress\.md/i);
+  assert.match(research, /without[^\n]*(?:--slug|feature slug)[^\n]*standalone[^\n]*research\.md/i);
+  assert.match(research, /never[^\n]*infer[^\n]*(?:feature|artifact)[^\n]*(?:ownership|destination)/i);
+  assert.match(research, /do not create lifecycle artifacts merely/i);
+  assert.doesNotMatch(research, /always persist/i);
+});
+
+test("graph-backed commands require explicit slugs and no ambient selection pointer", () => {
+  const plan = readRequired(".pi/prompts/plan.md");
+  const ship = readRequired(".pi/prompts/ship.md");
+  assert.match(plan, /^argument-hint:\s*"<slug>"$/m);
+  assert.match(ship, /^argument-hint:\s*"<slug>"$/m);
+  assert.match(plan, /missing[^\n]*slug[^\n]*stop|slug[^\n]*required/i);
+  assert.match(ship, /missing[^\n]*slug[^\n]*stop|slug[^\n]*required/i);
+
+  const liveSurfaces = [
+    "AGENTS.md",
+    ".pi/agent-tool-description.md",
+    ".pi/prompts/create.md",
+    ".pi/prompts/plan.md",
+    ".pi/prompts/research.md",
+    ".pi/prompts/ship.md",
+    ".pi/prompts/verify.md",
+    ".pi/skills/development-lifecycle/SKILL.md",
+    ".pi/skills/subagent-driven-development/SKILL.md",
+    ".pi/workflows/batch-implement.md",
+    ".pi/workflows/development-lifecycle-workflow.md",
+    "README.md",
+  ];
+  for (const path of liveSurfaces) {
+    assert.doesNotMatch(readRequired(path), /(?:\.pi\/artifacts\/)?\.active\b/i, path);
+  }
+  const retiredPointer = [".pi", "artifacts", ".active"].join("/");
+  assert.equal(existsSync(retiredPointer), false, "retired ambient selection pointer must remain absent");
+  assert.doesNotMatch(readRequired(".gitignore"), /artifacts\/\.active/i);
 });
 
 test("init policy synthesis preserves evidence and existing content", () => {
@@ -145,6 +392,18 @@ test("init policy synthesis preserves evidence and existing content", () => {
   assert.match(init, /cancel[\s\S]*no target file/i);
   assert.match(init, /new AGENTS\.md[\s\S]*150 lines/i);
   assert.match(init, /existing file[\s\S]*preserve[\s\S]*minimize[\s\S]*exception[\s\S]*(never|do not) trunca/i);
+});
+
+test("init refresh keeps the private Pi template local in new target projects", () => {
+  const init = readRequired(".pi/prompts/init.md");
+  assert.match(init, /^argument-hint:[^\n]*--refresh/m);
+  assert.match(init, /\| `--refresh` \| false \|[^\n]*new target project[^\n]*(?:private|proprietary)[^\n]*\.pi/i);
+  assert.match(init, /git ls-files -- \.pi/);
+  assert.match(init, /if (?:no|zero) `\.pi` paths are tracked[\s\S]{0,320}(?:append|add) `\/\.pi\/`/i);
+  assert.match(init, /if any `\.pi` path is tracked[\s\S]{0,320}(?:stop|do not modify)[^\n]*\.gitignore/i);
+  assert.match(init, /preserv[^\n]*existing[^\n]*(?:content|entries)/i);
+  assert.match(init, /prevent[^\n]*accidental[^\n]*Git[\s\S]{0,220}(?:not|does not)[^\n]*(?:security boundary|force-add|copied)/i);
+  assert.doesNotMatch(readRequired(".gitignore"), /^(?:\/?\.pi\/?)$/m);
 });
 
 test("init policy safety requires fresh Git approval", () => {
@@ -171,7 +430,11 @@ test("graph producers use one canonical task graph", () => {
   assert.match(plan, /derived[^\n]*wave/i);
   assert.match(plan, /(task id|task IDs)[^\n]*diverg/i);
   assert.match(lifecycle, /tasks\.json[^\n]*authoritative/i);
-  assert.match(lifecycle, /four canonical/i);
+  assert.match(lifecycle, /explicit[^\n]*\.pi\/artifacts\/<slug>/i);
+  assert.match(lifecycle, /Quick work does not need artifacts/i);
+  for (const artifact of ["spec.md", "plan.md", "tasks.json", "progress.md"]) {
+    assert.match(lifecycle, new RegExp(artifact.replace(".", "\\.")), artifact);
+  }
 });
 
 test("graph producers emit executable task contracts", () => {
@@ -292,7 +555,17 @@ test("ship executes a validated dynamic frontier", () => {
   assert.match(batch, /parent-selected[^\n]*ready[^\n]*shard/i);
   assert.match(batch, /rerun[^\n]*(validate|frontier)/i);
   assert.match(delegation, /validated[^\n]*ready[^\n]*shard/i);
-  assert.match(delegation, /(?:must not|forbid)[^\n]*(schedule|\.active)/i);
+  assert.match(delegation, /(?:must not|forbid)[^\n]*schedule[^\n]*(?:select|lifecycle)|(?:must not|forbid)[^\n]*(?:select|lifecycle)[^\n]*schedule/i);
+});
+
+test("ship reviews the complete worktree rather than committed HEAD only", () => {
+  const ship = readRequired(".pi/prompts/ship.md");
+  assert.match(ship, /current worktree relative to `?BASE_SHA`?/i);
+  assert.match(ship, /git diff --name-only "\$BASE_SHA" --/);
+  assert.match(ship, /git ls-files --others --exclude-standard/);
+  assert.match(ship, /including (?:both )?tracked and untracked|tracked and untracked/i);
+  assert.doesNotMatch(ship, /git diff --name-only \$BASE_SHA\.\.\.HEAD/);
+  assert.doesNotMatch(ship, /Diff:\s*\{BASE_SHA\}\.\.\.\{HEAD_SHA\}/);
 });
 
 test("graph state is evidence-linked and selectively invalidated", () => {
@@ -308,15 +581,7 @@ test("graph state is evidence-linked and selectively invalidated", () => {
   assert.match(combined, /revalidate[^\n]*(recompute|frontier)/i);
 });
 
-function fanoutLabel(path: string): string {
-  const parts = path.split("/");
-  const name = parts.at(-1)?.replace(/\.md$/, "") ?? path;
-  if (path.includes("/prompts/")) return `${name} prompt`;
-  if (path.includes("/workflows/")) return `${name} workflow`;
-  return `${parts.at(-2) ?? name} skill`;
-}
-
-const dispatchNouns = "(?:agents?|subagents?|reviewers?|workers?|scouts?|(?:pi-)?subagents?\\s+calls?|(?:agent|review|worker|scout)[\\w-]*\\s+calls?)";
+const dispatchNouns = "(?:agents?|subagents?|reviewers?|workers?|scouts?|fabric\\s+(?:runs?|calls?)|(?:pi-)?subagents?\\s+calls?|(?:agent|review|worker|scout)[\\w-]*\\s+calls?)";
 const spelledAboveThree = "(?:four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|(?:(?:twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety)(?:[-\\s](?:one|two|three|four|five|six|seven|eight|nine))?)|hundred)";
 const numericDispatchCount = new RegExp(`\\b(\\d+)\\b(?:\\s+(?!\\d+\\b)[\\w-]+){0,2}\\s+${dispatchNouns}\\b`, "ig");
 const spelledDispatchCount = new RegExp(`\\b${spelledAboveThree}\\b(?:\\s+[\\w-]+){0,2}\\s+${dispatchNouns}\\b`, "i");
@@ -341,6 +606,8 @@ test("fan-out detector rejects every explicit agent count above three", () => {
   assert.deepEqual(explicitDispatchCountErrors("Dispatch fifteen review agents."), ["Dispatch fifteen review agents."]);
   assert.deepEqual(explicitDispatchCountErrors("Dispatch twenty-one agents."), ["Dispatch twenty-one agents."]);
   assert.deepEqual(explicitDispatchCountErrors("Issue 5 pi-subagents calls."), ["Issue 5 pi-subagents calls."]);
+  assert.deepEqual(explicitDispatchCountErrors("Issue 5 Fabric runs."), ["Issue 5 Fabric runs."]);
+  assert.deepEqual(explicitDispatchCountErrors("Dispatch five Fabric calls."), ["Dispatch five Fabric calls."]);
   assert.deepEqual(explicitDispatchCountErrors("Use 3 scouts initially, then spawn 11 scouts together."), ["Use 3 scouts initially, then spawn 11 scouts together."]);
   assert.deepEqual(explicitDispatchCountErrors("Use between 3 and 11 agents."), ["Use between 3 and 11 agents."]);
   assert.deepEqual(explicitDispatchCountErrors("- **Concurrency:** Dynamic (one shard per agent, min 1, max 15)"), ["- **Concurrency:** Dynamic (one shard per agent, min 1, max 15)"]);
@@ -383,27 +650,26 @@ test("init policy scaffold carries universal gates without project assumptions",
   assert.doesNotMatch(scaffold, /bun|node\.js|main branch|primary branch|npm|pnpm|yarn|lockfile|verify command|AGENTS\.md path|fallow|beads|mcp agent mail|\bbv\b|\bubs\b|\brch\b|\bdcg\b|\bmorph\b/i);
 });
 
-for (const path of orchestrationSurfaces) {
-  test(`${fanoutLabel(path)} fan-out stays within one-to-three agents`, () => {
-    const text = read(path);
-    const errors = explicitDispatchCountErrors(text);
-    if (!/(at most three|max(?:imum)?\s*[:=]?\s*3|one to three|one-to-three|1–3|1-3)/i.test(text)) {
-      errors.push("missing explicit max-three wave policy");
-    }
-    if (!/sequential[^\n]{0,80}shard|shard[^\n]{0,80}sequential/i.test(text)) {
-      errors.push("missing sequential sharding for overflow");
-    }
-    assert.deepEqual(errors, [], path);
-  });
-}
+test("Fabric routing is centrally bounded while dispatch surfaces keep local contracts", () => {
+  const policy = readRequired(".pi/agent-tool-description.md");
+  assert.match(policy, /direct execution[^\n]*default|direct[^\n]*default/i);
+  assert.match(policy, /at most three|max(?:imum)?[^\n]*3|one-to-three|1–3/i);
+  assert.match(policy, /sequential[^\n]*shard|shard[^\n]*sequential/i);
+  assert.match(policy, /parent[^\n]*(?:inspect|verif)|(?:inspect|verif)[^\n]*parent/i);
 
-test("Fabric coordination remains direct-first and parent-verified", () => {
+  const fabric = JSON.parse(readRequired(".pi/fabric.json")) as { agents?: { maxConcurrent?: number } };
+  assert.ok(Number.isInteger(fabric.agents?.maxConcurrent));
+  assert.ok((fabric.agents?.maxConcurrent ?? 0) >= 1 && (fabric.agents?.maxConcurrent ?? 0) <= 3);
+
   for (const path of orchestrationSurfaces) {
     const text = read(path);
-    assert.match(text, /fabric_exec/i, path);
-    assert.match(text, /agents\.run/i, path);
+    assert.deepEqual(explicitDispatchCountErrors(text), [], path);
+    if (/agents\.run/i.test(text)) assert.match(text, /fabric_exec/i, path);
     assert.doesNotMatch(text, /pi-subagents|subagent_type|\bAgent\s*\(/i, path);
-    assert.match(text, /parent[^\n]*(inspect|synthesi|verif)|(?:inspect|synthesi|verif)[^\n]*parent/i, path);
+  }
+
+  for (const path of orchestrationSurfaces.filter((value) => value.startsWith(".pi/prompts/"))) {
+    assert.doesNotMatch(read(path), /^## Fabric Agent Routing[ \t]*$/m, path);
   }
 });
 
@@ -457,7 +723,7 @@ test("ship honors project approval gates", () => {
     assert.match(text, /branch[^\n]*worktree|worktree[^\n]*branch/i, path);
     assert.match(text, /commit[^\n]*(?:merge|integrat)|(?:merge|integrat)[^\n]*commit/i, path);
     assert.match(text, /dependenc[^\n]*new file|new file[^\n]*dependenc/i, path);
-    assert.match(text, /\.active|active artifact/i, path);
+    assert.match(text, /lifecycle (?:identity|state)|artifact selection/i, path);
   }
   assert.doesNotMatch(ship, /Set up the workspace: create branch, install deps if needed/i);
   assert.doesNotMatch(ship, /Commit before close[^\n]*required/i);
@@ -465,7 +731,7 @@ test("ship honors project approval gates", () => {
 
 test("planning advisory uses one foreground Fabric run", () => {
   const planPrompt = readRequired(".pi/prompts/plan.md");
-  const heading = "### Planning Worker Routing";
+  const heading = "## Planning Worker Routing";
   const start = planPrompt.indexOf(heading);
   assert.notEqual(start, -1, "missing planning worker routing section");
   const rest = planPrompt.slice(start + heading.length);
@@ -515,8 +781,8 @@ test("plan prompt keeps canonical and lifecycle writes parent-owned", () => {
   assert.match(planPrompt, /unrelated (?:extra )?files?[^\n]*explicit approval/i);
 
   const handoff = section("## Phase 9: Handoff to `/ship`");
-  assert.match(handoff, /`\.active` remains unchanged/i);
-  assert.match(handoff, /exceptional[^\n]*parent-owned[^\n]*explicit approval/i);
+  assert.match(handoff, /explicitly selected slug[^\n]*`?\/ship/i);
+  assert.match(handoff, /no ambient[^\n]*(?:pointer|selection)/i);
   assert.doesNotMatch(handoff, /those are `?\/ship`? responsibilities/i);
 });
 
@@ -579,7 +845,7 @@ test("plan writer boundary keeps canonical plan.md and tasks.json parent-owned",
     /never hand(?:ed)?[^\n]*planning advisory[^\n]*(?:render|write)[^\n]*(?:`?plan\.md`?[^\n]*`?tasks\.json`?|`?tasks\.json`?[^\n]*`?plan\.md`?)/i,
     "planning advisory output must never be handed to a child to write canonical plan.md or tasks.json",
   );
-  const routingStart = planPrompt.indexOf("### Planning Worker Routing");
+  const routingStart = planPrompt.indexOf("## Planning Worker Routing");
   const routingEnd = planPrompt.indexOf("\n## ", routingStart);
   const routing = planPrompt.slice(routingStart, routingEnd === -1 ? undefined : routingEnd);
   assert.doesNotMatch(routing, /"edit"|"write"|worktree:\s*true/i, "planning advisory must remain read-only");
@@ -616,7 +882,7 @@ test("ship primary worker dispatches one foreground Fabric run", () => {
   assert.ok(guardIndex < section.indexOf("```"), "unresolved-decision guard must occur before the dispatch code fence");
 });
 
-test("planning boundaries and testability contract is conditional", () => {
+test("planning keeps boundary design conditional and gray-box evidence independently justified", () => {
   const fencedTemplate = (document: string, heading: string, opener: string, closer: string): string => {
     const sectionStart = document.indexOf(heading);
     assert.notEqual(sectionStart, -1, `missing template section: ${heading}`);
@@ -628,30 +894,21 @@ test("planning boundaries and testability contract is conditional", () => {
   };
 
   const surfaces = {
-    "plan prompt": {
-      text: fencedTemplate(readRequired(".pi/prompts/plan.md"), "### Required Plan Header", "````markdown", "````"),
-      heading: /^### Boundaries and Testability \(conditional\)$/m,
-    },
-    "planning skill": {
-      text: fencedTemplate(readRequired(".pi/skills/planning-and-task-breakdown/SKILL.md"), "## Plan Template", "```", "```"),
-      heading: /^## Boundaries and Testability \(conditional\)$/m,
-    },
+    "plan prompt": fencedTemplate(readRequired(".pi/prompts/plan.md"), "### Required Plan Header", "````markdown", "````"),
+    "planning skill": fencedTemplate(readRequired(".pi/skills/planning-and-task-breakdown/SKILL.md"), "## Plan Template", "```", "```"),
   };
 
-  for (const [label, { text, heading }] of Object.entries(surfaces)) {
-    assert.equal((text.match(/Boundaries and Testability/g) ?? []).length, 1, `${label} must contain the section exactly once`);
-    assert.match(text, heading, `${label} must use its template-level heading`);
-    assert.match(
-      text,
-      /only when[^\n]*introduces or changes[^\n]*module boundary[^\n]*omit it otherwise/i,
-      `${label} must make the section conditional`,
-    );
-    assert.match(text, /black-box and gray-box are verification perspectives, not module-design categories/i);
+  for (const [label, text] of Object.entries(surfaces)) {
+    assert.match(text, /Boundary Design \(conditional\)/, `${label}: missing conditional boundary design`);
+    assert.match(text, /only when[^\n]*introduces or changes[^\n]*module boundary[^\n]*omit it otherwise/i);
     assert.match(text, /substitution need/i);
     assert.match(text, /enabling point/i);
     assert.match(text, /real alternative implementation/i);
     assert.match(text, /if any[^\n]*missing[^\n]*(?:do not|must not) add[^\n]*seam/i);
-    assert.match(text, /gray-box exceptions?/i);
+
+    assert.match(text, /Gray-Box Evidence \(conditional\)/, `${label}: missing independently conditional gray-box evidence`);
+    assert.match(text, /named[^\n]*evidence gap/i);
+    assert.match(text, /independent[^\n]*module boundary|whether or not[^\n]*module boundary/i);
     assert.match(text, /internal knowledge/i);
     assert.match(text, /why externally observable behavior is insufficient/i);
     assert.match(text, /gray-box knowledge does not justify mocking internals/i);
@@ -923,10 +1180,10 @@ const feedbackRouteMarkerGroups: readonly SemanticMarkerGroup[] = [
     ],
   ],
   [
-    "route does not mutate the active pointer",
+    "route does not select lifecycle scope",
     [
-      /(?:does not|must not|never)[^\n]{0,120}(?:mutate|change)[^\n]{0,60}\.active/i,
-      /\.active[^\n]{0,60}(?:is not|must not be|is never)[^\n]{0,80}(?:mutated|changed)/i,
+      /(?:does not|must not|never)[^\n]{0,120}(?:select|choose)[^\n]{0,80}(?:slug|artifact|work)/i,
+      /(?:slug|artifact|work)[^\n]{0,80}(?:is not|is never|does not)[^\n]{0,80}(?:selected|chosen)/i,
     ],
   ],
 ];
@@ -1141,10 +1398,10 @@ test("delivery phases select observable and consequence-based evidence", () => {
     ["smallest safe vertical slice", [/smallest safe[\s\S]{0,80}(?:vertical|end-to-end)[\s\S]{0,40}(?:slice|behavior)/i]],
     ["failing observable boundary evidence", [/failing[\s\S]{0,80}observable boundary (?:test|evidence|behavior)/i]],
     [
-      "observable boundary evidence comes first where practical",
+      "observable boundary test is mandatory for behavior changes",
       [
-        /observable boundary (?:test|evidence|behavior)[^\n]{0,100}first[^\n]{0,80}(?:where|when) practical/i,
-        /(?:where|when) practical[^\n]{0,80}observable boundary (?:test|evidence|behavior)[^\n]{0,80}first/i,
+        /behavior-changing[^\n]{0,120}(?:must|required)[^\n]{0,100}failing observable boundary test/i,
+        /failing observable boundary test[^\n]{0,120}(?:must|required)[^\n]{0,100}behavior-changing/i,
       ],
     ],
     ["test doubles use justified seams", [/(?:fakes?|test doubles?)[^\n]{0,100}justified seams?/i]],
@@ -1238,6 +1495,46 @@ test("delivery phases select observable and consequence-based evidence", () => {
   assertSemanticMarkerGroups(verify, "verify feedback routing", feedbackRouteMarkerGroups);
 });
 
+test("Astro upstream skills, practice skill, and templates are available", () => {
+  const upstreamSkills = [
+    "analyze-github-action-logs",
+    "astro-developer",
+    "astro-pr-writer",
+    "changeset",
+    "merge",
+    "triage",
+    "writing-comments",
+  ];
+
+  for (const name of upstreamSkills) {
+    const skill = readRequired(`${SKILLS}/${name}/SKILL.md`);
+    assert.match(skill, new RegExp(`^name:\\s*${name}$`, "m"), name);
+    assert.ok(existsSync(`${SKILLS}/${name}/LICENSE`), `${name}: upstream MIT license is missing`);
+  }
+
+  const practices = readRequired(`${SKILLS}/astro-web-practices/SKILL.md`);
+  assert.match(practices, /^name:\s*astro-web-practices$/m);
+  assert.match(practices, /smallest relevant official example/i);
+  assert.match(practices, /semantic HTML/i);
+  assert.match(practices, /hydrate[^\n]*(?:only|when)/i);
+  assert.match(practices, /prefers-reduced-motion/i);
+  assert.match(practices, /repository-defined|project-defined/i);
+
+  const provenance = readRequired(`${SKILLS}/astro-web-practices/references/provenance.md`);
+  assert.match(provenance, /0fc519de12d69088052b76e096a4adfdc789c30c/);
+  assert.match(provenance, /2f5e410b97474d0a34ec2500aa1aa58d6c3f992c/);
+  assert.match(provenance, /MIT/i);
+
+  const templateRoot = ".pi/templates/astro/examples";
+  const templateDirs = readdirSync(templateRoot, { withFileTypes: true }).filter((entry) => entry.isDirectory());
+  assert.equal(templateDirs.length, 24);
+  for (const name of ["minimal", "basics", "blog", "ssr", "with-mdx", "with-vitest"]) {
+    assert.ok(existsSync(`${templateRoot}/${name}`), `Astro template is missing: ${name}`);
+  }
+  assert.ok(existsSync(".pi/templates/astro/LICENSE"), "Astro template MIT license is missing");
+  assert.ok(existsSync(".pi/templates/astro/UPSTREAM.md"), "Astro template provenance is missing");
+});
+
 test("lifecycle workflow is optional and non-cyclic", () => {
   const lifecycleFlow = boundedTextBetween(
     readRequired(".pi/skills/development-lifecycle/SKILL.md"),
@@ -1268,8 +1565,8 @@ test("lifecycle workflow is optional and non-cyclic", () => {
       [/(?:does not|must not|never)[^\n]{0,100}(?:trigger|invoke|start)[^\n]{0,100}(?:phase|command)[^\n]{0,80}automatic/i],
     ],
     [
-      "workflow does not mutate active state",
-      [/(?:does not|must not|never)[^\n]{0,100}(?:mutate|change)[^\n]{0,80}(?:active state|\.active)/i],
+      "workflow does not select lifecycle scope",
+      [/(?:does not|must not|never)[^\n]{0,100}(?:select|choose)[^\n]{0,80}(?:slug|artifact|work)/i],
     ],
   ]);
 });

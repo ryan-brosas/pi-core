@@ -21,7 +21,7 @@ return result.text;
 - Delegate surgical, well-bounded implementation or review-fix work only when isolation materially helps. Use a larger substantial implementation task only after architecture is resolved.
 - Direct parent work remains the generic default, but `/ship` may impose stricter Fabric worker routing without transferring canonical, review, verification, or lifecycle ownership.
 - Delegate read-only local discovery when relevant paths are unknown; use direct search for one known symbol or path.
-- Delegate read-only external research for current documentation, upstream source, dependency behavior, or ecosystem comparisons. For small discovery/research tasks, `openai-codex/gpt-5.6-luna` with `thinking: "medium"` is the preferred explicit override.
+- Delegate read-only external research for current documentation, upstream source, dependency behavior, or ecosystem comparisons. Use configured model defaults unless a measured task need justifies an explicit override.
 - Delegate read-only correctness, security, regression, or visual review only when independent judgment materially reduces risk.
 
 ## Agent budget
@@ -49,6 +49,6 @@ Request compact evidence packets from read-only children: direct answer first, k
 ## Completion discipline
 
 - Treat child claims as untrusted until the parent reads changed files or artifacts and runs the relevant checks.
-- Child agents may not schedule siblings, alter `.active`, own lifecycle state, integrate branches, commit, merge, push, or modify unrelated work.
+- Child agents may not schedule siblings, select lifecycle scope, own lifecycle state, integrate branches, commit, merge, push, or modify unrelated work.
 - Summarize useful child results for the user.
 - Use Fabric `agents.run` as the sole child-agent orchestration surface for ordinary delegated work.

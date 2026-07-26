@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "enabled": true,
+  "enabled": false,
   "providers": [
     {
       "category": "context7",

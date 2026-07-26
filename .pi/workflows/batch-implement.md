@@ -1,6 +1,6 @@
 # batch-implement
 
-Execute only a parent-selected ready shard from the authoritative task graph. Each task result is reviewed, then merged. The workflow never schedules from a whole static plan and never changes `.active`.
+Execute only a parent-selected ready shard from the authoritative task graph. Each task result is reviewed, then merged. The workflow never schedules from a whole static plan and never selects lifecycle scope; the parent supplies the exact slug and ready shard.
 
 ## Fabric Agent Execution
 
@@ -56,8 +56,8 @@ Keep each task description under 100 words.
 - **Concurrency:** One `agents.run` call per task in the current dependency wave (min 1, max 3)
 - **Dispatch:** The parent resolves Phase 1 into disjoint `{task_shard}` values and supplies one complete task envelope per call. Never send the full task list to every worker. If a dependency wave has more than three tasks, run sequential shards of at most three and return control after each shard.
 - **Isolation:** A one-task wave runs foreground without isolation. Concurrent modifying calls and branch or worktree isolation require explicit approval; if approval is absent, stop at a checkpoint.
-- **Ship-worker envelope:** Every child receives the task ID and attempt, goal, dependencies, exact files and transient neighborhood, non-goals, acceptance criteria, explicit tools, verification commands, stop conditions, approval constraints, and expected result fields. Children must not spawn agents, schedule siblings, mutate `.active`, `tasks.json`, `progress.md`, or lifecycle state, or commit, merge, integrate, or publish work. The parent must inspect actual changes and verify every result.
-- **Approval checkpoint:** Explicit approval is required before branch or worktree creation; commit, merge, or integration; dependency installation or new file creation; `.active` or active-artifact mutation; push or deploy; and destructive operations.
+- **Ship-worker envelope:** Every child receives the task ID and attempt, goal, dependencies, exact files and transient neighborhood, non-goals, acceptance criteria, explicit tools, verification commands, stop conditions, approval constraints, and expected result fields. Children must not spawn agents, schedule siblings, select lifecycle identity, mutate `tasks.json`, `progress.md`, or lifecycle state, or commit, merge, integrate, or publish work. The parent must inspect actual changes and verify every result.
+- **Approval checkpoint:** Explicit approval is required before branch or worktree creation; commit, merge, or integration; dependency installation or new file creation; lifecycle identity or unrelated artifact mutation; push or deploy; and destructive operations.
 - **Prompt:**
 
 Implement only this resolved task: {task_shard}. Apply the complete ship-worker envelope, use only the supplied Fabric tool allowlist, stay within the exact files, and stop on every envelope stop condition. Do not implement sibling or dependent tasks. Return:

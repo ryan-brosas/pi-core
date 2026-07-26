@@ -1,90 +1,62 @@
 ---
-description: Run garbage collection — Fallow analysis, quality grading, and cleanup PRs
+description: Inventory repository drift and propose bounded cleanup
+argument-hint: "[scope] [--apply]"
 ---
 
-# Garbage Collection
+# Garbage Collection: $ARGUMENTS
 
-Run structural analysis, update quality grades, and open cleanup PRs.
+Inventory structural drift, distinguish source from runtime/history, and propose the smallest safe cleanup. The default is read-only.
 
-## Fabric Agent Routing
-
-Use `agents.run({...})` inside `fabric_exec` only when delegation saves more context or time than it costs. Direct parent work is the default; there are no named project agent profiles.
-
-- Encode the task role, exact goal, context, non-goals, output contract, stop conditions, approval constraints, and verification in `task`.
-- Supply an explicit `tools` allowlist. Local discovery, planning, and review default to `["read", "grep", "find", "ls"]`. External research adds only the required configured network tools; add mutation tools only for approved implementation work.
-- Await one foreground `agents.run` when the next decision depends on its result.
-- For genuinely independent questions, issue at most three `agents.run` calls in one `Promise.all`; process overflow in sequential shards.
-- For small read-only discovery or research, prefer `model: "openai-codex/gpt-5.6-luna"` with `thinking: "medium"` when an explicit override is useful.
-- The parent resolves placeholders, inspects child output and changes, synthesizes results, and runs verification itself.
 ## Load Skills
 
 ```typescript
 read(".pi/skills/fallow/SKILL.md");
 read(".pi/skills/verification-before-completion/SKILL.md");
+read(".pi/workflows/garbage-collection.md");
 ```
 
-## Phase 1: Run Fallow Scan
+## Modes
 
-```bash
-npx fallow --format json --quiet
-```
+| Mode | Behavior |
+|---|---|
+| default | Read-only inventory and recommendation |
+| `--apply` | Apply only explicitly approved, bounded non-destructive fixes |
 
-Extract:
-- Dead code (unused exports, files, dependencies)
-- Code duplication (clone groups)
-- Complexity hotspots (cyclomatic complexity)
-- Architecture boundary violations
+`--apply` is not deletion, branch, worktree, commit, push, PR, dependency-installation, or deployment approval. Those actions retain their separate gates.
 
-## Phase 2: Read Existing Quality Grades
+## Execution
 
-Read `.pi/QUALITY.md` if it exists. Compare with current Fallow findings.
+1. Record branch, HEAD, and worktree status.
+2. Run the repository's existing verification commands.
+3. Run Fallow only when it is already installed or repository-configured and executable. Never use `npx` to download it implicitly.
+4. Inspect:
+   - tracked runtime/session state;
+   - `.pi/hindsight.json` as configuration while treating `.pi/hindsight/` as runtime-managed state that is never cleaned automatically;
+   - stale active pointers and lifecycle evidence;
+   - broken internal references and unavailable commands;
+   - skill catalog overlap and startup routing cost;
+   - duplicated prompt/workflow policy;
+   - missing README, CI, license, and reproducible package configuration.
+5. Classify every finding as `keep`, `simplify`, `archive`, `ignore/untrack`, or `delete-candidate`.
+6. For deletion candidates, provide the exact path list, dependency/reference checks, lost behavior/history, and a non-destructive alternative. Wait for written path-scoped permission.
+7. If `--apply` was supplied, edit only already-approved paths and rerun relevant verification.
 
-## Phase 3: Grade Each Domain
+Use direct parent inspection by default. At most three genuinely independent read-only questions may be delegated through `agents.run` inside `fabric_exec` in one Fabric wave; process overflow in sequential shards. The parent verifies and synthesizes all findings.
 
-Run the structural check:
+## Output
 
-```bash
-.pi/extensions/structural-check.sh
-```
+1. Baseline and verification status
+2. Findings by severity and classification
+3. Exact proposed path actions
+4. Expected context/repository reduction
+5. Risks and rollback
+6. Approvals required for the next step
 
-Update `.pi/QUALITY.md` with grades per domain:
-
-| Domain | Source | Grade |
-|---|---|---|
-| Plugins | `.pi/extensions/*.ts` | A–D |
-| Commands | `.pi/prompts/*.md` | A–D |
-| Skills | `.pi/skills/` | A–D |
-| Hindsight config | `.pi/hindsight.json` | A–D |
-| Hindsight runtime | `.pi/hindsight/` | Runtime-managed; excluded from cleanup |
-
-## Phase 4: Open Cleanup PRs (if findings warrant)
-
-For each P0/P1 finding from Fallow:
-
-```typescript
-const fixes = await Promise.all(currentWave.map((finding) => agents.run({
-  name: `gc-fix-${finding.id}`,
-  task: buildGcFixTask(finding),
-  tools: ["read", "grep", "find", "ls", "bash", "edit", "write"],
-  worktree: true,
-})));
-return fixes.map((result) => result.text);
-```
-
-The parent partitions independent P0/P1 findings into ordered, non-overlapping waves of at most three. After explicit worktree approval, issue only the current wave with `Promise.all`; then the parent inspects each isolated branch/commit and reruns verification before continuing with later sequential shards. Same-file or dependent findings stay foreground and sequential. Children must not switch the shared workspace branch or open PRs concurrently.
-
-## Phase 5: Report
-
-Output:
-
-1. **Quality Grades:** Per-domain status
-2. **Issues Found:** Count by severity
-3. **Cleanup PRs:** Opened/not needed
-4. **Recommendations:** Suggested improvements for next cycle
+Do not create `.pi/QUALITY.md`, GC artifacts, branches, commits, or PRs merely to record the inventory.
 
 ## Related Commands
 
 | Need | Command |
 |---|---|
 | Full verification | `/verify all --full` |
-| Architecture audit | `/audit` |
+| Cross-cutting audit | `/audit <pattern>` |

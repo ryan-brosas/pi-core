@@ -43,17 +43,17 @@ All delegated work in this skill uses `agents.run` inside `fabric_exec` with a s
 
 ### 1. Load the Validated Ready Shard
 
-Read the explicitly active `tasks.json`, validate it, and consume only the parent-selected validated ready shard. `tasks.json` owns scheduling; plan waves are explanatory snapshots. Children must not schedule graph nodes, recompute sibling work, or change `.active`. Record progress in the active `progress.md`.
+Read the explicitly resolved `.pi/artifacts/<slug>/tasks.json`, validate it, and consume only the parent-selected validated ready shard. `tasks.json` owns scheduling; plan waves are explanatory snapshots. Children must not schedule graph nodes, recompute sibling work, or select lifecycle identity. Record evidence only in the matching `.pi/artifacts/<slug>/progress.md`.
 
-Every implementation child receives a complete **ship-worker envelope**, the canonical `task_brief`, with: task ID and attempt, goal, dependencies, exact files and transient neighborhood, non-goals, acceptance criteria, required `fabric_exec` use, verification commands, stop conditions, approval constraints, and expected result fields. The child returns assumptions, blockers, changed files, commands, observed evidence, and unresolved risks. Reject incomplete envelopes instead of inferring fields. Children must not spawn agents, schedule siblings, mutate `.active`, `tasks.json`, `progress.md`, or lifecycle state, or commit, merge, integrate, or publish work. The parent must inspect actual changes and verify every result.
+Every implementation child receives a complete **ship-worker envelope**, the canonical `task_brief`, with: task ID and attempt, goal, dependencies, exact files and transient neighborhood, non-goals, acceptance criteria, required `fabric_exec` use, verification commands, stop conditions, approval constraints, and expected result fields. The child returns assumptions, blockers, changed files, commands, observed evidence, and unresolved risks. Reject incomplete envelopes instead of inferring fields. Children must not spawn agents, schedule siblings, select lifecycle identity, mutate `tasks.json`, `progress.md`, or lifecycle state, or commit, merge, integrate, or publish work. The parent must inspect actual changes and verify every result.
 
-If shared context exceeds ~500 tokens, put bounded supporting context in the active `worker-context.md` and reference it; this optional handoff is not canonical state.
+If bounded shared context cannot fit safely in the worker envelope, request explicit approval before creating `.pi/artifacts/<slug>/worker-context.md`. When approval is absent or not granted, keep the necessary context inline or stop for a narrower task; never create the file implicitly. This optional handoff is not canonical state.
 
 ### 2. Execute One Ready Shard
 
 Choose the task shape from the resolved scope: surgical implementation for a small, well-bounded edit; substantial bounded implementation for a larger task whose architecture is already resolved. Stop for a parent decision when architecture, security, migration, or scope remains unresolved.
 
-For a one-task validated ready shard, use one foreground call. Multiple modifying calls and branch or worktree isolation require explicit approval; if approval is absent, stop at a checkpoint. Explicit approval is also required before adding a dependency or new file, changing `.active` or an active artifact, or committing, merging, integrating, pushing, deploying, or running destructive actions. Every `/ship` implementation or fix receives the complete ship-worker envelope and explicit tools.
+For a one-task validated ready shard, use one foreground call. Multiple modifying calls and branch or worktree isolation require explicit approval; if approval is absent, stop at a checkpoint. Explicit approval is also required before adding a dependency or new file, changing lifecycle identity or an unrelated artifact, or committing, merging, integrating, pushing, deploying, or running destructive actions. Every `/ship` implementation or fix receives the complete ship-worker envelope and explicit tools.
 
 ```typescript
 const implementation = await agents.run({
@@ -109,7 +109,7 @@ At most three disjoint fixes may run in one `Promise.all` wave with `worktree: t
 - Commit, merge, and integration require explicit approval; if approval is absent, stop at a checkpoint without claiming the action.
 - Integrate only reviewed, parent-verified work after approval.
 - Run an integration check after the complete wave is merged.
-- Append task status and evidence to the active `progress.md`.
+- Append task status and evidence to the explicitly resolved `.pi/artifacts/<slug>/progress.md`.
 - Return control to the parent after the shard passes; the parent reruns validation and frontier selection before any next shard.
 
 ### 6. Final Review
@@ -150,8 +150,8 @@ After final review passes:
 
 ## Verification
 
-- After each Fabric child completes: inspect its changes, then run typecheck and lint on modified files
-- After all tasks: run the full test suite to catch integration issues
+- After each Fabric child completes: inspect its changes, then run every applicable repository-configured targeted gate; report unavailable typecheck or lint as N/A rather than inventing commands
+- After all tasks: run the repository-supported retained suite to catch integration issues
 - Check that no Fabric child outputs contain conflicting edits
 
 ## Integration

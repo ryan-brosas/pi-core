@@ -1,115 +1,96 @@
 # Verification Protocol
 
-## Default: Incremental Mode
+## Core Rule: Discover, Do Not Invent
 
-**Incremental is the default.** Only switch to full mode when:
+Verification commands come from the repository, not from a language stereotype. Resolve the exact gate inventory in this order:
 
-- `--full` flag is explicitly passed
-- Shipping/releasing (pre-merge, CI pipeline)
-- More than 20 files changed
+1. `AGENTS.md` and other repository policy;
+2. CI workflow files and their invoked commands;
+3. package or build manifests and canonical scripts;
+4. nearby tests and task-specific `Verify:` commands.
 
-### Changed Files Detection
+Read the referenced source before executing it. Never infer a package manager, test runner, linter, typechecker, build tool, or auto-fix command merely from file extensions. A gate that is not configured or is unavailable is **N/A (not applicable)**, with the evidence for that conclusion recorded; it is not silently skipped and no substitute command is invented.
 
-```bash
-# Get changed files (uncommitted + staged + untracked)
-CHANGED=$({
-  git diff --name-only --diff-filter=d HEAD -- '*.ts' '*.tsx' '*.js' '*.jsx'
-  git ls-files --others --exclude-standard -- '*.ts' '*.tsx' '*.js' '*.jsx'
-} | sort -u)
+## Modes
 
-# If in a plan worktree, diff against the branch point:
-# CHANGED=$({
-#   git diff --name-only --diff-filter=d main...HEAD -- '*.ts' '*.tsx' '*.js' '*.jsx'
-#   git ls-files --others --exclude-standard -- '*.ts' '*.tsx' '*.js' '*.jsx'
-# } | sort -u)
+**Incremental mode** is the default for a bounded change. Use **full mode** when:
 
-# Count for mode decision
-FILE_COUNT=$(echo "$CHANGED" | grep -c .)
-# > 20 files → switch to full mode automatically
-```
+- `--full` is explicitly requested;
+- shipping, releasing, or preparing integration;
+- more than 20 changed paths make a narrow run unreliable; or
+- consequence or shared-surface impact requires the retained suite regardless of file count.
 
-## Standard Gates
+File count selects breadth only. Security, privacy, authorization, data integrity, external-provider, retry/idempotency, cost-control, or recovery consequences always override a narrow changed-file heuristic.
 
-### Gate Execution Order
+### Complete Changed-Path Set
 
-```
-┌─────────────────────────────────────┐
-│  Parallel (run simultaneously)      │
-│  ┌─────────────┐ ┌───────────────┐  │
-│  │  Typecheck   │ │  Lint         │  │
-│  │  (always     │ │  (changed     │  │
-│  │   full)      │ │   files only) │  │
-│  └──────┬──────┘ └──────┬────────┘  │
-│         └───────┬───────┘           │
-│            both must pass           │
-├─────────────────────────────────────┤
-│  Sequential (after parallel passes) │
-│  ┌─────────────┐ ┌───────────────┐  │
-│  │  Test        │ │  Build        │  │
-│  │  (--changed  │ │  (ship/release│  │
-│  │   or full)   │ │   only)       │  │
-│  └─────────────┘ └───────────────┘  │
-└─────────────────────────────────────┘
-```
-
-### Parallel Group (independent — run simultaneously)
+Resolve the canonical primary branch or ref from `AGENTS.md` and repository metadata, verify that exact ref exists, then compute its merge base with `HEAD`. Never substitute a guessed previous commit:
 
 ```bash
-# Gate 1: Typecheck (always full — type errors propagate across files)
-npm run typecheck 2>&1 &
-PID_TC=$!
-
-# Gate 2: Lint
-# Incremental (default): lint only changed files
-npx oxlint $CHANGED 2>&1 &
-# Full mode: lint everything
-# npm run lint 2>&1 &
-PID_LINT=$!
-
-STATUS_TC=0
-STATUS_LINT=0
-wait "$PID_TC" || STATUS_TC=$?
-wait "$PID_LINT" || STATUS_LINT=$?
-
-if [ "$STATUS_TC" -ne 0 ] || [ "$STATUS_LINT" -ne 0 ]; then
-  printf 'Parallel gates failed: typecheck=%s lint=%s\n' "$STATUS_TC" "$STATUS_LINT" >&2
-  exit 1
-fi
+PRIMARY_REF="origin/main" # replace only with the primary ref verified from repository policy
+git rev-parse --verify "$PRIMARY_REF" >/dev/null 2>&1 || exit 1
+BASE_SHA=$(git merge-base "$PRIMARY_REF" HEAD) || exit 1
+{
+  git diff --name-only "$BASE_SHA" --
+  git ls-files --others --exclude-standard
+} | sort -u
 ```
 
-### Sequential Group (depends on parallel group passing)
+If the verified primary ref or merge base is unavailable, stop and ask rather than narrowing to committed changes. Classify every path as owned, unrelated concurrent work, or runtime-managed state before selecting checks or fixes.
+
+## Build the Gate Inventory
+
+Record each gate before execution:
+
+| Gate | Exact repository command | Mode | Applicability evidence |
+|---|---|---|---|
+| Task acceptance | From `tasks.json` / `spec.md` | targeted | Observable contract exists |
+| Type/static analysis | Repository-defined command or N/A | incremental/full | Policy, CI, or manifest |
+| Lint/format | Repository-defined command or N/A | incremental/full | Policy, CI, or manifest |
+| Tests | Narrowest relevant command, then retained suite when needed | incremental/full | Test layout and impact map |
+| Build/package | Repository-defined command or N/A | full when shipping | CI or manifest |
+| Integration/manual | Exact probe or N/A | consequence-based | Boundary and failure risks |
+
+A command copied from prose is executable evidence only after confirming that its referenced files and executable exist in the current checkout.
+
+### Pi Core’s Current Gate Inventory
+
+Pi Core intentionally has no project package manager. Its repository-supported checks are:
 
 ```bash
-# Gate 3: Tests
-# Incremental (default): only tests affected by changed files
-npx vitest run --changed
-# Full mode: run all tests
-# npm test
-
-# Gate 4: Build (only if shipping/releasing)
-# npm run build
+node --experimental-strip-types .pi/scripts/doctor.ts
+node --experimental-strip-types --test .pi/tests/*.test.ts
+for graph in .pi/artifacts/*/tasks.json; do
+  node --experimental-strip-types .pi/scripts/task-graph.ts validate "$graph"
+done
 ```
 
-### Gate Commands Summary
+Run narrower `node --experimental-strip-types --test --test-name-pattern="<pattern>" .pi/tests/*.test.ts` checks first when a focused contract exists. Standalone typecheck, lint, and build gates remain N/A until Pi Core actually configures them.
 
-| Gate      | Incremental (default)        | Full (`--full`)     | When              |
-| --------- | ---------------------------- | ------------------- | ----------------- |
-| Typecheck | `npm run typecheck`          | `npm run typecheck` | Always (parallel) |
-| Lint      | `npx oxlint <changed-files>` | `npm run lint`      | Always (parallel) |
-| Test      | `npx vitest run --changed`   | `npm test`          | Always            |
-| Build     | Skip                         | `npm run build`     | Ship/release only |
+## Execution Order
+
+1. **Reproduce or RED:** for a behavior change, run the failing observable boundary test before production edits.
+2. **Targeted acceptance:** execute the task’s observable acceptance and controlled-failure checks.
+3. **Independent static gates:** run only configured, independent type/static and lint/format gates in parallel.
+4. **Tests:** run the narrowest relevant tests, then the retained suite when scope or consequence requires it.
+5. **Build/integration:** run configured build and real-integration probes after prerequisite gates pass.
+6. **Black-box acceptance:** re-run essential success journeys and controlled failures from the public boundary. Gray-box evidence may supplement this only for a named evidence gap.
+7. **Diff review:** inspect the complete tracked and untracked worktree; modify only owned paths.
+
+Do not run dependent commands concurrently. After any code-changing fix, rerun every affected prerequisite and the final black-box acceptance check.
 
 ## Verification Cache
 
-Avoid redundant verification when nothing changed since the last successful run.
+`.pi/artifacts/verify.log` is runtime-managed cache state, not repository evidence. A cached result may accelerate an ordinary incremental verification only when its fingerprint covers `HEAD`, every tracked diff, and every non-ignored untracked file except the cache itself.
 
-### Cache Protocol
+- `--full`, shipping, and releasing always bypass the cache.
+- Any changed path invalidates the cached result.
+- A cache hit never replaces current task acceptance, consequence-driven checks, or final black-box acceptance.
+- Never stage or commit the cache.
 
-After all gates pass, record a verification stamp:
+Use the same fingerprint function for lookup and recording:
 
 ```bash
-# Fingerprint HEAD + every tracked diff + every non-ignored untracked path/content.
-# Exclude only the cache file itself.
 compute_verification_stamp() {
   {
     printf '%s\0' "$(git rev-parse HEAD)"
@@ -123,62 +104,28 @@ compute_verification_stamp() {
       done
   } | shasum -a 256 | cut -d' ' -f1
 }
-
-STAMP=$(compute_verification_stamp)
-echo "$STAMP $(date -u +%Y-%m-%dT%H:%M:%SZ) PASS" >> .pi/artifacts/verify.log
 ```
 
-### Skip Check (before running gates)
+Record a cache stamp only after all selected gates and acceptance checks pass.
 
-```bash
-# Read last verification stamp
-LAST_STAMP=$(tail -1 .pi/artifacts/verify.log 2>/dev/null | awk '{print $1}')
+## Results
 
-# Recompute current fingerprint with the same helper used for recording.
-CURRENT_STAMP=$(compute_verification_stamp)
-
-if [ "$LAST_STAMP" = "$CURRENT_STAMP" ]; then
-  echo "Verification cached: no changes since last PASS"
-  # Skip gates — report cached result
-else
-  # Run gates normally
-fi
-```
-
-### When Cache is Invalidated
-
-- Any file edited, staged, or committed since last verification
-- `--full` flag always bypasses cache
-- Manual `--no-cache` flag bypasses cache
-- Different plan context (plan ID changed)
-
-### Agent Behavior
-
-When another command needs verification (e.g., closing a plan, `/ship`):
-
-1. **Check cache first** — if clean, report `"Verification: cached PASS (no changes since <timestamp>)"`
-2. **If cache miss** — run incremental gates normally
-3. **Always record** — append to `verify.log` after successful run
-4. **Never skip on ship/release** — always run full mode regardless of cache
-
-## Gate Results Format
-
-Report results as:
+Report observed commands and exit status; never summarize expectation as evidence:
 
 ```text
-| Gate      | Status | Mode        | Time   |
-|-----------|--------|-------------|--------|
-| Typecheck | PASS   | full        | 2.1s   |
-| Lint      | PASS   | incremental | 0.3s   |
-| Test      | PASS   | incremental | 1.2s   |
-| Build     | SKIP   | —           | —      |
+| Gate | Status | Mode | Command / evidence |
+|---|---|---|---|
+| Observable acceptance | PASS | targeted | <exact command and result> |
+| Type/static analysis | N/A | — | no configured gate; policy/CI/manifests checked |
+| Lint/format | PASS | incremental | <exact repository command> |
+| Tests | PASS | full | <exact repository command and count> |
+| Build | N/A | — | no configured build command |
 ```
-
-Include the mode column so it's clear whether incremental or full was used.
 
 ## Failure Handling
 
-- If any gate fails, stop and fix before proceeding
-- Show the FULL error output for failed gates
-- After any code-changing fix, re-run the complete selected-mode gate sequence: both parallel gates (typecheck + lint), then tests, then build when required
-- Cache is NOT written on failure — next run will execute gates normally
+- Stop on a failing applicable gate; show the relevant full error output.
+- Attribute the failure to the earliest contract or task whose output must change.
+- Do not weaken or delete a test merely to make a gate green.
+- After a fix, rerun the failed gate, its prerequisites, affected tests, and black-box acceptance.
+- If verification cannot run or evidence conflicts, report the blocker and do not claim completion.

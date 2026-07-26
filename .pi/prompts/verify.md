@@ -1,22 +1,12 @@
 ---
 description: Verify implementation completeness, correctness, and coherence
-argument-hint: "[path|all] [--quick] [--full] [--fix] [--no-cache]"
+argument-hint: "<slug|path|all> [--quick] [--full] [--fix] [--no-cache]"
 ---
 
 # Verify: $ARGUMENTS
 
 Check implementation against PRD before shipping.
 
-## Fabric Agent Routing
-
-Use `agents.run({...})` inside `fabric_exec` only when delegation saves more context or time than it costs. Direct parent work is the default; there are no named project agent profiles.
-
-- Encode the task role, exact goal, context, non-goals, output contract, stop conditions, approval constraints, and verification in `task`.
-- Supply an explicit `tools` allowlist. Local discovery, planning, and review default to `["read", "grep", "find", "ls"]`. External research adds only the required configured network tools; add mutation tools only for approved implementation work.
-- Await one foreground `agents.run` when the next decision depends on its result.
-- For genuinely independent questions, issue at most three `agents.run` calls in one `Promise.all`; process overflow in sequential shards.
-- For small read-only discovery or research, prefer `model: "openai-codex/gpt-5.6-luna"` with `thinking: "medium"` when an explicit override is useful.
-- The parent resolves placeholders, inspects child output and changes, synthesizes results, and runs verification itself.
 ## Load Skills
 
 ```typescript
@@ -27,7 +17,7 @@ read(".pi/skills/verification-before-completion/SKILL.md");
 
 | Argument     | Default  | Description                                    |
 | ------------ | -------- | ---------------------------------------------- |
-| `<path\|all>`| required | The path or keyword to verify                  |
+| `<slug\|path\|all>` | required | Feature slug, filesystem path, or all current work |
 | `--quick`    | false    | Gates only, skip coherence check               |
 | `--full`     | false    | Force full verification mode (non-incremental) |
 | `--fix`      | false    | Auto-fix lint/format issues                    |
@@ -35,17 +25,18 @@ read(".pi/skills/verification-before-completion/SKILL.md");
 
 ## Determine Input Type
 
-| Input Type | Detection           | Action                     |
-| ---------- | ------------------- | -------------------------- |
-| Path       | File/directory path | Verify that specific path  |
-| `all`      | Keyword             | Verify all in-progress work |
+| Input Type | Detection | Action |
+| --- | --- | --- |
+| Slug | Existing `.pi/artifacts/<slug>/` | Verify against that artifact |
+| Path | Existing file/directory path | Verify that scope without requiring an artifact |
+| `all` | Keyword | Verify all current work without selecting a lifecycle artifact |
 
 ## Before You Verify
 
 - **Be certain**: Only flag issues you can verify with tools
-- **Don't invent problems**: If an edge case isn't in the PRD, don't flag it
-- **Run the gates**: Build, test, lint, typecheck are non-negotiable
-- **Use project conventions**: Check `package.json` scripts first
+- **Don't invent problems**: If an edge case is outside the contract and consequence set, report it separately rather than silently expanding scope
+- **Run applicable gates**: Repository-configured acceptance, static, lint, test, build, and integration gates are non-negotiable when present; unavailable gates are reported N/A
+- **Discover project conventions**: Read `AGENTS.md`, CI workflows, manifests, and canonical scripts in that order; never infer a package manager
 
 ## Phase 0: Check Verification Cache
 
@@ -75,7 +66,7 @@ LAST_STAMP=$(tail -1 .pi/artifacts/verify.log 2>/dev/null | awk '{print $1}')
 | Condition                                 | Action                                                 |
 | ----------------------------------------- | ------------------------------------------------------ |
 | `--no-cache` or `--full`                  | Skip cache check, run fresh                            |
-| `CURRENT_STAMP == LAST_STAMP`             | Report **cached PASS**, skip to Phase 2 (completeness) |
+| `CURRENT_STAMP == LAST_STAMP`             | Report cached gate evidence, then continue to current completeness and black-box acceptance |
 | `CURRENT_STAMP != LAST_STAMP` or no cache | Run gates normally                                     |
 
 When cache hits, report:
@@ -84,28 +75,29 @@ When cache hits, report:
 Verification: cached PASS (no changes since <timestamp from verify.log>)
 ```
 
-## Phase 1: Gather Context
+## Phase 1: Resolve Scope and Gather Context
 
-Read `.pi/artifacts/$(cat .pi/artifacts/.active)/spec.md` to understand the requirements.
+Resolve the target solely from the required argument; no ambient state selects verification scope:
 
-Read `.pi/artifacts/$(cat .pi/artifacts/.active)/` to check what plan artifacts exist.
-
-Read the PRD, `plan.md` when present, and relevant research/design sections recorded in the active `progress.md`.
+- **Slug mode:** set `SLUG`, `ARTIFACT_DIR=.pi/artifacts/$SLUG`, and read that artifact’s full `spec.md`, optional `plan.md`, `tasks.json`, and relevant `progress.md` evidence.
+- **Path mode:** read applicable `AGENTS.md` files and the requested source/test scope. A lifecycle artifact is not required.
+- **All mode:** inspect the complete tracked and untracked worktree without selecting or mutating any lifecycle artifact.
 
 **Verify guards:**
 
-- [ ] Plan/spec exists and is up to date
-- [ ] You have read the full spec
+- [ ] The selected scope exists and is unambiguous
+- [ ] Every applicable behavior contract has been read
+- [ ] Completed or unrelated active artifacts were ignored
 
 ## Phase 2: Completeness and Graph Evidence
 
-Extract all requirements/tasks from the PRD and verify each is implemented:
+In slug mode, extract requirements from the PRD. In path/all mode, derive the bounded requirements from the user request, public contracts, tests, and changed files.
 
-- For each requirement: find evidence in the codebase (file:line reference)
-- Mark as: complete, partial, or missing
-- Report completeness score (X/Y requirements met)
+- For each applicable requirement, find evidence in the codebase with file:line references.
+- Mark it complete, partial, missing, or not applicable.
+- Report a completeness score only when a finite requirement set exists.
 
-Validate the authoritative `tasks.json`. For every version-2 node, compare status and passes, current attempt, evidence refs, referenced `progress.md` anchors, and the artifacts covered by that evidence. A passed node requires current-attempt evidence that still exists and supports its claimed verification, review, or commit.
+Only in slug mode, validate the authoritative `$ARTIFACT_DIR/tasks.json`. For every version-2 node, compare status and passes, current attempt, evidence refs, referenced `progress.md` anchors, and the artifacts covered by that evidence. A passed node requires current-attempt evidence that still exists and supports its claimed verification, review, or commit.
 
 If an upstream artifact changed after evidence was recorded, first change that source task to `stale` with `passes: false` while preserving its historical evidence, then run `task-graph descendants`. Pending descendants become blocked; passed or running descendants become stale with `passes: false`; already failed or stale descendants remain unchanged. Other ancestors remain unchanged unless evidence attributes the failure upstream or their produced output changed. Release blocked nodes to pending only when all dependencies pass; stale nodes require explicit rerun. Revalidate and recompute the frontier after every state update, and report the exact affected IDs rather than blanket-resetting the graph.
 
@@ -113,12 +105,12 @@ If an upstream artifact changed after evidence was recorded, first change that s
 
 Follow the [Verification Protocol](../skills/verification-before-completion/references/VERIFICATION_PROTOCOL.md):
 
-**Default: incremental mode** (changed files only, parallel gates).
+**Default: incremental mode** for the current changed-path scope. Resolve every command from the applicable repository-configured gate inventory.
 
-| Mode        | When                                      | Behavior                         |
-| ----------- | ----------------------------------------- | -------------------------------- |
-| Incremental | Default, <20 changed files                | Lint changed files, test changed |
-| Full        | `--full` flag, >20 changed files, or ship | Lint all, test all               |
+| Mode | When | Behavior |
+| --- | --- | --- |
+| Incremental | Default bounded change | Run targeted acceptance and every configured gate that supports safe narrowing |
+| Full | `--full`, >20 changed paths, ship, or consequence escalation | Run all applicable repository-configured retained gates |
 
 ### Consequence-Based Evidence
 
@@ -141,29 +133,23 @@ Routing is advisory and never automatic:
 - An architecture or design gap routes to plan.
 - A known implementation defect routes to ship.
 
-The parent records the route decision in `progress.md`, but does not invoke or trigger a phase or command and never mutates `.active` automatically.
+In slug mode, the parent records the advisory route decision in the matching `progress.md`. In path/all mode, report the route in chat only and never create or write a lifecycle artifact for it. No mode invokes another phase, selects work, or changes lifecycle state automatically.
 
-If `--fix` is set, run the project's auto-fix command **before** final verification (for example `npm run lint:fix`, `ruff check --fix`, or `cargo clippy --fix`). Refresh the changed-file set afterward. If auto-fix fails, stop; do not use cached evidence.
+If `--fix` is set, run an auto-fix command only when the current repository explicitly configures that exact command and the affected paths are owned. Refresh and reclassify the changed-file set afterward. If auto-fix fails or touches unrelated/runtime paths, stop; do not use cached evidence.
 
 **Execution order after any auto-fix:**
 
-1. **Parallel**: typecheck + lint (simultaneously)
-2. **Sequential** (after parallel passes): test, then build (ship only)
+1. Re-run targeted observable acceptance or the exact reproduction.
+2. Run independent applicable repository-configured static gates concurrently only when they have no dependency.
+3. Run affected tests, then the retained suite when mode or consequence requires it.
+4. Run configured build/integration checks after their prerequisites.
+5. Re-run black-box success journeys and controlled failures.
 
-For browser/manual local-web requirements, use stable URLs as verification evidence. A reachable URL supplements, but never replaces, typecheck/lint/test/build evidence.
+For browser/manual local-web requirements, use stable URLs as verification evidence. A reachable URL supplements, but never replaces, any applicable repository-configured gate.
 
-Report results with mode column:
+Report results with a mode and command/evidence column. Use N/A rather than claiming an unavailable gate passed.
 
-```text
-| Gate      | Status | Mode        | Time   |
-|-----------|--------|-------------|--------|
-| Typecheck | PASS   | full        | 2.1s   |
-| Lint      | PASS   | incremental | 0.3s   |
-| Test      | PASS   | incremental | 1.2s   |
-| Build     | SKIP   | —           | —      |
-```
-
-**After all gates pass**, recompute the post-fix/post-gate fingerprint and record it:
+**After all applicable gates and current black-box acceptance pass**, recompute the post-fix/post-gate fingerprint and record it:
 
 ```bash
 CURRENT_STAMP=$(compute_verification_stamp)
@@ -184,7 +170,7 @@ Flag contradictions with specific file references.
 
 ## Phase 5: Report
 
-Append to `.pi/artifacts/$(cat .pi/artifacts/.active)/progress.md`: `Verification: [PASS|PARTIAL|FAIL] - [summary]`
+In slug mode, append `Verification: [PASS|PARTIAL|FAIL] - [summary]` to `$ARTIFACT_DIR/progress.md`. In path/all mode, do not create lifecycle artifacts solely to record verification.
 
 Output:
 
@@ -193,14 +179,14 @@ Output:
 3. **Correctness**: gate results (with mode column)
 4. **Coherence**: contradictions found (if not --quick)
 5. **Blocking issues** to fix before shipping
-6. **Next step**: `/ship $ARGUMENTS` if ready, or list fixes needed
+6. **Next step**: `/ship $SLUG` in slug mode when ready, or list fixes needed
 
-Record attempt-scoped verification findings in the active `progress.md`. Hindsight automatic retain captures ordinary durable session deltas; use `hindsight_retain` only for raw, high-value facts or decisions that require immediate persistence, never to duplicate the progress log.
+Record attempt-scoped findings in `$ARTIFACT_DIR/progress.md` only in slug mode. Hindsight automatic retain captures ordinary durable session deltas; use `hindsight_retain` only for raw, high-value facts or decisions that require immediate persistence, never to duplicate the progress log.
 
 ## Related Commands
 
 | Need              | Command       |
 | ----------------- | ------------- |
-| Ship after verify | `/ship <id>`  |
+| Ship after verify | `/ship <slug>` |
 | Plan a feature    | `/plan`       |
 | Fix a bug         | `/fix`        |
