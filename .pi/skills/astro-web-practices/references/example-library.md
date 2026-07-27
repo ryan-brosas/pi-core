@@ -26,6 +26,10 @@ Choose the smallest example that demonstrates the missing behavior. Read its `pa
 | Integration package | `integration` | Astro integration entry point |
 | Toolbar application | `toolbar-app` | Dev-toolbar package boundary |
 
+### `advanced-routing` evidence
+
+At the pinned commit, the `advanced-routing` README is stale: it describes experimental routing through `src/app.ts`, while the source uses `src/fetch.ts`; `astro.config.mjs` has no `advancedRouting` flag. Treat source, config, and qualified exact-SHA checks as authoritative over README prose. Qualified exact-SHA checks do not validate README prose or target compatibility, so keep the mirrored example unchanged. If compatibility cannot be reconciled, stop or select another example.
+
 Adapters are deployment commitments. Do not add one until the target's hosting/runtime requirement is known.
 
 ## Content formats and state

@@ -1,11 +1,23 @@
 ---
 name: astro-web-practices
-description: Build, revise, or review Astro websites using official-example-derived architecture and semantic HTML/CSS practices. Use for Astro pages, layouts, components, content, islands, styling, migrations, and project verification; not for contributing to Astro's own monorepo.
+description: Use astro-web-practices first for ordinary Astro application work, including pages, layouts, components, content, islands, styling, migrations, and project verification. Load copied Astro monorepo maintainer skills only after confirming withastro/astro repository identity; the narrow exception outside upstream is analyze-github-action-logs, and only when an explicit OWNER/REPO is supplied.
 license: See references/provenance.md
 compatibility: Astro projects; use the target project's installed version, package manager, adapter, and scripts.
 ---
 
 # Astro Web Practices
+
+## Route by repository identity
+
+Evidence boundary: When an example is cited, consult the [native example map](references/example-library.md) and mirrored source/config before accepting README prose. For pinned `advanced-routing`, source uses `src/fetch.ts`, not the README's `src/app.ts`, and `astro.config.mjs` has no `advancedRouting` flag. Copied skills and the `.pi/templates/astro/` template mirror are read-only evidence; Pi-local evidence paths are not target-project paths.
+
+1. **Confirmed `withastro/astro` contribution work:** Load the copied upstream maintainer skill that matches the request.
+2. **Ordinary Astro application work:** Use `astro-web-practices` for application architecture, implementation, review, and verification.
+3. **Unknown repository identity:** Stay with `astro-web-practices` while gathering repository evidence; if identity remains unknown, stop and do not load copied maintainer skills.
+4. **Generic bug debugging:** Use `debugging-and-error-recovery` rather than copied `triage`; add Astro-specific practices from this skill.
+5. **Explicit-repository GitHub Actions analysis:** When the user names the workflow and `OWNER/REPO`, load `analyze-github-action-logs` with that repository.
+
+Confirm identity from repository remotes and root package/workspace metadata. An Astro dependency, issue wording, directory name, or a copied skill's default repository is not identity evidence.
 
 ## Core rule
 
@@ -13,7 +25,7 @@ Start from the **smallest relevant official example**, extract only the behavior
 
 ## Workflow
 
-1. **Inspect the target.** Read `package.json`, the lockfile, `astro.config.*`, `tsconfig.json`, `src/pages/`, `src/layouts/`, `src/components/`, content configuration, adapter configuration, and nearby tests. Record the installed Astro version, output mode, adapter, package manager, and repository-defined verification scripts. Never invent install or build commands.
+1. **Inspect the target.** Before proposing commands or making compatibility claims, confirm the target Astro version, adapter, output mode, package manager and lockfile, repository-defined scripts, and nearby tests. Establish them from `package.json`, the lockfile, `astro.config.*`, `tsconfig.json`, source conventions, content and adapter configuration, and the tests themselves. Never invent install or build commands.
 2. **Choose evidence.** Use [the example map](references/example-library.md) to select one minimal source. Compare its invariant with the target's current conventions; copy the invariant, not its directory tree.
 3. **Design the HTML boundary.** Use pages for routes, layouts for shared document structure, components for cohesive reusable markup, content collections for validated content, and endpoints/server actions only when the request boundary requires them.
 4. **Render first, hydrate second.** Prefer `.astro` components and server-rendered semantic HTML. Hydrate a framework component **only when** browser-owned interactive state needs it; choose the least eager compatible `client:*` directive.

@@ -6,112 +6,207 @@
   "execution": {
     "mode": "sequential",
     "max_concurrent_agents": 1,
-    "reason": "Registration RED evidence precedes source copying, which precedes integrated verification."
+    "reason": "Behavioral RED precedes routing edits; routing precedes compatibility and provenance repair; integrated verification runs last. Tasks 1 and 2 share the focused skill-system test file."
   },
   "tasks": [
     {
       "id": "task-1",
-      "category": "qualification",
-      "title": "Qualify pinned Astro and pi.dev sources",
-      "description": "Record exact source identities, compatible licenses, inventory, and safety caveats before importing files.",
+      "category": "behavior-routing",
+      "title": "Prove and harden Astro routing and stale-example handling",
+      "description": "Establish a discriminating behavioral RED, then make the Pi-native skill distinguish ordinary Astro application work from exact withastro/astro maintainer work and handle the pinned advanced-routing README conflict fail-closed without changing imported or mirrored bytes.",
       "status": "passed",
       "passes": true,
-      "attempt": 1,
+      "attempt": 3,
       "evidence_refs": [
-        { "kind": "review", "ref": ".pi/artifacts/astro-web-practices/progress.md#source-qualification", "attempt": 1 }
+        {
+          "kind": "review",
+          "ref": ".pi/artifacts/astro-web-practices/progress.md#source-qualification",
+          "attempt": 1
+        },
+        {
+          "kind": "verification",
+          "ref": ".pi/artifacts/astro-web-practices/progress.md#evidence-task-1-attempt-2",
+          "attempt": 2
+        },
+        {
+          "kind": "verification",
+          "ref": ".pi/artifacts/astro-web-practices/progress.md#evidence-task-1-attempt-3",
+          "attempt": 3
+        }
       ],
       "depends_on": [],
       "parallel": false,
       "conflicts_with": [],
       "files": [
-        ".pi/artifacts/astro-web-practices/spec.md",
-        ".pi/artifacts/astro-web-practices/plan.md",
-        ".pi/artifacts/astro-web-practices/progress.md"
+        ".pi/skills/astro-web-practices/SKILL.md",
+        ".pi/skills/astro-web-practices/references/example-library.md",
+        ".pi/tests/skill-system.test.ts"
       ],
+      "needs": [
+        "The fixed ordinary-application versus withastro/astro pressure scenario and five-point rubric",
+        "The verified advanced-routing README, src/fetch.ts, config, and exact-SHA CI evidence"
+      ],
+      "creates": [
+        "A behaviorally proven always-visible routing contract",
+        "A fail-closed advanced-routing source-evidence rule",
+        "Focused routing and stale-evidence regression coverage"
+      ],
+      "has_checkpoint": false,
       "acceptance_criteria": [
-        "Astro and pi.dev are pinned to exact 40-character commits with MIT license evidence.",
-        "The source inventory records seven skills and 24 examples.",
-        "Destructive instructions found in upstream maintainer references are documented as subordinate to Pi Core approval gates."
+        "Before native skill edits, one fresh agent without the skill scores below 4/5 on the fixed ordinary-app, imported-triage, stale-README pressure scenario; a score of 4/5 or higher stops implementation until the scenario is made discriminating.",
+        "The always-visible frontmatter description requires astro-web-practices first for ordinary Astro application work and confirmed withastro/astro repository identity before copied maintainer skills are used.",
+        "The body provides a positive routing recipe for exact upstream contribution work, ordinary applications, unknown repository identity, generic bug debugging, and explicit-repository GitHub Actions analysis.",
+        "The advanced-routing entry identifies src/fetch.ts and the absence of the advancedRouting flag, marks the pinned README prose stale, and leaves the mirror unchanged.",
+        "The target Astro version, adapter, output mode, package manager, and repository scripts are required before commands or compatibility claims.",
+        "After the minimum GREEN and any refactor, two consecutive fresh unforced trials against the final skill bytes each score at least 4/5.",
+        "No imported skill file, mirror file, AGENTS.md, manifest, or spec file changes."
       ],
       "verification": [
-        "test \"$(git -C /home/ryanj/work/inspo/creative/web/astro rev-parse HEAD)\" = 0fc519de12d69088052b76e096a4adfdc789c30c",
-        "test \"$(git -C /home/ryanj/work/inspo/creative/web/pi-website rev-parse HEAD)\" = 2f5e410b97474d0a34ec2500aa1aa58d6c3f992c",
-        "test \"$(find /home/ryanj/work/inspo/creative/web/astro/.agents/skills -mindepth 1 -maxdepth 1 -type d | wc -l)\" -eq 7 && test \"$(find /home/ryanj/work/inspo/creative/web/astro/examples -mindepth 1 -maxdepth 1 -type d | wc -l)\" -eq 24"
+        "Fresh-agent RED using the fixed five-point rubric: score below 4/5, with prompt, response, score, and parent rationale recorded under attempt-2 evidence before native skill edits.",
+        "node --experimental-strip-types --test --test-name-pattern=\"Astro upstream skills|Astro practice routing|manifest has exact bidirectional parity\" .pi/tests/skill-system.test.ts",
+        "Fresh-agent GREEN on final skill bytes: two consecutive unforced trials score at least 4/5, with exact responses and parent scoring recorded.",
+        "git diff --check -- .pi/skills/astro-web-practices/SKILL.md .pi/skills/astro-web-practices/references/example-library.md .pi/tests/skill-system.test.ts"
       ],
-      "expected_verification_state": "All identity and inventory checks exit zero; safety caveats remain explicit."
+      "expected_verification_state": "The behavioral baseline is genuinely RED; focused contracts are GREEN; two consecutive final routing trials pass; protected source and mirror paths remain unchanged."
     },
     {
       "id": "task-2",
-      "category": "skills-templates",
-      "title": "Copy Astro skills and duplicate the template library",
-      "description": "Create the eight skill directories and the pinned Astro example mirror without overwriting existing paths.",
+      "category": "qualification",
+      "title": "Repair Pi-local references and qualify pinned source evidence",
+      "description": "Add failing packaged-link and provenance checks first, then pause for explicit approval before creating the exact pinned unit-testing compatibility file and recording exact-SHA CI, stale-prose limits, and pi.dev source evidence.",
       "status": "passed",
       "passes": true,
-      "attempt": 1,
+      "attempt": 3,
       "evidence_refs": [
-        { "kind": "test", "ref": ".pi/artifacts/astro-web-practices/progress.md#task-2-red-green", "attempt": 1 },
-        { "kind": "review", "ref": ".pi/artifacts/astro-web-practices/progress.md#task-2-copy-parity", "attempt": 1 }
+        {
+          "kind": "test",
+          "ref": ".pi/artifacts/astro-web-practices/progress.md#task-2-red-green",
+          "attempt": 1
+        },
+        {
+          "kind": "review",
+          "ref": ".pi/artifacts/astro-web-practices/progress.md#task-2-copy-parity",
+          "attempt": 1
+        },
+        {
+          "kind": "verification",
+          "ref": ".pi/artifacts/astro-web-practices/progress.md#evidence-task-2-attempt-2",
+          "attempt": 2
+        },
+        {
+          "kind": "verification",
+          "ref": ".pi/artifacts/astro-web-practices/progress.md#evidence-task-2-attempt-3",
+          "attempt": 3
+        }
       ],
-      "depends_on": ["task-1"],
+      "depends_on": [
+        "task-1"
+      ],
       "parallel": false,
       "conflicts_with": [],
       "files": [
-        ".pi/skills/analyze-github-action-logs/",
-        ".pi/skills/astro-developer/",
-        ".pi/skills/astro-pr-writer/",
-        ".pi/skills/changeset/",
-        ".pi/skills/merge/",
-        ".pi/skills/triage/",
-        ".pi/skills/writing-comments/",
-        ".pi/skills/astro-web-practices/",
-        ".pi/templates/astro/",
-        ".pi/skills/manifest.json",
+        ".pi/reference/unit-testing.md",
+        ".pi/skills/astro-web-practices/references/provenance.md",
         ".pi/tests/skill-system.test.ts"
       ],
+      "needs": [
+        "task-1 routing and stale-evidence behavior",
+        "Explicit written approval for the new compatibility path before creation",
+        "The pinned upstream reference blob and verified official CI run identities"
+      ],
+      "creates": [
+        "A resolvable exact upstream unit-testing compatibility reference",
+        "Source-qualified provenance with explicit evidence limits",
+        "Focused link, hash, and provenance regression coverage"
+      ],
+      "has_checkpoint": true,
       "acceptance_criteria": [
-        "All seven upstream skill source files are copied byte-for-byte and each copied skill includes the MIT license.",
-        "All 24 Astro examples are duplicated recursively under .pi/templates/astro/examples.",
-        "The Pi-native Astro skill includes example-selection, semantic HTML, CSS, hydration, accessibility, and verification guidance.",
-        "The registration test fails before target creation for the intended missing-path reason and passes afterward."
+        "Focused static and link checks are observed failing before compatibility-file or provenance edits.",
+        "After static RED, ship presents the exact new directory and file path, source ref, 90-line size, expected SHA-256, MIT license mapping, and no-overwrite behavior and waits for explicit written approval.",
+        "If approved, .pi/reference/unit-testing.md is an exact copy of pinned Astro reference/unit-testing.md with SHA-256 746443798f96775fdf50ac627657f04e48d82f016b661af8bee271563b842678; no bridge is created.",
+        "The unchanged ../../reference/unit-testing.md link in triage/fix.md resolves to the compatibility file in Pi Core.",
+        "Provenance records both official GitHub Actions run URLs, the exact head SHA and successful conclusions, and limits qualification to build, Astro check, test:check-examples, and smoke builds rather than README prose, external links, or target compatibility.",
+        "Provenance identifies the advanced-routing README and source conflict and adds pi.dev src/packages.html as evidence for dialog, focus, scroll, and DOMPurify claims.",
+        "Pi-local bundled links are distinguished from target-monorepo-relative links; no target-path compatibility wrappers are created.",
+        "All imported skill and template mirror bytes remain unchanged."
       ],
       "verification": [
-        "node --experimental-strip-types --test --test-name-pattern=\"Astro upstream skills|manifest has exact bidirectional parity\" .pi/tests/skill-system.test.ts",
-        "diff -qr /home/ryanj/work/inspo/creative/web/astro/examples .pi/templates/astro/examples",
-        "git diff --check -- .pi/skills .pi/templates/astro .pi/tests/skill-system.test.ts"
+        "node --experimental-strip-types --test --test-name-pattern=\"Astro imported Pi-local references|Astro provenance records qualified sources|Astro upstream skills\" .pi/tests/skill-system.test.ts",
+        "test \"$(sha256sum .pi/reference/unit-testing.md | cut -d' ' -f1)\" = 746443798f96775fdf50ac627657f04e48d82f016b661af8bee271563b842678",
+        "git diff --check -- .pi/reference/unit-testing.md .pi/skills/astro-web-practices/references/provenance.md .pi/tests/skill-system.test.ts"
       ],
-      "expected_verification_state": "The expected RED failure is retained, then all focused checks and source parity checks pass."
+      "expected_verification_state": "The initial link and provenance command fails for the named missing contracts; after explicit file-creation approval, the exact compatibility hash and focused qualification checks pass."
     },
     {
       "id": "task-3",
       "category": "verification",
-      "title": "Verify Pi Core integration",
-      "description": "Run repository gates and review owned paths while preserving concurrent work.",
+      "title": "Verify the remediated Astro integration",
+      "description": "Run behavioral, structural, parity, repository, and lifecycle gates and review all owned paths without installing dependencies, altering sparse-checkout state, or changing protected source and mirror bytes.",
       "status": "passed",
       "passes": true,
-      "attempt": 1,
+      "attempt": 4,
       "evidence_refs": [
-        { "kind": "verification", "ref": ".pi/artifacts/astro-web-practices/progress.md#task-3-integration", "attempt": 1 },
-        { "kind": "review", "ref": ".pi/artifacts/astro-web-practices/progress.md#task-3-owned-path-review", "attempt": 1 }
+        {
+          "kind": "verification",
+          "ref": ".pi/artifacts/astro-web-practices/progress.md#task-3-integration",
+          "attempt": 1
+        },
+        {
+          "kind": "review",
+          "ref": ".pi/artifacts/astro-web-practices/progress.md#task-3-owned-path-review",
+          "attempt": 1
+        },
+        {
+          "kind": "verification",
+          "ref": ".pi/artifacts/astro-web-practices/progress.md#evidence-task-3-attempt-3",
+          "attempt": 3
+        },
+        {
+          "kind": "verification",
+          "ref": ".pi/artifacts/astro-web-practices/progress.md#evidence-task-3-attempt-4",
+          "attempt": 4
+        }
       ],
-      "depends_on": ["task-2"],
+      "depends_on": [
+        "task-2"
+      ],
       "parallel": false,
       "conflicts_with": [],
       "files": [
         ".pi/artifacts/astro-web-practices/tasks.json",
         ".pi/artifacts/astro-web-practices/progress.md"
       ],
+      "needs": [
+        "task-2 compatibility and provenance repair",
+        "Fresh attempt-2 evidence for task-1 and task-2"
+      ],
+      "creates": [
+        "Integrated attempt-2 verification and review evidence",
+        "A truthful final graph state derived from current gates"
+      ],
+      "has_checkpoint": false,
       "acceptance_criteria": [
-        "Focused and full retained tests pass or any unrelated failure is reported without modification.",
-        "Doctor and every artifact task graph are checked.",
-        "Owned paths contain no deletion and no unrelated work is changed."
+        "The focused Astro and manifest contracts pass, including routing, stale evidence, packaged links, exact hashes, and provenance limits.",
+        "The exact final behavior-test prompt and rubric, one discriminating RED, and two consecutive final GREEN trials are retained as attempt-2 evidence.",
+        "All 18 source files in the seven copied skill directories remain byte-identical to pinned upstream and all seven adjacent Astro licenses remain exact.",
+        "The 427-file, 24-example mirror remains recursively byte-identical to pinned upstream.",
+        "The full retained suite, Doctor, and every artifact graph pass or any failure is reported without unrelated modification.",
+        "No package-manager command, local Astro dependency installation, sparse-checkout alteration, deletion, branch operation, or protected-byte edit occurs.",
+        "Owned-path diff review is clean and concurrent or runtime-managed work remains untouched."
       ],
       "verification": [
+        "node --experimental-strip-types --test --test-name-pattern=\"Astro upstream skills|Astro practice routing|Astro imported Pi-local references|Astro provenance records qualified sources|manifest has exact bidirectional parity\" .pi/tests/skill-system.test.ts",
         "node --experimental-strip-types --test .pi/tests/*.test.ts",
         "node --experimental-strip-types .pi/scripts/doctor.ts",
         "for f in .pi/artifacts/*/tasks.json; do node --experimental-strip-types .pi/scripts/task-graph.ts validate \"$f\" >/dev/null || exit; done",
-        "git diff --check -- .pi/artifacts/astro-web-practices .pi/skills .pi/templates/astro .pi/tests/skill-system.test.ts"
+        "for name in analyze-github-action-logs astro-developer astro-pr-writer changeset merge triage writing-comments; do diff -qr --exclude=LICENSE \"/home/ryanj/work/inspo/creative/web/astro/.agents/skills/$name\" \".pi/skills/$name\" || exit 1; cmp -s /home/ryanj/work/inspo/creative/web/astro/LICENSE \".pi/skills/$name/LICENSE\" || exit 1; done",
+        "diff -qr /home/ryanj/work/inspo/creative/web/astro/examples .pi/templates/astro/examples",
+        "cmp -s /home/ryanj/work/inspo/creative/web/astro/LICENSE .pi/templates/astro/LICENSE && cmp -s /home/ryanj/work/inspo/creative/web/astro/LICENSE .pi/skills/astro-web-practices/references/licenses/astro-MIT.txt && cmp -s /home/ryanj/work/inspo/creative/web/pi-website/LICENSE .pi/skills/astro-web-practices/references/licenses/pi-website-MIT.txt",
+        "test \"$(sha256sum .pi/reference/unit-testing.md | cut -d' ' -f1)\" = 746443798f96775fdf50ac627657f04e48d82f016b661af8bee271563b842678",
+        "git diff --check -- .pi/artifacts/astro-web-practices .pi/reference/unit-testing.md .pi/skills/astro-web-practices .pi/tests/skill-system.test.ts",
+        "git status --short --branch"
       ],
-      "expected_verification_state": "Applicable gates exit zero; unrelated dirty paths remain untouched and are not claimed as owned."
+      "expected_verification_state": "Behavioral proof, packaged usability, provenance qualification, protected-byte parity, repository gates, and owned-path review all pass without a local Astro install."
     }
   ]
 }

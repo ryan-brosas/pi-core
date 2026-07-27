@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 import test from "node:test";
 
 const SKILLS = ".pi/skills";
@@ -1493,6 +1495,198 @@ test("delivery phases select observable and consequence-based evidence", () => {
     ],
   ]);
   assertSemanticMarkerGroups(verify, "verify feedback routing", feedbackRouteMarkerGroups);
+});
+
+test("Astro practice routing distinguishes repository identity and stale examples", () => {
+  const practices = readRequired(`${SKILLS}/astro-web-practices/SKILL.md`);
+  const frontmatter = boundedTextBetween(
+    practices,
+    /^---[ \t]*$/m,
+    /^---[ \t]*$/m,
+    "Astro practice frontmatter",
+  );
+  const routing = boundedTextBetween(
+    practices,
+    /^# Astro Web Practices[ \t]*$/m,
+    /^## Core rule[ \t]*$/m,
+    "Astro repository routing",
+  );
+  const workflow = boundedTextBetween(
+    practices,
+    /^## Workflow[ \t]*$/m,
+    /^## Architecture decisions[ \t]*$/m,
+    "Astro practice prerequisites",
+  );
+  const exampleRouting = boundedTextBetween(
+    readRequired(`${SKILLS}/astro-web-practices/references/example-library.md`),
+    /^## Routing and server behavior[ \t]*$/m,
+    /^## Content formats and state[ \t]*$/m,
+    "Astro example routing evidence",
+  );
+
+  assertSemanticMarkerGroups(frontmatter, "Astro practice frontmatter", [
+    [
+      "ordinary Astro applications route through astro-web-practices first",
+      [
+        /description:[^\n]*(?:use|load)[^\n]*astro-web-practices[^\n]*first[^\n]*ordinary Astro application work/i,
+        /description:[^\n]*ordinary Astro application work[^\n]*(?:use|load)[^\n]*astro-web-practices[^\n]*first/i,
+      ],
+    ],
+    [
+      "copied maintainer skills require confirmed withastro/astro identity",
+      [
+        /description:[^\n]*(?:copied|upstream)[^\n]*maintainer skills?[^\n]*(?:only )?after[^\n]*confirm[^\n]*withastro\/astro[^\n]*(?:repository )?identity/i,
+      ],
+    ],
+  ]);
+  assert.match(
+    frontmatter,
+    /description:(?=[^\n]*(?:copied|upstream)[^\n]*maintainer skills?[^\n]*(?:only )?after[^\n]*confirm[^\n]*withastro\/astro[^\n]*(?:repository )?identity)(?=[^\n]*(?:narrow|only)[^\n]*exception[^\n]*outside upstream[^\n]*analyze-github-action-logs[^\n]*(?:only )?when[^\n]*(?:an )?explicit[^\n]*OWNER\/REPO[^\n]*(?:supplied|provided|named))[^\n]*/i,
+    "Astro practice frontmatter must preserve confirmed-upstream maintainer gating and name the explicit OWNER/REPO Actions exception",
+  );
+
+  assertSemanticMarkerGroups(routing, "Astro repository routing", [
+    [
+      "confirmed upstream contributions use copied maintainer skills",
+      [/(?:confirmed|verified)[^\n]*withastro\/astro[^\n]*(?:contribution|checkout|repository)[^\n]*(?:use|load|route)[^\n]*(?:copied|upstream)[^\n]*maintainer skill/i],
+    ],
+    [
+      "ordinary applications stay with astro-web-practices",
+      [/ordinary Astro (?:application|app)(?: work)?[^\n]*(?:use|stay|start|remain)[^\n]*astro-web-practices/i],
+    ],
+    [
+      "unknown identity fails closed on the native skill",
+      [/unknown (?:repository )?identity[^\n]*(?:use|stay|remain|continue)[^\n]*astro-web-practices[\s\S]{0,180}(?:stop|wait|do not load)[^\n]*(?:copied|upstream|maintainer)/i],
+    ],
+    [
+      "generic bug debugging uses the generic debugging skill",
+      [/generic bug debugging[^\n]*(?:use|pair|load)[^\n]*debugging-and-error-recovery[^\n]*(?:rather than|not)[^\n]*(?:copied )?triage/i],
+    ],
+    [
+      "GitHub Actions analysis requires an explicit repository",
+      [
+        /(?:explicit|named)[^\n]*(?:repository|OWNER\/REPO)[^\n]*GitHub Actions[^\n]*(?:use|load|route)[^\n]*analyze-github-action-logs/i,
+        /GitHub Actions[^\n]*(?:explicit|named)[^\n]*(?:repository|OWNER\/REPO)[^\n]*(?:use|load|route)[^\n]*analyze-github-action-logs/i,
+      ],
+    ],
+    [
+      "cited examples consult the native map and source before README prose",
+      [/(?:when|if)[^\n]*example[^\n]*(?:cited|named|recommended)[^\n]*(?:consult|read|check)[^\n]*native[^\n]*example map[^\n]*(?:source|config)[^\n]*before[^\n]*README prose/i],
+    ],
+    [
+      "initial routing names the pinned advanced-routing source disagreement",
+      [/advanced-routing[^\n]*src\/fetch\.ts[^\n]*(?:not|rather than|versus)[^\n]*README[^\n]*src\/app\.ts[^\n]*astro\.config\.mjs[^\n]*(?:has|contains)[^\n]*no[^\n]*advancedRouting[^\n]*flag/i],
+    ],
+    [
+      "initial routing separates read-only Pi evidence from target paths",
+      [/copied skills[^\n]*(?:template mirror|\.pi\/templates\/astro\/)[^\n]*read-only evidence[^\n]*Pi-local[^\n]*(?:not|never)[^\n]*target-project paths/i],
+    ],
+  ]);
+
+  assertSemanticMarkerGroups(workflow, "Astro practice prerequisites", [
+    [
+      "target facts precede commands and compatibility claims",
+      [
+        /before[^\n]*commands?[^\n]*compatibility claims?[^\n]*Astro version[^\n]*adapter[^\n]*output mode[^\n]*package manager[^\n]*lockfile[^\n]*(?:repository|project)-defined scripts?[^\n]*nearby tests/i,
+        /before[^\n]*compatibility claims?[^\n]*commands?[^\n]*Astro version[^\n]*adapter[^\n]*output mode[^\n]*package manager[^\n]*lockfile[^\n]*(?:repository|project)-defined scripts?[^\n]*nearby tests/i,
+      ],
+    ],
+  ]);
+
+  assertSemanticMarkerGroups(exampleRouting, "Astro example routing evidence", [
+    ["the pinned advanced-routing README is stale", [/advanced-routing[^\n]*README[^\n]*(?:stale|out of date)/i]],
+    [
+      "source uses src/fetch.ts instead of the README's src/app.ts",
+      [/README[^\n]*src\/app\.ts[\s\S]{0,180}(?:source|implementation)[^\n]*src\/fetch\.ts/i],
+    ],
+    [
+      "astro.config.mjs has no advancedRouting flag",
+      [
+        /astro\.config\.mjs[^\n]*(?:has|contains|uses)[^\n]*no[^\n]*advancedRouting[^\n]*flag/i,
+        /advancedRouting[^\n]*flag[^\n]*(?:absent|not present)[^\n]*astro\.config\.mjs/i,
+      ],
+    ],
+    [
+      "source config and qualified checks outrank prose",
+      [/source[^\n]*config[^\n]*(?:qualified|exact-SHA)[^\n]*(?:checks|CI)[^\n]*(?:authoritative|precedence|over)[^\n]*(?:README|prose)/i],
+    ],
+    [
+      "qualified checks do not validate README prose",
+      [/(?:qualified|exact-SHA)[^\n]*(?:checks|CI)[^\n]*(?:do not|cannot|never)[^\n]*(?:validate|qualify)[^\n]*(?:README|prose)/i],
+    ],
+    [
+      "irreconcilable compatibility stops or selects another example",
+      [/(?:cannot|can['’]t)[^\n]*reconcil[^\n]*(?:stop|select|choose)[^\n]*(?:another|different)[^\n]*example/i],
+    ],
+  ]);
+});
+
+test("Astro imported Pi-local references resolve to pinned content", () => {
+  const importedPath = `${SKILLS}/triage/fix.md`;
+  const piRoot = resolve(".pi");
+  const piLocalTargets = [...readRequired(importedPath).matchAll(/\[[^\]]+\]\(([^)\s]+)\)/g)]
+    .map((match) => match[1].split("#", 1)[0])
+    .filter((target) => target && !target.startsWith("/") && !/^[a-z][a-z\d+.-]*:/i.test(target))
+    .map((target) => resolve(dirname(importedPath), target))
+    .filter((target) => {
+      const localPath = relative(piRoot, target);
+      return localPath !== ".." && !localPath.startsWith(`..${sep}`) && !isAbsolute(localPath);
+    });
+  const expectedTarget = resolve(".pi/reference/unit-testing.md");
+
+  assert.ok(piLocalTargets.includes(expectedTarget), "imported triage must retain its Pi-local unit-testing link");
+  for (const target of piLocalTargets) {
+    const repositoryPath = relative(resolve("."), target);
+    assert.ok(existsSync(target), `required imported Pi-local reference is missing: ${repositoryPath}`);
+  }
+  assert.equal(
+    createHash("sha256").update(readFileSync(expectedTarget)).digest("hex"),
+    "746443798f96775fdf50ac627657f04e48d82f016b661af8bee271563b842678",
+    ".pi/reference/unit-testing.md must match the pinned Astro guide",
+  );
+});
+
+test("Astro provenance records qualified sources and limits", () => {
+  const provenance = readRequired(`${SKILLS}/astro-web-practices/references/provenance.md`);
+
+  const provenanceRecords = provenance.split(/\r?\n/);
+  for (const runId of ["30171682338", "30171682348"]) {
+    const runUrl = `https://github.com/withastro/astro/actions/runs/${runId}`;
+    const runRecord = provenanceRecords.find((record) => record.includes(runUrl));
+    assert.ok(runRecord, `${runUrl}: provenance record is missing`);
+    assert.ok(
+      runRecord.includes("head SHA `0fc519de12d69088052b76e096a4adfdc789c30c`"),
+      `${runUrl}: provenance record must contain the pinned head SHA`,
+    );
+    assert.match(
+      runRecord,
+      /(?:\bconclusion:\s*success\b|\bconcluded successfully\b)/i,
+      `${runUrl}: provenance record must contain a successful conclusion`,
+    );
+  }
+
+  assertSemanticMarkerGroups(provenance, "Astro provenance qualification", [
+    [
+      "qualification is limited to build, Astro check/test:check-examples, and smoke example builds, with explicit exclusions",
+      [
+        /(?=[\s\S]*(?:qualification[^\n]*(?:limited to|only)|qualif(?:y|ied)[^\n]*only)[^\n]*\bbuild\b[^\n]*Astro check[^\n]*test:check-examples[^\n]*smoke[^\n]*example builds?)(?=[\s\S]*(?:do not|does not|cannot)[^\n]*README prose[^\n]*external links[^\n]*(?:target-project|target project) compatibility)/i,
+      ],
+    ],
+    [
+      "advanced-routing records the README and source disagreement",
+      [/advanced-routing[^\n]*README[^\n]*src\/app\.ts[^\n]*(?:source|implementation)[^\n]*src\/fetch\.ts/i],
+    ],
+    [
+      "pinned root unit-testing guide records placement, hash, and Astro MIT mapping",
+      [
+        /(?:pinned|upstream)[^\n]*root[^\n]*reference\/unit-testing\.md[^\n]*\.pi\/reference\/unit-testing\.md[^\n]*746443798f96775fdf50ac627657f04e48d82f016b661af8bee271563b842678[^\n]*references\/licenses\/astro-MIT\.txt/i,
+      ],
+    ],
+    [
+      "pi.dev src/packages.html supports dialog, focus, scroll, and DOMPurify claims",
+      [/src\/packages\.html[^\n]*(?:evidence|supports?)[^\n]*dialog[^\n]*focus[^\n]*scroll[^\n]*DOMPurify/i],
+    ],
+  ]);
 });
 
 test("Astro upstream skills, practice skill, and templates are available", () => {
