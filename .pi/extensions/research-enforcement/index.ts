@@ -67,7 +67,7 @@ interface ToolResultLike {
 }
 
 interface MessageEndLike {
-  message?: { role?: unknown; content?: unknown };
+  message?: { role?: unknown; content?: unknown; stopReason?: unknown };
 }
 
 interface ContextLike {
@@ -76,8 +76,7 @@ interface ContextLike {
   hasPendingMessages(): boolean;
   isProjectTrusted?: () => boolean;
   sessionManager: {
-    getEntries(): unknown[];
-    getBranch?: () => unknown[];
+    getBranch(): unknown[];
   };
   ui: {
     notify(message: string, type?: "info" | "warning" | "error"): void;
@@ -196,13 +195,8 @@ function restoreTurn(data: unknown, fallbackOrdinal: number): RuntimeTurn | null
   return restored;
 }
 
-function activeEntries(ctx: ContextLike): unknown[] {
-  const branch = ctx.sessionManager.getBranch?.();
-  return Array.isArray(branch) ? branch : ctx.sessionManager.getEntries();
-}
-
 function restoreLatest(ctx: ContextLike, fallbackOrdinal: number): RuntimeTurn | null {
-  const entries = activeEntries(ctx);
+  const entries = ctx.sessionManager.getBranch();
   for (let index = entries.length - 1; index >= 0; index--) {
     const entry = entries[index];
     if (!entry || typeof entry !== "object") continue;
@@ -226,20 +220,31 @@ async function configDirName(): Promise<string> {
   return ".pi";
 }
 
+function disabledConfig(): ResearchEnforcementConfig {
+  return { ...defaultConfig(), enabled: false };
+}
+
 async function loadConfig(ctx: ContextLike): Promise<ResearchEnforcementConfig> {
   if (typeof ctx.isProjectTrusted === "function" && !ctx.isProjectTrusted()) {
-    return defaultConfig();
+    return disabledConfig();
+  }
+  const directory = await configDirName();
+  let raw: string;
+  try {
+    raw = await readFile(join(ctx.cwd ?? process.cwd(), directory, CONFIG_FILE), "utf8");
+  } catch {
+    return disabledConfig();
   }
   try {
-    const directory = await configDirName();
-    const raw = await readFile(join(ctx.cwd ?? process.cwd(), directory, CONFIG_FILE), "utf8");
     return parseConfig(JSON.parse(raw));
   } catch {
     return defaultConfig();
   }
 }
 
-function terminalAnswer(content: unknown): string | null {
+function terminalAnswer(message: MessageEndLike["message"]): string | null {
+  if (!message || message.stopReason !== "stop") return null;
+  const content = message.content;
   if (typeof content === "string") {
     return content.trim().length > 0 ? content : null;
   }
@@ -248,6 +253,7 @@ function terminalAnswer(content: unknown): string | null {
   for (const item of content) {
     if (!item || typeof item !== "object") return null;
     const block = item as { type?: unknown; text?: unknown };
+    if (block.type === "thinking") continue;
     if (block.type !== "text" || typeof block.text !== "string") return null;
     parts.push(block.text);
   }
@@ -291,7 +297,7 @@ export default function researchEnforcement(pi: ExtensionAPI): void {
     pendingTools.clear();
     pendingExternalInputs = 0;
     const restored = restoreLatest(ctx, turn.turnOrdinal);
-    if (restored) turn = restored;
+    turn = restored ?? newTurn(turn.turnOrdinal);
   };
 
   pi.on("session_start", async (_event, ctx) => {
@@ -386,7 +392,7 @@ export default function researchEnforcement(pi: ExtensionAPI): void {
   pi.on("message_end", (event) => {
     const message = (event as MessageEndLike).message;
     if (!message || message.role !== "assistant") return;
-    const answer = terminalAnswer(message.content);
+    const answer = terminalAnswer(message);
     if (answer === null) return;
     turn.citation = validateCitation(answer, config);
     turn.finalSeen = true;

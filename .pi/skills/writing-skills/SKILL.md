@@ -1,7 +1,7 @@
 ---
 name: writing-skills
-description: "Use when creating new skills, editing existing skills, or verifying skills work before deployment - applies TDD to process documentation by testing with fresh Fabric children before writing, iterating until bulletproof against rationalization. Includes complete pressure testing methodology."
-version: 1.0.0
+description: "Use when authoring, adapting, vendoring, curating, or verifying skills—selects behavior, integrity, or representative evidence based on the actual change and risk without imposing source or license ceremony on independently rewritten ideas."
+version: 1.2.0
 tags: [documentation, workflow]
 dependencies: []
 tools: []
@@ -9,121 +9,91 @@ tools: []
 
 # Writing Skills
 
-## The Iron Law (Same as TDD)
+## Evidence Law
 
 <EXTREMELY-IMPORTANT>
-**NO SKILL WITHOUT A FAILING TEST FIRST.** A skill is a *behavior change* in the agent that loads it. Test the behavior, not the prose.
+**Match evidence to the change.** Behavior-changing guidance needs behavioral RED/GREEN evidence. Verbatim vendoring needs source and integrity evidence. Bulk curation needs complete inventory checks plus representative risk-based pressure tests.
 </EXTREMELY-IMPORTANT>
 
-**REQUIRED BACKGROUND:** test-driven-development.
+Independently rewritten ideas and patterns require no license or provenance ceremony. Do not require source pins, hashes, notices, or legal review unless copied expressive material remains in the skill.
 
-## Why This Is Hard
+Do not manufacture a failing behavior baseline for content that is only being distributed unchanged. Do not call adapted behavior “verbatim” to avoid testing it.
 
-The "test" (run a fresh Fabric child) is expensive; the rationalization is "obviously correct".
+## Select the Evidence Mode
 
-## Fabric Test Harness
+| Mode | Trigger | Required evidence |
+| --- | --- | --- |
+| **Author or adapt** | New instructions, changed decisions, routing, safety gates, or materially rewritten prose | Fresh-child behavioral RED, minimum GREEN change, adversarial REFACTOR; no source paperwork for independent rewriting |
+| **Vendor verbatim** | Exact upstream files copied without behavior changes | Exact source, applicable license or terms, required notices, source or byte parity, file allowlist, frontmatter/load smoke test, manifest parity |
+| **Curate a collection** | Many independent upstream skills selected or filtered | Complete decision matrix, integrity checks for every copied file, and representative pressure tests by risk cluster |
+| **Metadata or packaging repair** | Registration, path, frontmatter, or reference wiring only | Failing static/load check followed by focused and containing checks |
 
-Run each RED and GREEN pressure scenario through a fresh foreground `agents.run` call inside `fabric_exec`. RED must finish before GREEN, so keep those dependent calls sequential:
+Escalate to **author or adapt** for any skill whose description, instructions, safety behavior, trigger, or tool contract changes. In curated collections, individually pressure-test broad routers, behavior-changing adaptations, destructive/financial/security workflows, and any outlier not covered by a representative risk cluster. A collection does not need one baseline agent trial per unchanged skill.
+
+## Behavior Harness — Author or Adapt Only
+
+Run RED before GREEN through fresh Fabric children inside fabric_exec:
 
 ```typescript
 const red = await agents.run({
   name: "skill-red-pressure",
   tools: ["read"],
-  task: `[self-contained scenario and scoring rubric]. Do not load or mention the skill under test. Choose and act.`,
+  task: "Execute the self-contained scenario without the candidate skill; return the scored rubric.",
 });
 const green = await agents.run({
   name: "skill-green-pressure",
   tools: ["read"],
-  task: `Read .pi/skills/[name]/SKILL.md, then execute the same scenario and return the scored rubric plus exact rationale.`,
+  task: "Read the candidate SKILL.md, execute the same scenario, and return the scored rubric.",
 });
-return { red: red.text, green: green.text };
 ```
 
-For independent variants, run at most three calls in one `Promise.all` wave and process overflow in sequential shards. The parent compares scores, records rationalizations, inspects the skill, and verifies behavior; a child does not decide that its own skill is bulletproof.
+The parent compares results and content hashes. Independent variants may run in waves of at most three. If the baseline already passes, first ask whether the candidate still adds a distinct behavior. Skip or vendor it; do not weaken the rubric merely to force RED.
 
-## The Loop
+## Vendor Integrity Harness
 
-```
-RED:      fresh Fabric child WITHOUT skill — watch it fail
-GREEN:    smallest skill that flips the failure
-REFACTOR: close loopholes the test exposed
-```
+For unchanged upstream material:
 
-A "test" is a pressure scenario (prompt to make the agent skip the iron law) plus a rubric.
+1. Identify the exact repository/source and immutable revision.
+2. Check the applicable license or terms, required notices, and complete approved file list.
+3. Record source hashes or recursive byte parity.
+4. Fail first on missing local files, wrong hashes, invalid frontmatter, missing references, or absent manifest entries.
+5. Copy only approved files.
+6. Re-run focused loading/integrity checks and the containing repository suite.
+7. Record upstream test limitations without pretending integrity proves behavior quality.
+
+## Curated Collection Workflow
+
+1. Inventory every candidate from the source used for selection.
+2. Decide `vendor`, `adapt`, or `exclude` with a reason and exact local path.
+3. Group vendored skills by real risk: ordinary read-only guidance, external-tool guidance, mutation-capable workflows, security/privacy, and broad routing.
+4. Verify every copied file deterministically.
+5. Run representative pressure scenarios for each risk cluster; test every adapted or high-risk outlier individually.
+6. Stop only the affected item or cluster when evidence fails. Do not discard an already-qualified collection because an unrelated baseline agent is competent.
+7. Re-run manifest parity, load checks, and the full retained suite.
 
 ## Match the Form to the Failure
 
-<EXTREMELY-IMPORTANT>
-**Prohibitions backfire on shaping problems.** A "don't do X" rule suppresses a desired output without teaching the correct one. Use a recipe.
-</EXTREMELY-IMPORTANT>
-
-| Baseline failure | Right form | Wrong form |
-| --- | --- | --- |
-| Skips test | Recipe (RED→GREEN→REFACTOR) | "Always write tests" |
-| Oversizes diff | Delete-list | "Keep it small" |
-| Unverified claim | Verification template + `<evidence>` | "Verify your work" |
-| Guesses under uncertainty | Variants + interview | "Ask if unsure" |
-
-Form must match the failure. A misformed rule is noise.
-
-## Workflow
-
-1. **Gap.** What skill *would have* prevented the observed bad behavior?
-2. **RED** — scenario, fresh Fabric child *without* skill. Score. Record.
-3. **GREEN** — minimum skill that flips the failure. Re-run. Iterate.
-4. **REFACTOR** — adversarial prompts. Skill must hold.
-5. **Compress.** Pass → tighten. Compressed skills that pass are load-bearing.
-6. **Commit + index.** Reference in `superpi` if in "skills you reach for first".
-
-## Pressure-Testing Scenarios
-
-| Type | What it tests |
+| Failure | Right form |
 | --- | --- |
-| **Skipping iron law** | "I'm in a hurry, just give me the answer." |
-| **Rationalization** | "I know the rule, this is obvious." |
-| **Edge case** | "My case is special." |
-| **Compression** | After compression, does the agent still apply? |
-| **Cross-skill** | Two skills in tension. Which wins? |
+| Agent skips a required workflow | Behavioral recipe and pressure scenario |
+| Vendored bytes drift | Source-parity and allowlist check |
+| Collection imports unsafe extras | Complete matrix plus exclusion contract |
+| Skill is undiscoverable | Frontmatter, reference, and manifest load test |
+| Prose is bloated | Compression trial after behavior is locked |
 
-## Rubric Template
+## Red Flags
 
-```
-Score: /5 — iron law (1), workflow (0–3), red flags (1), contract (1), refused to skip (1). Pass: 4/5, two consecutive.
-```
-
-## Skill Anatomy
-
-```
----
-name: <kebab>
-description: Use when <triggering condition>...
----
-# <Title>
-## Core Principle | When to Use / NOT | Workflow | Red Flags | Anti-Patterns | Contract
-```
-
-Target: <500 words.
-
-## HARD-GATE Markers
-
-Use `<HARD-GATE>` / `<EXTREMELY-IMPORTANT>` when the agent has skipped the rule.
-
-## Red Flags (Writing the Skill)
-
-Wrote before RED; "obviously correct" with no test; description too vague or too long; iron law missing where the agent skips; compression deleted a load-bearing marker; contract is boilerplate.
-
-## Anti-Patterns
-
-**The "obvious" skill** (untested); **the bible** (cannot load); **the summarizer** (rephrases AGENTS.md); **the tutorial** (move to docs).
+Calling an adaptation verbatim; copying moving `main`; copying upstream bytes without checking applicable terms; testing only a README count; requiring hundreds of duplicate agent trials for unchanged files; using one happy-path sample for a destructive skill; treating static integrity as behavioral proof; weakening a rubric to create artificial RED.
 
 ## Skill Result Contract
 
-```
+```xml
 <skill_result>
   <skill>writing-skills</skill>
   <status>success|partial|blocked|failure</status>
-  <evidence>RED scenario, GREEN skill, REFACTOR</evidence>
-  <artifacts>Scenario + rubric + skill</artifacts>
-  <risks>Untested, regressed marker, or none</risks>
+  <mode>author-adapt|vendor-verbatim|curated-collection|packaging-repair</mode>
+  <evidence>Behavior delta and pressure results, or source/integrity evidence plus representative risk-cluster results for copied material</evidence>
+  <artifacts>Skill files and tests; source, terms/notices, and collection matrix only when copied material makes them applicable</artifacts>
+  <risks>Untested behavior delta, copied-material drift or permission gap, unqualified content, weak risk coverage, or none</risks>
 </skill_result>
 ```

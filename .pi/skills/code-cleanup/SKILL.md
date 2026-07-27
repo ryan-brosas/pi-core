@@ -24,9 +24,9 @@ Behavior is broken or unverified; "cleanup" is cover for redesign; cleanup sprea
 ## Workflow
 
 1. **Lock behavior.** Run the relevant tests + typecheck + lint. Save the output. This is your "before" baseline.
-2. **Identify smell.** Use `fallow` (if available) for dead code, dupes, complexity. Otherwise: read the diff, mark spots that feel off.
+2. **Identify smell.** Use `fallow` only when it is configured for the repository and available; otherwise inspect current source and the complete diff for dead code, duplication, and complexity, and record the deterministic gate as N/A rather than inventing a command.
 3. **Simplify, in order:**
-   - **Delete** (dead code, comments that restate, unused exports) — easiest, highest impact
+   - **Delete** (dead code, comments that restate, unused exports) — only after checking consumers and obtaining the authorization required to delete maintained code or public surfaces
    - **Rename** (clearer names, remove prefixes/suffixes) — cheap, high signal
    - **Extract** (a variable, a helper) — only if nameable and reused
    - **Inline** (a one-use wrapper) — only if the wrapper adds no clarity
@@ -44,7 +44,7 @@ Behavior is broken or unverified; "cleanup" is cover for redesign; cleanup sprea
 
 ## Common Mistakes
 
-Cleanup before behavior is locked (can't prove nothing broke); expanding scope (renaming across the codebase); adding abstractions for "future reuse"; deleting without checking consumers; reformatting the whole file; "improving" code style in unrelated parts; "we'll add tests after" (the tests are how you prove nothing broke).
+Cleanup before behavior is locked (can't prove nothing broke); expanding scope (renaming across the codebase); adding abstractions for "future reuse"; deleting without checking consumers or required authorization; reformatting the whole file; "improving" code style in unrelated parts; "we'll add tests after" (the tests are how you prove nothing broke).
 
 ## Red Flags
 

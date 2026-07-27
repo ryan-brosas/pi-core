@@ -38,7 +38,7 @@ For work that is correctly out of scope for the current slice, leave `TODO(handl
 
 ## Self-Quiz Before "Done"
 
-Can I name what changed and why in one sentence? Did I run the named verification command and see it pass? Did I leave `TODO(handle)` markers for unrequested scope? Did I update the active `.pi/artifacts/<slug>/progress.md` or `tasks.json` when lifecycle tracking applies? Are there unrelated changes in the diff? If yes to the last, split them out before claiming done.
+Can I name what changed and why in one sentence? Did I run the named verification command and see it pass? Did I leave `TODO(handle)` markers for unrequested scope? Are there unrelated changes in the diff? If yes to the last, leave them untouched and report only the owned change.
 
 ## Red Flags
 

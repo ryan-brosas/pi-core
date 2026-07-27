@@ -16,11 +16,10 @@ Read the referenced source before executing it. Never infer a package manager, t
 **Incremental mode** is the default for a bounded change. Use **full mode** when:
 
 - `--full` is explicitly requested;
-- shipping, releasing, or preparing integration;
-- more than 20 changed paths make a narrow run unreliable; or
-- consequence or shared-surface impact requires the retained suite regardless of file count.
+- shipping, releasing, or preparing integration; or
+- consequence or shared-surface impact requires the retained suite.
 
-File count selects breadth only. Security, privacy, authorization, data integrity, external-provider, retry/idempotency, cost-control, or recovery consequences always override a narrow changed-file heuristic.
+Path count is a coupling signal, not a gate, and never forces a verification mode. Security, privacy, authorization, data integrity, external-provider, retry/idempotency, cost-control, or recovery consequences override narrow verification regardless of file count.
 
 ### Complete Changed-Path Set
 
@@ -38,6 +37,12 @@ BASE_SHA=$(git merge-base "$PRIMARY_REF" HEAD) || exit 1
 
 If the verified primary ref or merge base is unavailable, stop and ask rather than narrowing to committed changes. Classify every path as owned, unrelated concurrent work, or runtime-managed state before selecting checks or fixes.
 
+## Optional Code-Graph Evidence
+
+For shared-surface architecture or refactor work, a configured code graph may improve the impact map only after a known-symbol health probe for the exact repository succeeds. Verify every graph claim or graph hit against current source bytes before selecting scope or tests.
+
+If the graph is unavailable, stale, contradictory, or misses the known symbol, mark graph analysis N/A and continue from source with `pi.read`, `pi.grep`, and `pi.find`. Graph output never replaces repository policy, source inspection, deterministic static analysis, tests, or black-box acceptance. A local body-only edit with explicit callers does not require graph analysis.
+
 ## Build the Gate Inventory
 
 Record each gate before execution:
@@ -49,6 +54,7 @@ Record each gate before execution:
 | Lint/format | Repository-defined command or N/A | incremental/full | Policy, CI, or manifest |
 | Tests | Narrowest relevant command, then retained suite when needed | incremental/full | Test layout and impact map |
 | Build/package | Repository-defined command or N/A | full when shipping | CI or manifest |
+| Code-graph impact | Healthy exact-repository probe or N/A | consequence-based | Shared or unclear blast radius |
 | Integration/manual | Exact probe or N/A | consequence-based | Boundary and failure risks |
 
 A command copied from prose is executable evidence only after confirming that its referenced files and executable exist in the current checkout.

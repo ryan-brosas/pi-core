@@ -1,10 +1,6 @@
 # AGENTS.md — Pi Core Operating Contract
 
-> Guidelines for AI coding agents working in this Pi configuration, extension, prompt, skill, workflow, and artifact repository.
->
-> **Template note:** When adapting this file to another repository, update the Project Profile and verification commands. Keep the authority, deletion, destructive-action, concurrent-work, and evidence gates unless the user explicitly replaces them.
-
----
+> Project policy for agents working in this Pi configuration, extension, prompt, skill, workflow, and artifact repository.
 
 ## Project Profile
 
@@ -14,302 +10,185 @@
 | Canonical checkout | `/home/ryanj/work/projects/pi-core` |
 | Primary branch | `main` |
 | Runtime | Node.js with `--experimental-strip-types` |
-| Package manager | None currently; do not invent install commands or lockfiles |
-| Active-work root | `.pi/artifacts/` |
-| Canonical task graph | `.pi/artifacts/<slug>/tasks.json` |
+| Package manager | None; do not invent install commands or lockfiles |
 | Core verification | `node --experimental-strip-types --test .pi/tests/*.test.ts` |
 
 ---
 
 ## RULE 0 — USER AUTHORITY
 
-The user's latest explicit instruction controls project intent and overrides defaults in this file. The user is in charge of scope, priorities, trade-offs, and desired outcomes.
+The user's latest explicit instruction controls project intent and overrides defaults in this file. The user owns scope, priorities, trade-offs, and desired outcomes.
 
-System, developer, platform-safety, privacy, and legal constraints remain higher priority. If an instruction cannot be followed for one of those reasons, state the exact conflict and provide the closest safe alternative.
+System, developer, platform-safety, privacy, and legal constraints remain higher authority. Everything below is a **project default**, not a mechanism for overruling an explicit user choice.
 
-Permission to implement does **not** automatically grant permission to delete files, disturb concurrent work, run destructive commands, switch branches, create worktrees, commit, merge, push, deploy, or change the active artifact. Those actions use the explicit approval gates below.
+The user may explicitly replace or waive a project gate for a named scope. Language such as “proceed destructively for this refactor,” “skip the confirmation ceremony,” or “replace this workflow wholesale” is an explicit replacement, not ordinary implementation permission. Once a gate is explicitly replaced, do not reassert it, demand the waived sequence, or ask the user to repeat the decision. Reconfirm only if the requested scope materially expands.
 
-Analysis, review, research, and planning requests are read-only unless the user explicitly asks for implementation or file changes.
-
----
-
-## RULE 1 — NO FILE DELETION WITHOUT WRITTEN PERMISSION
-
-**Never delete a file or directory without clear, written user permission naming the affected path.** This includes files created by the agent during the current session.
-
-Deletion includes:
-
-- removing a file or directory;
-- renaming or moving it away from its current path;
-- truncating it to empty;
-- replacing the whole file with an unrelated implementation;
-- regenerating output in a way that discards hand-maintained content.
-
-Words such as “cleanup,” “consolidate,” “unused,” “legacy,” “temporary,” “generated,” “migration,” or “simplify” are **not** deletion permission.
-
-Before requesting deletion approval, provide:
-
-1. the exact path list;
-2. why each path is believed removable;
-3. references and dependencies checked;
-4. what behavior or history will disappear;
-5. the non-destructive alternative.
-
-If the path list changes, approval must be requested again. Never bundle unapproved deletion into an implementation or refactor commit.
+Analysis and planning remain read-only unless the user requests implementation or mutation.
 
 ---
 
-## Irreversible Git and Filesystem Actions — TWO-CONFIRMATION GATE
+## Default Safety Boundaries
 
-Treat any operation that can discard, overwrite, rewrite, or remotely publish work as destructive. Examples include:
+These defaults apply until the user explicitly replaces them for the requested scope.
 
-- `git reset --hard`, `git clean -fd`, destructive checkout/restore, branch deletion, history rewrite, or force-push;
-- `rm -rf`, recursive removal, overwrite redirects, destructive migrations, and bulk replacement;
-- any command whose complete effects are uncertain.
+### Deletion and destructive actions
 
-Do not run one merely because it appears safe.
+- Do not delete, move, rename, empty, or discard maintained files without written user authorization covering that scope.
+- Treat irreversible Git/filesystem actions and remote publication as destructive.
+- By default, show the exact command, cwd, branch/HEAD, affected paths, effect, rollback limits, and status; obtain two confirmations separated by a refreshed preflight; then audit execution.
+- A scope-level destructive authorization may replace that ceremony under Rule 0. Execute only inside the authorized scope and report exact affected paths afterward.
+- Prefer bounded edits when destructive replacement is not part of the user’s request.
 
-### Required protocol
+### Concurrent and unrelated work
 
-1. **Preflight:** show the exact command, working directory, branch/HEAD, affected paths, expected effect, rollback limits, and current `git status`.
-2. **First confirmation:** the user must provide written approval for that exact command and scope while acknowledging the irreversible effect.
-3. **Refresh:** rerun the read-only preflight. If anything drifted, disclose it and restart the protocol.
-4. **Second confirmation:** repeat the exact command and affected paths; wait for immediate written confirmation.
-5. **Execute exactly:** do not broaden, rewrite, chain, or substitute the approved command.
-6. **Audit:** report UTC execution time, exact authorizing user text, command, cwd, branch/HEAD, affected paths, exit code, and post-operation status.
+- Preserve unrelated and runtime-managed changes. Never stash, reset, restore, rebase away, stage, commit, or clean them up.
+- Record relevant path status and inspect current contents before editing.
+- If an owned path changes concurrently after inspection, stop that edit, preserve both versions, and report the overlap.
+- Unrelated dirty files are not a reason to stop work.
 
-If the audit record is absent, treat the operation as not authorized. Prefer read-only inspection, a new non-destructive copy, or an isolated worktree. Do not use `git stash` on concurrent work.
+### Git and external effects
 
----
-
-## Concurrent and Unrelated Work — PRESERVE IT
-
-This repository may be changed by multiple agents and processes at the same time. Unexpected modifications are normal.
-
-- Never stash, revert, reset, restore, overwrite, rebase away, stage, commit, or “clean up” work you do not explicitly own.
-- Do not stop merely to ask what to do with unrelated changes. Continue using only the paths required by the current task.
-- Before editing, record the relevant path status and inspect its current contents. Before finishing, verify that only owned paths changed because of your work.
-- If another process changes an owned path while you are editing, stop that edit, preserve both versions, and report the overlap. Do not choose a winner silently.
-- Never switch a dirty checkout just to satisfy a workflow.
-- If an unauthorized mutation occurs, stop immediately, report the exact branch/worktree/commit/path state, and wait for the user's recovery choice. Do not improvise additional recovery.
-
-Treat concurrent changes with the same care as your own work, but never claim or commit them as yours.
+- Do not switch branches, create worktrees, commit, merge, rebase, push, deploy, publish, or mutate remotes unless the user requests that action.
+- Stage only reviewed owned paths; never use broad staging in a mixed worktree.
+- Before claiming work exists on a branch, verify the absolute checkout, branch, HEAD, and status.
 
 ---
 
-## Git Branch and Integration Policy
+## Editing Discipline
 
-- `main` is the canonical integration branch. Do not use or document `master` as the primary branch.
-- Feature branches and worktrees are isolation mechanisms, not alternate sources of truth.
-- Do not switch branches, create a worktree, commit, merge, rebase, push, force-push, delete a branch, or mutate a remote without explicit user approval for that action.
-- Implementation approval alone is not approval to commit or integrate.
-- Before requesting integration approval, report:
-  - absolute source worktree and branch;
-  - target branch;
-  - exact commits;
-  - changed paths and deletions;
-  - verification evidence;
-  - known conflicts and rollback.
-- Stage only reviewed, owned paths. Never use broad staging in a mixed worktree.
-- Keep implementation, cleanup, generated output, runtime state, artifact-pointer changes, and unrelated work in separate commits.
-- Before claiming work is present or restored, verify it in the user's actual checkout and report the absolute path, branch, HEAD, and status.
-- A legacy remote branch, if one exists, is owner-managed. Never synchronize or push it without explicit approval.
+- Read current source and nearby contracts before editing.
+- Prefer exact edits; use a whole-file rewrite only when the requested responsibility itself is being replaced.
+- Inspect the diff after each meaningful mutation.
+- Do not create backup, `*_v2`, duplicate, or speculative files.
+- Identify authoritative generators before touching generated output; change the source and review regenerated output.
+- Treat `.pi/fabric/mesh/**`, `.pi/state/**`, `.pi/hindsight/**`, caches, locks, MCP state, and similar paths as runtime-managed unless explicitly targeted.
+- `.pi/fabric.json` is configuration but may also be changed by Fabric settings; inspect it before editing.
+
+Legacy version-1 and version-2 `tasks.json` files remain readable through `.pi/scripts/task-graph.ts` for historical compatibility. They are not the default execution model.
 
 ---
 
-## Code and File Editing Discipline
+## External Evidence and Reuse
 
-### Manual, targeted edits
+> Good ideas do not need paperwork. Useful behavior still needs proof.
 
-- Read the relevant file and nearby contracts before editing.
-- Prefer exact, bounded edits to existing files.
-- Do not use ad hoc scripts, broad regex replacements, codemods, format-all operations, or repository-wide mutation commands unless the user explicitly approves the exact scope.
-- A canonical project generator is the only normal exception; edit its source, run it deliberately, and review every generated change.
-- Inspect the resulting diff immediately after each meaningful edit.
+When learning from code, skills, prompts, workflows, or exemplars:
 
-### No file proliferation
+1. Start from the target scenario and observable outcome.
+2. Inspect the useful behavior, tests, trust boundaries, and failure limits.
+3. Extract the invariant, decision rule, recipe, and failure boundary—not incidental prose or architecture.
+4. Rewrite it independently in the smallest project-native form.
+5. Verify target behavior proportionately.
+6. Promote only after repeated value is observed.
 
-Revise the natural existing file whenever possible. Do not create `*_v2`, `*_improved`, `*_new`, backup copies, speculative helpers, duplicate documentation, or repository-local scratch files.
+Independently rewritten ideas and patterns require no license or provenance ceremony. Do not require source pins, hashes, retained notices, or legal review merely because an external example informed the reasoning.
 
-A new file is justified only when it has a distinct required responsibility, is a canonical lifecycle artifact, or the user explicitly requests it. New files are still protected by the no-deletion rule.
+Only when copying or distributing upstream files or substantial expressive material: identify the exact source, check applicable terms, retain required notices, and verify source or byte integrity.
 
-### Compatibility
-
-Compatibility is contract-driven, not automatic. Preserve documented compatibility—especially version-1 `tasks.json` readability. Do not add speculative shims, deprecated wrappers, or parallel implementations without a concrete requirement.
-
----
-
-## Generated and Runtime-Managed Files
-
-- Identify the authoritative source and generator before touching generated output.
-- Modify the source, run the canonical generator, and review source/output together.
-- Never hand-edit generated output unless the user explicitly requests an emergency exception.
-- Generated does not mean disposable; deleting generated output still requires written permission.
-- Treat `.pi/fabric/mesh/**`, `.pi/state/**`, `.pi/hindsight/**`, lock directories, caches, MCP traces/OAuth state, and similar files as runtime-managed unless the task explicitly targets them.
-- `.pi/fabric.json` is configuration, but runtime tools may change it. Inspect provenance and never absorb its changes incidentally.
-- Do not stage runtime state alongside implementation. Hidden artifact-selection pointers are retired; graph-backed commands require an explicit slug.
-- If ownership or the generator is unknown, stop and report the gap rather than guessing.
+Use `writing-skills` for skill changes and `complex-pattern-adoption` for external reuse. A polished first result is candidate evidence, not proof of a reusable workflow.
 
 ---
 
-## Research and Third-Party Dependencies
+## Research and Dependencies
 
-Use this evidence order:
+Evidence priority:
 
-1. local code, tests, configuration, active artifacts, and automatically recalled Hindsight project context;
-2. for a material memory gap, topic-bounded `hindsight_recall`; use `hindsight_reflect` only when synthesis across memories is required;
-3. official documentation, specifications, and release notes for the exact version;
+1. current local source, tests, and configuration;
+2. relevant automatically recalled project context;
+3. official versioned documentation and specifications;
 4. maintained upstream source and tests;
 5. maintainer examples;
 6. dated community material with explicit caveats.
 
-Local discovery roles:
+A configured code graph is an optional locator after an exact-repository known-symbol health probe; verify every hit against source and fall back to `pi.read`, `pi.grep`, and `pi.find` when unhealthy. `.pi/corpus/` contains curated exemplars, not current-code truth.
 
-- Current source and tests are authoritative. A configured MCP code graph is optional gray-box evidence for target-code relationships only after an exact-repository, known-symbol health probe; verify every result against source and fall back to `read`, `grep`, and `find` when unhealthy.
-- A project `.pi/corpus/` is a separate curated-exemplar seam. Use bounded corpus search for implementation patterns when present; it does not replace impact mapping, compatibility checks, or tests.
-
-Rules:
-
-- Cite non-trivial external claims and record version/date.
-- When documentation and source disagree, report the contradiction.
-- Mark assumptions and confidence; do not present inference as fact.
-- Do not add or upgrade dependencies without explicit approval and source-backed justification.
-- Pi Core currently has no package manifest or lockfile. Do not introduce package-manager commands, manifests, or lockfiles unless the task requires and the user approves them.
-- Stop researching when the implementation question is answered with medium-or-higher confidence; do not collect context without a decision it supports.
+Do not add or upgrade dependencies without explicit user approval and source-backed justification. Pi Core has no package manifest or lockfile.
 
 ---
 
-## Adaptive Development Lifecycle
+## Emergent Execution
 
-Use the smallest process that fits the consequence and uncertainty:
+The user prompts for an outcome. The agent chooses and executes the workflow.
 
-| Mode | Typical scope | Durable artifacts |
-|---|---|---|
-| Quick | Known low-risk change, usually 1–3 files | None required |
-| Standard | One bounded feature or boundary | Lite `spec.md`, `tasks.json`, concise evidence |
-| Complex | Cross-system, migration, security/privacy, or dependent parallel work | Full `spec.md`, optional `plan.md`, `tasks.json`, `progress.md` |
+```text
+plain-language request → inspect → change → prove → report
+```
 
-Graph-backed work requires an explicit slug argument. If it is missing or unsafe, stop and request `/plan <slug>` or `/ship <slug>` rather than inferring scope from ambient state.
+This is a behavior loop, not a sequence of user-operated phases. Ordinary work requires no lifecycle classification, command chain, task graph, artifact slug, formal plan, or prescribed agent topology.
 
-| File | Purpose |
-|---|---|
-| `spec.md` | Requirements, scope, and success criteria |
-| `plan.md` | Optional implementation detail and derived waves for complex work |
-| `tasks.json` | Sole authoritative persisted task DAG |
-| `progress.md` | Attempt-scoped blockers, review, and verification evidence |
+### Full Fabric code mode
 
-Additional rules:
+Pi Fabric owns core tool execution. Use one type-checked `fabric_exec` program for dependent inspection, edits, tests, branching, loops, and parallel calls. Inside that program use `pi.*` for core tools, known provider proxies for MCP/memory/state/schema, and `tools.*` only for discovery or computed refs. Keep intermediate results in the sandbox and return only the compact result needed by the parent context.
 
-- Durable cross-feature context belongs in project Hindsight. Automatic Hindsight retain captures ordinary session deltas; use `hindsight_retain` only for raw, high-value facts or decisions that require immediate persistence.
-- Do not create lifecycle artifacts for ordinary read-only analysis or a Quick task.
-- `tasks.json`, not prose waves, determines readiness, dependencies, conflicts, and task state.
-- Validate the graph before scheduling. Execute only ready, dependency-satisfied, conflict-free nodes.
-- Recompute the frontier after each state transition or integration.
-- Passed version-2 nodes require current-attempt evidence. Failures block or stale descendants; ancestors reopen only with attributed cause or changed output.
-- Cross-artifact frontier reporting is read-only. It must never select a slug or dispatch work.
-- Execution requires an explicitly supplied slug; no ambient file, previous command, or child may select it.
-- Read-only analysis must not mutate lifecycle artifacts merely to record that analysis.
+Load the `fabric-exec` reference before the first Fabric call or after an argument-shape error.
+
+Apply a `fullCodeMode` change in `.pi/fabric.json` as the task's final mutation, then run `/reload` or start a new session before expecting the new tool surface; the live registry switches at that boundary, not mid-task.
+
+### Agent choice
+
+The agent chooses the smallest useful topology from observed task shape:
+
+- **Zero children:** default when Main can inspect, implement, and verify coherently in one program.
+- **One child:** use for an isolated specialist judgment, fresh-context implementation, or independent review that has clear value.
+- **Parallel children:** use only for genuinely independent work; join results in the same program and verify them at the parent boundary.
+- **Advanced Fabric patterns:** councils, RLM, Schema, actors, supervisors, and swarms are user-invoked or explicitly requested, not automatically imposed.
+
+Do not predeclare Plan → Implement → Review pipelines for ordinary tasks. Let code, evidence, and failures reveal the useful workflow.
+
+### Learning before promotion
+
+- **First run:** brute force the outcome safely and measure time, turns, failures, rework, and proof.
+- **Second run:** compare with the first, prune accidental steps, and retain only repeated decision rules.
+- **Third run:** pressure-test the stable recipe. Promote it to a skill only if it now prevents recurring mistakes or materially improves throughput or quality.
+
+Best practices that apply across tasks belong in focused skills. One-off execution detail belongs in the target code or chat receipt. A recurring event-driven responsibility may justify a Fabric actor; finite fan-out may justify a user-invoked Fabric workflow. Do not turn every successful run into infrastructure.
+
+### Planning and durable state
+
+Plan inline only when material coupling, sequencing, rollback, or an unresolved boundary requires it. Persist a plan or coordination state only when the user requests it or work genuinely must survive sessions or collaborators. Prefer Fabric’s native run/mesh/state facilities for live coordination; do not make repository task graphs the ambient scheduler.
+
+Automatic Hindsight retain handles ordinary durable session learning. Use explicit retention only for raw, high-value facts that must persist immediately.
 
 ---
 
-## Fabric Agent Routing
+## Verification — Evidence Before Claims
 
-When delegation is useful, use Pi Fabric `agents.run({...})` inside `fabric_exec`. Project-specific named agent profiles do not exist. Encode the role, complete task contract, and explicit tool boundary in each call.
-
-| Need | Fabric task shape | Default tools |
-|---|---|---|
-| Local discovery | Read-only codebase mapping | `read`, `grep`, `find`, `ls` |
-| External documentation/source research | Read-only cited research | `read`, `grep`, `find`, `ls`; retain only required extensions |
-| Correctness/security/regression review | Read-only scoped review | `read`, `grep`, `find`, `ls` |
-| Small isolated implementation | Surgical bounded edit | inspection tools plus only required `bash`, `edit`, `write` |
-| Architecture and executable planning | Read-only advisory blueprint | `read`, `grep`, `find`, `ls` |
-| Larger resolved implementation | Substantial bounded edit | explicit task-specific allowlist |
-| Visual/UI analysis | Read-only visual evidence | explicit visual tools only |
-
-- Prefer direct execution for clear, surgical work.
-- Parent-provided task-relevant Hindsight context is the only memory context sent to Fabric children. If context is missing, children report the context gap to the parent instead of broadening memory access. Never include credentials, secrets, private conversation, or unrelated user data.
-- Await one foreground `agents.run` when the next decision depends on the result.
-- Run only genuinely independent, disjoint tasks concurrently using at most three `agents.run` calls in one `Promise.all`; process overflow in sequential shards.
-- Use configured model defaults unless a measured task need justifies an explicit override.
-- Concurrent implementation requires isolated worktrees, explicit approval, and disjoint file ownership.
-- Child agents may not schedule siblings, select lifecycle scope, own lifecycle state, integrate branches, commit, merge, push, or modify unrelated work unless the user separately approves that action.
-- The parent must inspect child changes and rerun verification. A child result is evidence to check, not proof of completion.
----
-
-## Verification — EVIDENCE BEFORE CLAIMS
-
-Run the narrowest relevant check first, then broaden for integrated changes.
-
-### Targeted tests
+Run the narrowest relevant proof first, then broaden for a named integration or consequence.
 
 ```bash
 node --experimental-strip-types --test --test-name-pattern="<pattern>" .pi/tests/*.test.ts
-```
-
-### Full retained suite
-
-```bash
 node --experimental-strip-types --test .pi/tests/*.test.ts
-```
-
-### Validate every artifact graph
-
-```bash
-for f in .pi/artifacts/*/tasks.json; do
-  node --experimental-strip-types .pi/scripts/task-graph.ts validate "$f"
-done
-```
-
-### Prove cross-artifact reporting is read-only
-
-```bash
-artifact_tree_stamp() {
-  find .pi/artifacts -type f -print0 | sort -z |
-    while IFS= read -r -d '' file; do printf '%s\0' "$file"; sha256sum "$file"; done |
-    sha256sum | cut -d' ' -f1
-}
-before=$(artifact_tree_stamp)
-node --experimental-strip-types .pi/scripts/task-graph.ts frontier --all .pi/artifacts >/dev/null
-test "$before" = "$(artifact_tree_stamp)"
-```
-
-### Diff and checkout evidence
-
-```bash
 git diff --check -- <owned-paths>
 git status --short --branch
 ```
 
-Report each command, exit status, and observed result. Never claim “done,” “fixed,” “restored,” “present on main,” or “passing” from expectation alone. Redact secrets and sensitive output from evidence.
+For existing historical task graphs, compatibility validation remains available but is not a universal completion gate:
 
-Do not advertise a tool or gate that is unavailable or known to check obsolete paths.
+```bash
+node --experimental-strip-types .pi/scripts/task-graph.ts validate <path-to-tasks.json>
+```
+
+Before reporting completion:
+
+1. inspect every owned diff;
+2. confirm unrelated/runtime work was not altered;
+3. run applicable current verification and inspect exit status/output;
+4. report checkout, branch, HEAD, status, changed paths, and remaining risks;
+5. do not claim commit, merge, push, deployment, or publication unless it actually occurred.
+
+A child result is evidence to inspect, never completion proof by itself.
 
 ---
 
 ## Stop Conditions
 
-Stop the affected action and ask for direction when:
+Stop only the affected action when:
 
-- required approval is absent or ambiguous;
-- deletion or destructive scope changes;
-- an owned file has concurrent overlapping edits;
-- the active slug changes unexpectedly;
+- a required higher-authority constraint blocks it;
+- desired behavior or a consequential trade-off remains genuinely ambiguous;
+- an owned path changes concurrently;
 - generated-file ownership is unknown;
-- verification cannot run or yields contradictory evidence;
-- implementation requires an unapproved dependency, new file, branch operation, commit, merge, push, or deployment.
+- verification is contradictory or cannot establish the requested claim;
+- requested scope expands beyond the user’s authorization.
 
-Unrelated dirty files alone are **not** a stop condition. Leave them untouched and continue within owned paths.
-
----
-
-## Session Completion
-
-Before reporting completion:
-
-1. inspect the diff for every owned path;
-2. confirm no file was deleted without written permission;
-3. confirm unrelated/runtime changes were not staged or altered;
-4. run and report the relevant verification commands;
-5. report absolute checkout path, branch, HEAD, and status;
-6. list remaining risks or blocked checks;
-7. commit, merge, push, or update task state only when explicitly authorized.
+Do not stop for ceremony the user explicitly replaced, unrelated dirty files, or the absence of a lifecycle artifact.

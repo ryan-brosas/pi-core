@@ -90,4 +90,4 @@ updated: 2024-12-21
 ---
 
 _Update this file when phases complete or roadmap changes._
-_Use `/plan` command to create detailed plans for active phases._
+_Ask Pi to plan only when active work has unresolved sequencing, coupling, or handoff risk; planning remains an optional on-demand reasoning step._

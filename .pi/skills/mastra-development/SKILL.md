@@ -1,7 +1,7 @@
 ---
 name: mastra-development
-description: Use when designing or reviewing Mastra agents, tools, workflows, RAG, storage, and registration code. Extracts qualified clean-code practices from a pinned Mastra template while separating reusable structure from template-specific shortcuts and defects.
-version: 2.0.0
+description: Use when designing or reviewing Mastra agents, tools, workflows, RAG, storage, and registration code. Extracts clean-code practices from an inspected Mastra template while separating reusable structure from template-specific shortcuts and defects.
+version: 2.1.0
 tags: [mastra, clean-code, architecture, agents, tools, workflows, rag]
 dependencies: [source-driven-development, verification-before-completion]
 tools: [read, grep, find, ls, bash]
@@ -17,31 +17,22 @@ Clean means the code makes ownership, dependencies, data flow, and failure bound
 
 Core rule: preserve the source's clarity, then adapt behavior, versions, and safety to the target project.
 
-## Source Qualification
+## Example Inspected
 
-Pinned source inspected for this skill:
+Optional source context for the behavior described below:
 
 - repository: `https://github.com/mastra-ai/template-chat-with-pdf`
-- commit: `4b954b41350dcd8139d135abb677ab9ddfae4f6c`
+- commit inspected: `4b954b41350dcd8139d135abb677ab9ddfae4f6c`
 - commit date: `2026-05-28`
-- observed package declaration: Apache-2.0
 - observed source surface: one registration root, one agent, two tools, one vector-store module, and one three-step workflow
 
-This pinned source is a standalone template, not the full Mastra repository or monorepo. Never copy or import the entire repository or template.
+This is a standalone template, not the full Mastra repository or monorepo. Never copy or import the entire repository or template merely to reuse its ideas.
 
-Canonical qualification for the inspected bytes:
-
-- canonical repository: `https://github.com/mastra-ai/mastra`
-- canonical byte-matched merge commit: `fb88481957c029167092cef2c47eeaffeb411ce7`
-- canonical root `LICENSE.md` exact raw-byte SHA-256, including its final newline: `2b16edbc165d42dee8248296cb22979a26930fad9efaef4ebe263698a416c19c`
-- canonical license scope: content outside named `ee/` directories is Apache-2.0; the template is under `templates/`, so it is covered.
-
-Qualification limits:
+Evidence limits:
 
 - the checkout has no dependency lockfile;
 - dependencies are not installed;
 - no retained tests are present; no template-specific runtime test exists, and general upstream CI is not template runtime proof;
-- package metadata declares Apache-2.0, but the standalone checkout itself has no `LICENSE` file; the canonical root `LICENSE.md` above supplies the applicable license qualification;
 - therefore source reading and MCP graph resolution prove structure, not runtime compatibility or correctness.
 
 Before applying a pattern:
@@ -394,19 +385,18 @@ Do not promote these source decisions as best practices:
 1. `"latest"` dependency ranges make API behavior unpinned.
 2. There is no lockfile in the inspected checkout.
 3. There are no retained tests to prove behavior.
-4. There is no LICENSE file even though package metadata declares Apache-2.0.
-5. Broad catches swallow errors and collapse provider failure into empty results.
-6. `any` appears in metadata and filter boundaries.
-7. Arbitrary URL fetching lacks SSRF, redirect, content-type, size, and timeout controls.
-8. Random page/result shuffling makes behavior and tests nondeterministic.
-9. A hard-coded model and embedding choice mix environment policy into feature modules.
-10. Similarity search is used as a document registry/listing workaround.
-11. Existing vectors are deleted before the replacement upsert is known good.
-12. A truncated base64 document ID is not a robust content/source identity strategy.
-13. Query `documentId` is optional in the schema while instructions say it is mandatory.
-14. Page ranges do not enforce positive ordered bounds.
-15. Local file-backed storage is a development choice, not a universal production default.
-16. The agent instruction block is large enough to require behavior tests and likely decomposition.
+4. Broad catches swallow errors and collapse provider failure into empty results.
+5. `any` appears in metadata and filter boundaries.
+6. Arbitrary URL fetching lacks SSRF, redirect, content-type, size, and timeout controls.
+7. Random page/result shuffling makes behavior and tests nondeterministic.
+8. A hard-coded model and embedding choice mix environment policy into feature modules.
+9. Similarity search is used as a document registry/listing workaround.
+10. Existing vectors are deleted before the replacement upsert is known good.
+11. A truncated base64 document ID is not a robust content/source identity strategy.
+12. Query `documentId` is optional in the schema while instructions say it is mandatory.
+13. Page ranges do not enforce positive ordered bounds.
+14. Local file-backed storage is a development choice, not a universal production default.
+15. The agent instruction block is large enough to require behavior tests and likely decomposition.
 
 An anomaly can be acceptable in a demo when it is explicit and bounded. It does not become reusable merely because the surrounding code is readable.
 
@@ -477,8 +467,8 @@ Add a Mastra source/test pair to the corpus only after the target application pa
 <skill_result>
   <skill>mastra-development</skill>
   <status>success|partial|blocked|failure</status>
-  <evidence>Pinned source, MCP health probe, exact target versions, extracted invariant, anomaly adaptations, and target tests</evidence>
+  <evidence>Inspected example, MCP health probe, exact target versions, extracted invariant, anomaly adaptations, and target tests</evidence>
   <artifacts>Target Mastra source/test pair; corpus entry only after qualified target reuse</artifacts>
-  <risks>Unverified API, copied demo shortcut, missing tests/license, unsafe retrieval, unjustified abstraction, or none</risks>
+  <risks>Unverified API, copied demo shortcut, missing tests, unsafe retrieval, unjustified abstraction, or none</risks>
 </skill_result>
 ```

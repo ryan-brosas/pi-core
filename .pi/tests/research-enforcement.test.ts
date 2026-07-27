@@ -1,22 +1,8 @@
-/**
- * Research-Enforcement Extension — focused contract tests.
- *
- * task-1 (this file): Lock the approved policy and lifecycle contracts in an
- * intentional RED state. A static import of the absent policy module makes the
- * focused run fail with ERR_MODULE_NOT_FOUND for policy.ts, not a syntax or
- * harness error. Lifecycle tests keep index.ts behind a dynamic import so that
- * task-2 policy work can become GREEN before index.ts exists.
- *
- * Every test name begins with "research enforcement <group>:" so the task-2
- * verification pattern (classification|evidence|citation|config|privacy|trace)
- * selects only policy tests, and the task-3 pattern
- * (correction|status|scope|direct|Fabric) selects only lifecycle tests.
- */
+/** Focused policy, evidence, privacy, and lifecycle contracts for research enforcement. */
 
 import assert from "node:assert/strict";
 import test from "node:test";
 
-// Static policy import — causes the intended RED when policy.ts is absent.
 import {
   classifyTurn,
   defaultConfig,
@@ -30,7 +16,6 @@ import {
   shapeMetrics,
 } from "../extensions/research-enforcement/policy.ts";
 
-// Type-only imports are erased by strip-types and never trigger module resolution.
 import type {
   ResearchTier,
   ProviderCategory,
@@ -49,8 +34,9 @@ import type {
 // ============================================================
 
 type TextContentItem = { type: "text"; text: string };
+type ThinkingContentItem = { type: "thinking"; thinking: string };
 type ToolCallContentItem = { type: "toolCall"; id: string; name: string; arguments: Record<string, unknown> };
-type AssistantContentItem = TextContentItem | ToolCallContentItem;
+type AssistantContentItem = TextContentItem | ThinkingContentItem | ToolCallContentItem;
 type InputSource = "interactive" | "rpc" | "extension";
 
 interface InputEventPayload {
@@ -86,7 +72,11 @@ interface ToolResultPayload {
 
 interface MessageEndPayload {
   type: "message_end";
-  message: { role: string; content: AssistantContentItem[] };
+  message: {
+    role: string;
+    content: AssistantContentItem[];
+    stopReason: "stop" | "toolUse" | "length" | "error" | "aborted";
+  };
 }
 
 interface SessionStartPayload {
@@ -110,7 +100,10 @@ interface FakeSessionEntry {
 interface FakeExtensionContext {
   isIdle(): boolean;
   hasPendingMessages(): boolean;
-  sessionManager: { getEntries(): FakeSessionEntry[] };
+  sessionManager: {
+    getEntries(): FakeSessionEntry[];
+    getBranch(): FakeSessionEntry[];
+  };
   ui: {
     notify(message: string, type?: string): void;
     setStatus(key: string, text: string | undefined): void;
@@ -172,6 +165,7 @@ interface FakeHarnessOptions {
   idle?: boolean;
   pendingMessages?: boolean;
   entries?: FakeSessionEntry[];
+  branchEntries?: FakeSessionEntry[];
   sendMessageThrows?: boolean;
 }
 
@@ -221,8 +215,14 @@ function toolResultEvent(
   return { type: "tool_result", toolCallId, toolName, input: {}, content, isError, details };
 }
 
-function messageEndEvent(text: string): MessageEndPayload {
-  return { type: "message_end", message: { role: "assistant", content: [{ type: "text", text }] } };
+function messageEndEvent(
+  text: string,
+  stopReason: MessageEndPayload["message"]["stopReason"] = "stop",
+): MessageEndPayload {
+  return {
+    type: "message_end",
+    message: { role: "assistant", content: [{ type: "text", text }], stopReason },
+  };
 }
 
 function toolCallingMessageEndEvent(withPrelude: boolean): MessageEndPayload {
@@ -237,6 +237,7 @@ function toolCallingMessageEndEvent(withPrelude: boolean): MessageEndPayload {
     message: {
       role: "assistant",
       content: withPrelude ? [{ type: "text", text: "I will check." }, toolCall] : [toolCall],
+      stopReason: "toolUse",
     },
   };
 }
@@ -379,7 +380,10 @@ function createHarness(opts: FakeHarnessOptions = {}): FakeHarness {
   const ctx: FakeExtensionContext = {
     isIdle: () => opts.idle ?? true,
     hasPendingMessages: () => opts.pendingMessages ?? false,
-    sessionManager: { getEntries: () => opts.entries ?? [] },
+    sessionManager: {
+      getEntries: () => opts.entries ?? [],
+      getBranch: () => opts.branchEntries ?? opts.entries ?? [],
+    },
     ui: {
       notify: (message, type) => { notifications.push({ message, type }); },
       setStatus: () => {},
@@ -605,7 +609,7 @@ test("research enforcement config: wildcard refs fall back to the complete defau
 
 test("research enforcement config: unsupported version falls back to the complete default", () => {
   const input = validConfigInput() as { version: number };
-  input.version = 2;
+  input.version = 3;
   assert.deepEqual(parseConfig(input), defaultConfig());
 });
 
@@ -706,15 +710,17 @@ test("research enforcement trace: envelope missing success field is rejected", (
 
 test("research enforcement trace: wrong kind or version is rejected", () => {
   const config = defaultConfig();
-  assert.deepEqual(extractFabricCategories(config, fabricTrace([], { kind: "other" })), []);
-  assert.deepEqual(extractFabricCategories(config, fabricTrace([], { version: 2 })), []);
+  const operation = [{ ref: "mcp.context7.query-docs", outcome: "succeeded" }];
+  assert.deepEqual(extractFabricCategories(config, fabricTrace(operation, { kind: "other" })), []);
+  assert.deepEqual(extractFabricCategories(config, fabricTrace(operation, { version: 2 })), []);
 });
 
 test("research enforcement trace: failed aborted or timed-out trace outcome is rejected", () => {
   const config = defaultConfig();
-  assert.deepEqual(extractFabricCategories(config, fabricTrace([], { traceOutcome: "failed" })), []);
-  assert.deepEqual(extractFabricCategories(config, fabricTrace([], { traceOutcome: "aborted" })), []);
-  assert.deepEqual(extractFabricCategories(config, fabricTrace([], { traceOutcome: "timed_out" })), []);
+  const operation = [{ ref: "mcp.context7.query-docs", outcome: "succeeded" }];
+  assert.deepEqual(extractFabricCategories(config, fabricTrace(operation, { traceOutcome: "failed" })), []);
+  assert.deepEqual(extractFabricCategories(config, fabricTrace(operation, { traceOutcome: "aborted" })), []);
+  assert.deepEqual(extractFabricCategories(config, fabricTrace(operation, { traceOutcome: "timed_out" })), []);
 });
 
 test("research enforcement trace: failed operations do not contribute categories", () => {
@@ -947,6 +953,36 @@ test("research enforcement Fabric: extension never auto-enables xAI web search",
 // Lifecycle contracts — corrective pass
 // ============================================================
 
+test("research enforcement correction: thinking plus text is a terminal answer", async () => {
+  const h = await setup();
+  const prompt = "What is the current Node version?";
+  await emit(h, "input", inputEvent(prompt));
+  await emit(h, "before_agent_start", beforeAgentStartEvent(prompt));
+  await emit(h, "message_end", {
+    type: "message_end",
+    message: {
+      role: "assistant",
+      content: [
+        { type: "thinking", thinking: "private reasoning" },
+        { type: "text", text: "The answer is 24 without any source." },
+      ],
+      stopReason: "stop",
+    },
+  } satisfies MessageEndPayload);
+  await emit(h, "agent_settled", { type: "agent_settled" });
+  assert.equal(countSends(h), 1);
+});
+
+test("research enforcement correction: aborted partial text is not terminal", async () => {
+  const h = await setup();
+  const prompt = "What is the current Node version?";
+  await emit(h, "input", inputEvent(prompt));
+  await emit(h, "before_agent_start", beforeAgentStartEvent(prompt));
+  await emit(h, "message_end", messageEndEvent("partial without source", "aborted"));
+  await emit(h, "agent_settled", { type: "agent_settled" });
+  assert.equal(countSends(h), 0);
+});
+
 test("research enforcement correction: intermediate tool-call messages do not trigger follow-up", async () => {
   for (const withPrelude of [false, true]) {
     const h = await setup();
@@ -1150,4 +1186,45 @@ test("research enforcement scope: restored correction state blocks a duplicate f
   await emit(h, "session_start", { type: "session_start", reason: "resume" });
   await emit(h, "agent_settled", { type: "agent_settled" });
   assert.equal(countSends(h), 0, "restored dispatched state blocks a duplicate follow-up");
+});
+
+test("absent project research config remains disabled", async () => {
+  const h = await setup();
+  await emit(h, "session_start", { type: "session_start", reason: "startup" });
+  const prompt = "What is the current Node version?";
+  await emit(h, "input", inputEvent(prompt));
+  const guidance = await emit(h, "before_agent_start", beforeAgentStartEvent(prompt));
+  assert.equal(guidance, undefined, "missing project config must not inject guidance");
+  await emit(h, "message_end", messageEndEvent("The answer is 24 without any source."));
+  await emit(h, "agent_settled", { type: "agent_settled" });
+  assert.equal(countSends(h), 0, "missing project config must not trigger a correction");
+  assert.equal(countAppends(h), 0, "missing project config must not create enforcement state");
+});
+
+
+test("research enforcement scope: empty active branch resets prior state", async () => {
+  const stale: FakeSessionEntry = {
+    type: "custom",
+    customType: "research-enforcement/v1",
+    data: {
+      version: 1,
+      turnOrdinal: 2,
+      tier: "standard",
+      correction: "dispatched",
+      providerCategories: ["context7"],
+    },
+  };
+  const branchEntries = [stale];
+  const h = await setup({ entries: [stale], branchEntries });
+  await emit(h, "session_start", { type: "session_start", reason: "resume" });
+  await runCommand(h, "research-status");
+  assert.match(statusText(h), /tier=standard/i);
+
+  branchEntries.length = 0;
+  h.notifications.length = 0;
+  await emit(h, "session_tree", { type: "session_tree", newLeafId: null, oldLeafId: "leaf-1" });
+  await runCommand(h, "research-status");
+  const status = statusText(h);
+  assert.match(status, /tier=none/i);
+  assert.match(status, /correction=eligible/i);
 });

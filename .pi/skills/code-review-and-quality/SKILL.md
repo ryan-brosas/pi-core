@@ -13,6 +13,10 @@ tools: [grep, find, read, bash]
 
 **Bloat is the default failure mode.** Code grows; review subtracts. The goal is a tight, minimal change that solves the stated problem — nothing more. A review that lists nits without identifying deletion candidates has missed the point.
 
+## Ownership Boundary
+
+This is an independent or requested qualitative review, not the automatic completion gate. `agent-code-quality-gate` always checks implementation completion; load this skill for merge review, delegated-work review, an explicit review request, or a focused bloat pass. Reuse existing verification evidence and do not repeat commands without a named evidence gap.
+
 ## Two Review Modes
 
 ### 1. Standard Review
@@ -28,8 +32,8 @@ For AI-generated code, after a refactor, or when scope may have crept. Output a 
 1. **Scope check** — diff match stated problem? Outside is `[blocker]` (split) or `[delete]`.
 2. **Iron-law scan** — domain-relevant iron law followed? (TDD: failing test first. Effect: typed errors. UI: design taste. Performance: profile first.)
 3. **Read for deletion** — "If I delete this, what breaks?" If nothing, it's bloat.
-4. **Verify behavior** — test pass? Path exercised? `[question]` if unsure.
-5. **Mark dead** — unused exports, dead branches, ownerless TODOs, restating comments.
+4. **Verify behavior** — black-box success and controlled failure pass through the public interface or seam? `[question]` if the observable path is not exercised.
+5. **Mark dead** — use configured deterministic analysis when available, then inspect unused exports, dead branches, ownerless TODOs, restating comments, and duplication.
 6. **Verify in one pass** — typecheck + lint + relevant test.
 
 ## Fabric Review

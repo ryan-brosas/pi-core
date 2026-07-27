@@ -14,5 +14,6 @@
 /.pi/artifacts/verify.log
 
 # MCP credentials, traces, and local adapter state.
+/.mcp.json
 /.pi/mcp-oauth/
 /.pi/mcp-traces/

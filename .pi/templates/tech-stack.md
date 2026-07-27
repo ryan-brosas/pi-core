@@ -44,22 +44,19 @@ This file is automatically injected into ALL AI prompts via `opencode.json` inst
 - [Service 2: e.g., Resend for email]
 - [Service 3: e.g., Sentry for error tracking]
 
-## Context Budget Guidelines
+## Context and Work-Shaping Guidelines
 
-**Quality Degradation Rule:** Target ~50% context per plan execution for consistent quality.
+Keep enough context available to inspect, change, and verify the current slice without compressing away its contract.
 
-| Task Complexity | Max Tasks/Plan | Typical Context Usage |
-| --------------- | -------------- | --------------------- |
-| Simple (CRUD)   | 3              | ~30-45%               |
-| Complex (auth)  | 2              | ~40-50%               |
-| Very complex    | 1-2            | ~30-50%               |
+**Risk signals:**
 
-**Split Signals:**
+- unresolved dependencies or boundary decisions;
+- high security, privacy, migration, or public-contract consequence;
+- work that must survive sessions or travel across collaborators;
+- unknown blast radius or rollback path;
+- evidence that cannot fit or remain trustworthy in one bounded pass.
 
-- More than 3 tasks → Create child plans
-- Multiple subsystems → Separate plans
-- > 5 file modifications per task → Split
-- Discovery + implementation → Split
+File and task counts trigger inspection only. They never automatically require a child plan, lifecycle mode, or extra agent. Split work when doing so isolates a real dependency, ownership boundary, or verification risk.
 
 ## Verification Commands
 

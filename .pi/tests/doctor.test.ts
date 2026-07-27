@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import { inspectRepository, listedPackagePath, versionAtLeast } from "../scripts/doctor.ts";
@@ -34,7 +35,7 @@ test("doctor CLI emits structured JSON", () => {
   const output = JSON.parse(result.stdout) as { checks: Array<{ id: string; status: string }> };
   assert.ok(output.checks.some((check) => check.id === "required-paths" && check.status === "pass"));
   assert.ok(output.checks.some((check) => check.id === "pi-version" && check.status === "pass"));
-  assert.ok(output.checks.some((check) => check.id === "pi-packages" && /0\.28\.1[\s\S]*2\.15\.0/.test(check.message)));
+  assert.ok(output.checks.some((check) => check.id === "pi-packages" && /0\.28\.2[\s\S]*2\.15\.0/.test(check.message)));
   assert.ok(output.checks.some((check) => check.id === "fabric-configuration" && check.status === "pass"));
   assert.ok(output.checks.some((check) => check.id === "repository-corpus" && check.status === "pass"));
   assert.ok(output.checks.some((check) => check.id === "retired-active-pointer" && check.status === "pass"));
@@ -60,4 +61,12 @@ test("doctor rejects unknown flags instead of silently weakening strict mode", (
   );
   assert.equal(result.status, 2, result.stdout + result.stderr);
   assert.match(result.stderr, /unknown argument.*--strcit/i);
+});
+
+test("doctor accepts Fabric full code mode", () => {
+  const fabric = JSON.parse(readFileSync(".pi/fabric.json", "utf8")) as { fullCodeMode?: boolean };
+  assert.equal(fabric.fullCodeMode, true);
+  const check = inspectRepository(root).find((entry) => entry.id === "fabric-configuration");
+  assert.equal(check?.status, "pass");
+  assert.match(check?.message ?? "", /full code mode/i);
 });

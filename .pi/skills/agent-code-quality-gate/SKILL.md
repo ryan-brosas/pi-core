@@ -18,24 +18,24 @@ version: 1.0.0
 
 ## When to Use
 
-Before declaring "done" after bugfix, feature edit, refactor, or subagent work. The agent's work passes through this gate before the user reviews.
+Before declaring "done" after bugfix, feature edit, refactor, or subagent work. This is the automatic completion gate. Use `code-review-and-quality` separately only when the user requests review or an independent consequence-driven review adds value.
 
 ## The Gate (5 Checks)
 
 1. **Scope.** Does the diff match the stated problem? Anything outside → split or revert.
 2. **Duplication.** Copy-paste instead of reusing? New file with high overlap? Flag for refactor.
-3. **Behavior tests.** For new behavior: a test. For bug fixes: a regression test. For refactors: existing tests still pass.
-4. **Verification evidence.** Named check ran, exit 0, output captured. Not "should work".
-5. **Regressions.** No new failures, no removed tests, no skipped tests.
+3. **Behavior tests.** Exercise success and controlled failure through the public interface or seam. New behavior gets a test; a bug gets a regression test; a refactor preserves or strengthens equivalent black-box coverage.
+4. **Verification evidence.** Named repository checks ran, exited 0, and their output was inspected. Child or graph claims do not satisfy this check.
+5. **Regressions.** No new failures, unjustified test removal, skipped tests, dead code, or introduced duplication. Use configured deterministic analysis such as `fallow`; otherwise inspect source and diff and report that gate as N/A.
 
 ## Workflow
 
 1. **Get the diff.** `git diff` (or staged, or branch vs main).
 2. **Scope check.** Is every line traceable to the stated problem?
-3. **Duplication check.** Scan for repeated blocks. Flag or fix.
-4. **Test check.** New code has tests. Bug fix has regression test. Refactor: green tests.
-5. **Verification check.** Named command run, output captured.
-6. **Regression check.** No new failures, no skipped tests.
+3. **Deterministic quality check.** Run configured dead-code, duplication, and complexity analysis such as `fallow`; if none is configured or available, inspect the complete diff and mark the missing gate N/A.
+4. **Black-box test check.** Verify public-interface success and controlled failure. For a refactor, prove equivalent observable coverage before accepting removed implementation-coupled tests.
+5. **Verification check.** Run the repository-discovered commands and inspect their output.
+6. **Regression check.** No new failures, unjustified removals, or skipped tests.
 7. **Pass / fail.** If any check fails, work is not done.
 
 ## Common Findings
@@ -68,7 +68,7 @@ Before declaring "done" after bugfix, feature edit, refactor, or subagent work. 
 | "Skipped test is acceptable" | Flaky, in test-quarantine |
 | "Removed test is acceptable" | Replaced by a better test |
 
-Document the override in the commit. Don't hide it.
+Document every override in the task receipt and final evidence. Commit only when the user explicitly requests it.
 
 ## Common Mistakes
 

@@ -27,16 +27,14 @@ Designing a new module; reviewing structure; refactoring shallow modules; "this 
 
 Trivial one-function helpers; structure is fine and change is in body; "design" without a real module.
 
-## The Depth Metric
+## Depth as Leverage
 
-```
-Depth = (impl size) / (interface size)
-```
+Depth is the capability and complexity hidden per unit of interface a caller must learn. It is not a line-count ratio: padding an implementation does not deepen a module.
 
-- **Deep**: small interface, large impl. Good. Hides complexity.
-- **Shallow**: large interface, small impl. Bad. Exposes its guts.
+- **Deep**: a small, stable interface provides substantial useful capability and hides decisions.
+- **Shallow**: callers must understand nearly as much complexity as the implementation contains.
 
-10 public methods, 50-line constructor = shallow. 1 public method, 1000 lines = deep (if it solves a real problem).
+Judge depth by caller knowledge, change locality, and observable capability—not implementation size.
 
 ## Interface Tells
 
@@ -69,7 +67,7 @@ Depth = (impl size) / (interface size)
 
 ## Test Seams via Interface
 
-An interface becomes a test seam only when an enabling point can select one behavior or a real alternative. Test the interface, not the implementation. If your test needs to mock an internal call, the internal is leaking.
+An interface becomes a test seam only when an enabling point can select one behavior or a real alternative. Test success and controlled failure through the public interface, not the implementation. If your test needs to mock an internal call, the internal is leaking. Before changing an existing shared interface, map its callers and consequences from current source.
 
 ```ts
 // GOOD: test the interface

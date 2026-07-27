@@ -19,17 +19,12 @@ const REQUIRED_PATHS = [
   ".github/workflows/test.yml",
   ".pi/fabric.json",
   ".pi/hindsight.json",
-  ".pi/prompts/create.md",
-  ".pi/prompts/plan.md",
-  ".pi/prompts/ship.md",
-  ".pi/prompts/verify.md",
-  ".pi/scripts/task-graph.ts",
   ".pi/scripts/corpus.ts",
   ".pi/corpus",
 ] as const;
 
 const REQUIRED_PACKAGES = [
-  { name: "pi-fabric", version: "0.28.1" },
+  { name: "pi-fabric", version: "0.28.2" },
   { name: "pi-mcp-adapter", version: "2.15.0" },
   { name: "@luxusai/pi-hindsight", version: "0.11.0" },
 ] as const;
@@ -94,8 +89,6 @@ function policyText(root: string): string {
   const paths = [
     ".pi/prompts/fix.md",
     ".pi/prompts/gc.md",
-    ".pi/prompts/ship.md",
-    ".pi/workflows/garbage-collection.md",
   ];
   return paths
     .filter((path) => existsSync(resolve(root, path)))
@@ -120,7 +113,7 @@ export function inspectRepository(root = process.cwd()): DoctorCheck[] {
     status: existsSync(retiredActivePointer) ? "fail" : "pass",
     message: existsSync(retiredActivePointer)
       ? "retired ambient artifact-selection pointer exists"
-      : "graph-backed commands require explicit slugs; no ambient pointer exists",
+      : "legacy ambient artifact-selection pointer is absent",
   });
 
   const nodeMajor = Number.parseInt(process.versions.node.split(".")[0] ?? "0", 10);
@@ -138,15 +131,12 @@ export function inspectRepository(root = process.cwd()): DoctorCheck[] {
       !record(fabric) || fabric.configVersion !== 1 ? "configVersion must be 1" : undefined,
       !record(fabric) || fabric.fullCodeMode !== true ? "fullCodeMode must be true" : undefined,
       agents?.enabled !== true ? "agents.enabled must be true" : undefined,
-      !Number.isInteger(agents?.maxConcurrent) || Number(agents?.maxConcurrent) < 1 || Number(agents?.maxConcurrent) > 3
-        ? "agents.maxConcurrent must be an integer from 1 through 3"
-        : undefined,
       mesh?.enabled !== true ? "mesh.enabled must be true" : undefined,
     ].filter((value): value is string => value !== undefined);
     checks.push({
       id: "fabric-configuration",
       status: issues.length === 0 ? "pass" : "fail",
-      message: issues.length === 0 ? "Fabric full-code, mesh, and bounded-agent settings are valid" : issues.join("; "),
+      message: issues.length === 0 ? "Fabric full code mode, agents, and mesh are enabled" : issues.join("; "),
     });
   } catch (error) {
     checks.push({ id: "fabric-configuration", status: "fail", message: `invalid .pi/fabric.json: ${String(error)}` });

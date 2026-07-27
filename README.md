@@ -1,31 +1,73 @@
 # Pi Core
 
-An opinionated, project-local operating layer for the [Pi coding agent](https://pi.dev): safety rules, adaptive delivery prompts, on-demand skills, Fabric orchestration, and evidence-backed verification.
+An opinionated, project-local operating layer for the [Pi coding agent](https://pi.dev): focused best-practice skills, full Pi Fabric code mode, behavior-backed reuse, and evidence-backed completion.
 
-Pi Core is a configuration repository, not an application package. It intentionally has no project package manager or lockfile.
+Pi Core is configuration, not an application package. It intentionally has no project package manager or lockfile.
 
-## Delivery modes
+## Use it
 
-Use the smallest process that fits the risk.
-
-| Mode | Use when | Workflow | Durable artifacts |
-|---|---|---|---|
-| Quick | Known, low-risk change affecting roughly 1–3 files | Describe the change or use `/fix` | None required |
-| Standard | One bounded feature or boundary with moderate uncertainty | `/create` → `/ship` | Lite `spec.md`, `tasks.json`, concise evidence |
-| Complex | Cross-system work, migrations, security/privacy, or multiple dependent tasks | `/create` → `/plan` → `/ship` | Full spec, plan, task graph, progress evidence |
-
-The engineering loop is the same at every level:
+Prompt Pi with the outcome you want.
 
 ```text
-black-box contract
-  → proportional relationship/impact map (optional code graph when useful)
-  → verify exact source
-  → preserve the boundary or add a justified seam only for concrete variance
-  → white-box implementation
-  → gray-box integration evidence only for a named public-boundary gap
-  → black-box acceptance
-  → review the complete worktree diff
+"Fix this bug."
+"Build the page in /path/to/project."
+"Audit the auth boundary."
+"Adapt this upstream pattern to our codebase."
 ```
+
+The agent chooses the execution shape. Ordinary work follows:
+
+```text
+plain-language request → inspect → change → prove → report
+```
+
+There is no required create/plan/ship/verify command chain, task classification, artifact slug, or fixed multi-agent pipeline.
+
+## Fabric-native execution
+
+Pi Fabric runs in **full code mode**. The model writes one type-checked program through `fabric_exec` and uses `pi.*` inside it for repository reads, searches, edits, commands, branching, loops, and parallel calls. Intermediate values stay in the sandbox; only the compact result returns to the conversation.
+
+Change `fullCodeMode` in `.pi/fabric.json` as the task's final mutation, then run `/reload` or start a new session before expecting the new tool surface; the live registry switches at that boundary, not mid-task.
+
+The agent may choose:
+
+- zero children for coherent direct work;
+- one child for a useful independent context or specialist judgment;
+- parallel children only for genuinely independent scopes.
+
+Advanced patterns are explicit options rather than defaults:
+
+- `/skill:fabric-guide` — recommend one advanced mechanism;
+- `/skill:fabric-workflow` — finite fan-out or pipelines with verification;
+- `/skill:fabric-rlm` — recursive decomposition for oversized context;
+- `/skill:fabric-schema` — evidence-gated mutation;
+- `/skill:fabric-advisor`, `/skill:fabric-supervisor`, `/skill:fabric-council`, and `/skill:fabric-swarm` — user-invoked specialist topologies.
+
+## Skills capture proven behavior
+
+Best practices live in focused, progressively disclosed skills. Inspect useful external behavior, rewrite the invariant independently, and prove it in the target.
+
+Independently rewritten ideas and patterns require no license or provenance ceremony. Exact-source, applicable-terms, notice, and integrity checks apply only when upstream files or substantial expressive material are copied or distributed.
+
+Workflow promotion is empirical:
+
+1. **First run:** brute force the real outcome and measure it.
+2. **Second run:** compare, prune, and temper the repeated decisions.
+3. **Third run:** pressure-test the stable recipe and promote it only if it prevents recurring mistakes or saves meaningful time.
+
+One good output is not automatically a skill.
+
+## Task-specific commands
+
+Plain prompts are the default. These optional commands are shortcuts for narrow task types, not lifecycle phases:
+
+| Command | Purpose |
+|---|---|
+| `/init` | Detect and initialize project-specific context |
+| `/fix` | Reproduce and repair a bounded defect |
+| `/research` | Run source-backed research |
+| `/audit` | Review a cross-cutting code pattern |
+| `/gc` | Inventory repository drift and propose cleanup |
 
 ## Requirements
 
@@ -33,19 +75,15 @@ black-box contract
 - Pi 0.82.1 or a compatible newer release
 - Git
 
-The current configuration expects these Pi packages:
+Expected Pi packages:
 
 ```bash
-pi install npm:pi-fabric@0.28.1
+pi install npm:pi-fabric@0.28.2
 pi install npm:pi-mcp-adapter@2.15.0
 pi install npm:@luxusai/pi-hindsight@0.11.0
 ```
 
-Pi Hindsight also requires a configured Hindsight server. The checked-in `.pi/hindsight.json` expects `http://localhost:8888`.
-
-Automated research enforcement is disabled in `.pi/research-enforcement.json` until its source providers are installed and verified. `/research` still applies the source and citation workflow explicitly.
-
-Project package pinning is intentionally not active yet; add `.pi/settings.json` only after reviewing and approving the packages that a trusted clone may install automatically.
+Pi Hindsight also requires the configured server at `http://localhost:8888`.
 
 ## Setup
 
@@ -57,87 +95,54 @@ node --experimental-strip-types --test .pi/tests/*.test.ts
 pi
 ```
 
-The default doctor fails on broken repository contracts and reports bootstrap-dependent conditions as warnings. An absent optional MCP config and intentionally deferred `.pi/settings.json` are expected until enabled. A missing required Pi package degrades that capability. Tracked Fabric mesh or session state is a real repository anomaly that must be untracked with separate path-scoped Git approval; ignore rules alone cannot remove already tracked files. Ambient artifact-selection pointers are retired and Doctor treats their reappearance as a repository-contract failure. Use `--strict` when every warning is expected to be resolved in the current environment.
-
-On first launch, review the project-local extensions and skills before trusting the repository. After changing Pi resources, run `/reload` or start a new session.
-
-## Commands
-
-| Command | Purpose |
-|---|---|
-| `/init` | Detect and initialize project-specific context |
-| `/create` | Create a lite or full behavior contract and task graph |
-| `/plan` | Add implementation detail for complex work only |
-| `/ship` | Execute the current validated task frontier |
-| `/verify` | Check requirements, tests, and coherence |
-| `/fix` | Reproduce and repair a bounded defect |
-| `/research` | Explicit source-backed research |
-| `/audit` | Review a cross-cutting code pattern |
-| `/gc` | Inventory repository drift and propose cleanup |
+Review project-local extensions and skills before trusting the repository. After changing Pi resources, run `/reload` or start a new session.
 
 ## Repository layout
 
 ```text
 AGENTS.md                  Always-loaded operating contract
 .pi/extensions/            Executable Pi extensions
-.pi/prompts/               Slash-command prompt templates
-.pi/skills/                Progressively disclosed skills
-.pi/scripts/               Pure lifecycle and corpus utilities
+.pi/prompts/               Optional task-specific prompt templates
+.pi/skills/                Progressively disclosed best practices
+.pi/scripts/               Repository, corpus, and compatibility utilities
 .pi/tests/                 Contract tests for the configuration
-.pi/templates/             Project and lifecycle scaffolds
-.pi/artifacts/             Feature contracts and evidence
-.pi/corpus/                Curated implementation exemplars
+.pi/templates/             Project scaffolds and universal policy
+.pi/corpus/                Reviewed implementation exemplars
+.pi/artifacts/             Historical or explicitly requested durable records
 ```
 
-Runtime state such as Fabric mesh data, Hindsight banks, MCP traces, session summaries, and verification cache must not be committed. Graph-backed commands receive their artifact slug explicitly.
+Runtime Fabric mesh, Hindsight banks, MCP traces, caches, and session state must not be committed.
+
+## Legacy task graphs
+
+`.pi/scripts/task-graph.ts` remains available to read and validate existing version-1/version-2 artifact graphs. It is compatibility tooling, not the ambient scheduler and not required for ordinary work.
 
 ## Verification
 
 ```bash
 node --experimental-strip-types .pi/scripts/doctor.ts
 node --experimental-strip-types --test .pi/tests/*.test.ts
-
-for graph in .pi/artifacts/*/tasks.json; do
-  node --experimental-strip-types .pi/scripts/task-graph.ts validate "$graph"
-done
 ```
 
-CI runs the same checks on pushes and pull requests.
+Validate a historical graph only when working on that graph:
 
-## Curated corpus and target-code discovery
+```bash
+node --experimental-strip-types .pi/scripts/task-graph.ts validate .pi/artifacts/<slug>/tasks.json
+```
 
-`.pi/corpus/` and CodeGraphContext are complementary, not duplicate stores:
+## Curated corpus and discovery
 
-- **The corpus** contains reviewed, provenance-pinned implementation exemplars worth imitating. Search it by implementation intent and read only the bounded selected entries:
+- Current source and tests are authoritative for target behavior.
+- `.pi/corpus/` holds reviewed exemplars worth adapting.
+- A healthy code graph can locate current relationships but cannot establish pattern quality or correctness.
 
-  ```bash
-  node --experimental-strip-types .pi/scripts/corpus.ts search .pi/corpus <intent>
-  ```
-
-- **Current source and tests** remain authoritative for the target repository.
-- **A code graph** maps current relationships such as entry points, callers, dependencies, seams, and affected tests. It does not establish that a pattern is good or copyable.
-
-The corpus remains useful even when MCP is available because graph discovery answers “what is connected now?” while the corpus answers “what reviewed implementation shape is worth reusing?” Remove the corpus only if Pi Core deliberately drops curated exemplars as a supported capability—not merely because a graph server exists.
-
-## Optional CodeGraphContext
-
-CodeGraphContext is a gray-box discovery aid for large target repositories. It does not replace requirements, exact source reads, the curated corpus, or tests.
-
-1. Copy `.mcp.example.json` to `.mcp.json` and review it.
-2. Install CodeGraphContext separately.
-3. Index or watch the exact target repository.
-4. Before trusting graph output, list the indexed repository scope and query a known target symbol or path. If it does not resolve, treat the graph as unhealthy or stale and fall back to `read`, `grep`, and `find`.
-5. Use healthy graph results to find entry points, call chains, seams, and affected tests.
-6. Verify every result against the actual source before editing.
-
-Keep CodeGraphContext databases and generated state outside Git. For small repositories, normal `read`, `grep`, and `find` calls are usually cheaper and clearer.
+```bash
+node --experimental-strip-types .pi/scripts/corpus.ts search .pi/corpus <intent>
+```
 
 ## Security and publication
 
-- Project extensions and Pi packages execute with the local user’s permissions.
-- Review project trust and package sources before activation.
-- Never commit credentials, MCP OAuth state, memory banks, or Fabric runtime logs.
-- Commit, push, PR, deployment, destructive operations, and history rewrites require explicit approval under `AGENTS.md`.
+Project extensions and Pi packages run with local-user authority. Review trust and package sources. Never commit credentials, OAuth state, memory banks, or Fabric runtime logs. Git publication, deployment, and irreversible external effects still require explicit user intent.
 
 ## License
 

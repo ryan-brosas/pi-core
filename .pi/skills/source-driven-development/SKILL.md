@@ -51,7 +51,7 @@ Higher-ranked sources win on conflicts.
 
 ## Fabric Research
 
-Use direct source tools for a surgical lookup. For a bounded external question needing isolated judgment, call one foreground Fabric child through `agents.run` inside `fabric_exec`. Use configured model defaults unless a measured task need justifies an override:
+Use one `fabric_exec` program with known source-provider proxies and `pi.*` for a surgical lookup. For a bounded external question needing isolated judgment, call one foreground Fabric child through `agents.run` in that program. Use configured model defaults unless a measured task need justifies an override:
 
 ```typescript
 const researchResult = await agents.run({
@@ -62,7 +62,7 @@ const researchResult = await agents.run({
 return researchResult.text;
 ```
 
-For genuinely independent questions, run at most three resolved calls in one `Promise.all` wave and process overflow in sequential shards. An `agents.run` lifecycle operation does not count as provider evidence; the parent directly calls a configured provider or source tool to verify citations, resolves source conflicts, inspects relevant local constraints, and owns the recommendation.
+For genuinely independent questions, join resolved calls in one `Promise.all` wave and keep dependent questions sequential. An `agents.run` operation does not count as provider evidence; Main directly calls a configured provider or source tool to verify citations, resolves source conflicts, inspects relevant local constraints, and owns the recommendation.
 
 ## Common Rationalizations
 
@@ -103,15 +103,10 @@ For genuinely independent questions, run at most three resolved calls in one `Pr
 
 ## Consolidated Research Workflow
 
-This is the canonical active source-grounding skill. It absorbs deep-research and source-code-research for normal work. Use opensrc, webclaw, context7, grepsearch, or gemini-large-context as tool-specific companions only when the source demands them.
+opensrc, webclaw, context7, grepsearch, and gemini-large-context are optional source-specific companions; reach for them only when a particular source demands that tool.
 
 Evidence hierarchy:
 1. local code and tests;
 2. official docs and source;
 3. maintained examples from reputable repos;
 4. blog posts or issues with dates and caveats.
-
-
-## Removed Optional Companion
-
-`v1-run` was removed as an optional package-health skill. Use source-grounded package evaluation, official advisories, lockfile inspection, and package-manager audit commands instead.
