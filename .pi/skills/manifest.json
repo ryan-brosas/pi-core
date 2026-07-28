@@ -6,6 +6,7 @@
       "label": "Essential",
       "description": "Always available \u2014 referenced in AGENTS.md, agents should consider these first for every task. Small, general-purpose skills that shape execution discipline.",
       "skills": [
+        "about-page-copywriting",
         "defense-in-depth",
         "incremental-implementation",
         "verification-before-completion"
