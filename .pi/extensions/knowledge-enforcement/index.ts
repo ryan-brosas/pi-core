@@ -1,26 +1,34 @@
-import type { BuildSystemPromptOptions, ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import { resolve } from "node:path";
+import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
 import {
-  applyObservations,
-  classifyTurn,
-  evaluateCompliance,
-  extractFabricObservations,
-  matchSkills,
-  type GroundingEvidence,
-  type SkillDescriptor,
+  applyActivity,
+  classifyObservedScope,
+  extractFabricActivity,
+  hasGraphEditReceipt,
+  isMutatingShellCommand,
+  type ActivityEvidence,
+  type ActivityObservation,
+  type ScopeClassification,
 } from "./policy.ts";
 
-const ENTRY_TYPE = "knowledge-enforcement/v1";
+const ENTRY_TYPE = "knowledge-enforcement/v2";
+const MODEL = "openai-codex/gpt-5.6-sol";
 
-type CorrectionStatus = "eligible" | "dispatched" | "skipped" | "failed";
-
-interface RuntimeTurn {
+interface RuntimeTask {
   ordinal: number;
-  required: boolean;
-  optedOut: boolean;
-  matchedSkills: SkillDescriptor[];
-  evidence: GroundingEvidence;
-  correction: CorrectionStatus;
+  evidence: ActivityEvidence;
+  scope: ScopeClassification;
+  graphReady: boolean;
+  graphUnavailable: boolean;
+  graphWaived: boolean;
+  fallbackSourceSeen: boolean;
+  fallbackVerificationSeen: boolean;
+  completionWaived: boolean;
+  completionRounds: number;
+  completionFollowUpStarted: boolean;
+  completionState: "eligible" | "dispatched" | "skipped" | "failed" | "exhausted" | "reported";
+  launchState: "eligible" | "dispatched" | "skipped" | "failed";
 }
 
 interface InputLike {
@@ -29,12 +37,12 @@ interface InputLike {
 
 interface BeforeAgentStartLike {
   prompt?: unknown;
-  systemPromptOptions?: BuildSystemPromptOptions;
 }
 
 interface ToolCallLike {
   toolCallId?: unknown;
   toolName?: unknown;
+  input?: unknown;
 }
 
 interface ToolResultLike {
@@ -52,68 +60,204 @@ interface ContextLike {
   ui: { notify(message: string, type?: "info" | "warning" | "error"): void };
 }
 
-function emptyEvidence(): GroundingEvidence {
+function emptyEvidence(): ActivityEvidence {
   return {
-    skillReads: [],
-    exemplarReads: [],
+    inspectedPaths: [],
+    mutatedPaths: [],
+    exemplarPaths: [],
+    verificationCount: 0,
+    diffInspectionCount: 0,
+    graphHealthCount: 0,
+    graphImpactCount: 0,
+    graphSourceVerificationCount: 0,
     mutationSeen: false,
-    groundingBeforeMutation: false,
+    verificationAfterMutation: false,
+    diffAfterMutation: false,
   };
 }
 
-function newTurn(ordinal: number): RuntimeTurn {
+function newTask(ordinal: number): RuntimeTask {
   return {
     ordinal,
-    required: false,
-    optedOut: false,
-    matchedSkills: [],
     evidence: emptyEvidence(),
-    correction: "eligible",
+    scope: { mode: "none", reasons: [] },
+    graphReady: false,
+    graphUnavailable: false,
+    graphWaived: false,
+    fallbackSourceSeen: false,
+    fallbackVerificationSeen: false,
+    completionWaived: false,
+    completionRounds: 0,
+    completionFollowUpStarted: false,
+    completionState: "eligible",
+    launchState: "eligible",
   };
 }
 
-function toSkillDescriptors(options: BuildSystemPromptOptions | undefined): SkillDescriptor[] {
-  if (!Array.isArray(options?.skills)) return [];
-  return options.skills
-    .filter((skill) => typeof skill.name === "string" && typeof skill.description === "string" &&
-      typeof skill.filePath === "string")
-    .map((skill) => ({
-      name: skill.name,
-      description: skill.description,
-      filePath: skill.filePath,
-    }));
+function graphStatus(task: RuntimeTask): string {
+  if (task.graphWaived) return "waived";
+  if (task.graphReady) return "ready";
+  if (task.graphUnavailable && task.fallbackSourceSeen && task.fallbackVerificationSeen) {
+    return "fallback-ready";
+  }
+  return task.graphUnavailable ? "fallback-required" : "required";
 }
 
-function guidance(turn: RuntimeTurn): string {
-  const specialist = turn.matchedSkills.length > 0
-    ? turn.matchedSkills.map((skill) => `${skill.name} (${skill.filePath})`).join(", ")
-    : "no high-confidence specialist match; use the relevant available skill if one applies";
-  return "Knowledge enforcement: before editing or writing code, read the matched skill(s) completely " +
-    `and inspect one to three closest working exemplars. Matched: ${specialist}. ` +
-    "Extract the invariant, mechanism, target seam, failure boundary, and exclusions privately; then " +
-    "rewrite target-natively rather than copying surface structure. Use focused reads to protect context.";
+function completionStatus(task: RuntimeTask): string {
+  if (task.completionWaived) return "waived";
+  if (!task.evidence.mutationSeen) return "not-needed";
+  if (task.evidence.verificationAfterMutation && task.evidence.diffAfterMutation) return "ready";
+  if (task.completionState === "dispatched") return "correction-sent";
+  if (task.completionState === "exhausted" || task.completionState === "reported") return "unresolved";
+  return task.completionState === "eligible" ? "required" : task.completionState;
 }
 
-function correctionMessage(turn: RuntimeTurn, missing: string[]): string {
-  const specialist = turn.matchedSkills.map((skill) => skill.name).join(", ") || "none matched";
-  return `Knowledge-enforcement correction: mutation occurred without ${missing.join(", ")}. ` +
-    `Matched skills: ${specialist}. Pause further mutation, read the matched skill and a relevant ` +
-    "working exemplar, extract its invariant and failure boundary, re-read the owned diff, then adapt " +
-    "the change target-natively. Do not copy the exemplar's surface structure; rerun behavior and " +
-    "duplication checks afterward.";
+function applyTaskActivity(task: RuntimeTask, observations: ActivityObservation[]): void {
+  const mutationObserved = observations.some((observation) =>
+    observation.kind === "mutate" || observation.kind === "mutation-attempt"
+  );
+  task.evidence = applyActivity(task.evidence, observations);
+  if (mutationObserved && task.completionState === "dispatched") {
+    task.completionState = task.completionRounds < 2 ? "eligible" : "exhausted";
+  }
+}
+
+function applyFallbackActivity(task: RuntimeTask, observations: ActivityObservation[]): void {
+  for (const observation of [...observations].sort((a, b) => a.sequence - b.sequence)) {
+    if (observation.kind === "graph-unavailable") {
+      task.graphUnavailable = true;
+      task.fallbackSourceSeen = false;
+      task.fallbackVerificationSeen = false;
+      continue;
+    }
+    if (!task.graphUnavailable) continue;
+    if (observation.kind === "inspect") task.fallbackSourceSeen = true;
+    if (observation.kind === "verify") task.fallbackVerificationSeen = true;
+  }
+}
+
+function graphGateReason(): string {
+  return "Mutation blocked: graph=required. Prefer Project Intelligence: run project_health for an active-project index, " +
+    "find_relevant_code with up to 3 exact symbol/keyword searchTerms, then analyze_impact for a task-relevant " +
+    "relationship; verify the selected hit in source. Raw CodeGraphContext is the fallback. If the graph is unavailable, " +
+    "let the failed probe finish, then inspect source and run fail-fast verification. A user may explicitly waive the " +
+    "graph gate. Run /knowledge-status to inspect readiness.";
+}
+
+function fabricCode(input: unknown): string {
+  if (!input || typeof input !== "object") return "";
+  const code = (input as { code?: unknown }).code;
+  return typeof code === "string" ? code : "";
+}
+
+const PI_MUTATOR_ACCESS = String.raw`pi\s*(?:\.\s*(?:edit|write)|\[\s*["'](?:edit|write)["']\s*\])`;
+
+function requestsFabricMutation(input: unknown): boolean {
+  const code = fabricCode(input);
+  if (new RegExp(String.raw`\b${PI_MUTATOR_ACCESS}\s*\(`).test(code)) return true;
+
+  const aliases = new Set<string>();
+  const assignment = new RegExp(
+    String.raw`\b(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*${PI_MUTATOR_ACCESS}`,
+    "g",
+  );
+  for (const match of code.matchAll(assignment)) aliases.add(match[1]);
+
+  const destructuring = /\b(?:const|let|var)\s*\{([^}]*)\}\s*=\s*pi\b/g;
+  for (const match of code.matchAll(destructuring)) {
+    for (const field of match[1].split(",")) {
+      const parsed = field.trim().match(/^(edit|write)(?:\s*:\s*([A-Za-z_$][\w$]*))?$/);
+      if (parsed) aliases.add(parsed[2] ?? parsed[1]);
+    }
+  }
+
+  return [...aliases].some((alias) => new RegExp(String.raw`\b${alias}\s*\(`).test(code));
+}
+
+function shellCommand(input: unknown): string {
+  if (!input || typeof input !== "object") return "";
+  const value = input as Record<string, unknown>;
+  const command = value.command ?? value.cmd;
+  return typeof command === "string" ? command : "";
+}
+
+function requestsFabricShellMutation(input: unknown): boolean {
+  const code = fabricCode(input);
+  const callsBash = /\bpi\s*(?:\.\s*bash|\[\s*["']bash["']\s*\])\s*\(/.test(code);
+  return callsBash && isMutatingShellCommand(code);
+}
+
+function requestsGraphHealth(input: unknown): boolean {
+  const code = fabricCode(input);
+  return /\b(?:mcp\.)?codegraphcontext\.(?:get_repository_stats|find_code)\s*\(/.test(code) ||
+    /\bmcp\.pi_core_intelligence\.(?:project_context|project_health|find_relevant_code)\s*\(/.test(code) ||
+    /["']mcp\.codegraphcontext\.(?:get_repository_stats|find_code)["']/.test(code) ||
+    /["']mcp\.pi-core-intelligence\.(?:project_context|project_health|find_relevant_code)["']/.test(code);
+}
+
+function directMutationPath(input: unknown, cwd: string): string | null {
+  if (!input || typeof input !== "object") return null;
+  const path = (input as { path?: unknown }).path;
+  return typeof path === "string" && path.length > 0 ? resolve(cwd, path) : null;
+}
+
+function explicitlyWaivesGraph(prompt: unknown): boolean {
+  return typeof prompt === "string" &&
+    /\b(?:waive|skip|bypass|do not use)\b[^\n]{0,80}\b(?:code[- ]?graph|mcp graph|graph gate)\b/i.test(prompt);
+}
+
+function explicitlyWaivesCompletion(prompt: unknown): boolean {
+  return typeof prompt === "string" &&
+    /\b(?:waive|skip|bypass|do not require)\b[^\n]{0,80}\b(?:completion gate|post-edit verification|verification gate)\b/i.test(prompt);
+}
+
+function completionDirective(task: RuntimeTask): string {
+  const missing: string[] = [];
+  if (!task.evidence.verificationAfterMutation) missing.push("post-edit verification");
+  if (!task.evidence.diffAfterMutation) missing.push("owned diff inspection");
+  return `Knowledge completion gate: mutation observed without ${missing.join(" and ")}. ` +
+    "Run the narrowest applicable verification, inspect the owned diff, address failures, and then report observed results.";
+}
+
+function supervisorDirective(task: RuntimeTask): string {
+  const reasonText = task.scope.reasons.join(", ");
+  return `Knowledge supervision required for observed ${task.scope.mode} scope (${reasonText}).\n\n` +
+    "Main: run one fabric_exec program now to create or reconfigure these three task-scoped Fabric actors: " +
+    "a grounding supervisor, verification supervisor, and deslop supervisor. Use stable names " +
+    "knowledge-grounding, knowledge-verification, and knowledge-deslop; remove stale actors with those " +
+    "names before recreation. Configure every actor with runner=pi, model=" + MODEL +
+    ", thinking=high, events=[input,agent_settled,tool_error], responseMode=directive, delivery=steer, " +
+    "triggerTurn=true, coalesce=true, extensions=false, and read-only tools=[read,grep,find,ls]. " +
+    "Use the standard latest-activation validWhile guard. On a new external input (interactive or RPC) after " +
+    "creation, return action=stop immediately so supervision cannot leak into another task.\n\n" +
+    "Role contracts:\n" +
+    "- Grounding supervisor: check that the result internalizes relevant existing code and project practices " +
+    "without surface copying; require target-native seams and names.\n" +
+    "- Verification supervisor: check observable behavior, controlled failure, applicable tests, and scope.\n" +
+    "- Deslop supervisor: check duplication, bloat, unnecessary wrappers, and reference-shaped architecture.\n\n" +
+    "Each supervisor is advisory and read-only. Main makes the final decision and automatically addresses " +
+    "material findings within the authorized task scope. Each actor may issue at most two remediation rounds; " +
+    "on compliance return {action:\"stop\"} to auto-teardown, and after the second unresolved intervention " +
+    "return one final unresolved message with action=stop. Do not recreate a stopped supervisor for this task.";
 }
 
 export default function knowledgeEnforcement(pi: ExtensionAPI): void {
   let enabled = true;
   let pendingExternalInputs = 0;
-  let turn = newTurn(0);
-  const pendingFabric = new Map<string, number>();
+  let task = newTask(0);
+  const pendingFabric = new Map<string, {
+    ordinal: number;
+    graphHealthAttempted: boolean;
+    mutationAttempted: boolean;
+  }>();
+  const pendingDirect = new Map<string, { ordinal: number; path: string | null }>();
 
   const resetRuntime = (ctx: ContextLike): void => {
     enabled = typeof ctx.isProjectTrusted !== "function" || ctx.isProjectTrusted();
     pendingExternalInputs = 0;
     pendingFabric.clear();
-    turn = newTurn(turn.ordinal);
+    pendingDirect.clear();
+    task = newTask(task.ordinal);
   };
 
   pi.on("session_start", (_event, ctx) => {
@@ -130,82 +274,169 @@ export default function knowledgeEnforcement(pi: ExtensionAPI): void {
   });
 
   pi.on("before_agent_start", (event, ctx) => {
-    if (pendingExternalInputs === 0) return;
+    const prompt = (event as BeforeAgentStartLike).prompt;
+    if (pendingExternalInputs === 0) {
+      if (task.completionState === "dispatched" && typeof prompt === "string" &&
+        prompt.startsWith("Knowledge completion gate:")) {
+        task.completionFollowUpStarted = true;
+      }
+      return;
+    }
     pendingExternalInputs--;
     pendingFabric.clear();
-    turn = newTurn(turn.ordinal + 1);
-    const value = event as BeforeAgentStartLike;
-    const prompt = typeof value.prompt === "string" ? value.prompt : "";
-    const classification = classifyTurn(prompt);
-    turn.required = classification.required;
-    turn.optedOut = classification.optedOut;
-    turn.matchedSkills = matchSkills(prompt, toSkillDescriptors(value.systemPromptOptions));
+    pendingDirect.clear();
+    task = newTask(task.ordinal + 1);
+    task.graphWaived = explicitlyWaivesGraph(prompt);
+    task.completionWaived = explicitlyWaivesCompletion(prompt);
     const context = ctx as ContextLike;
     enabled = typeof context.isProjectTrusted !== "function" || context.isProjectTrusted();
-    if (!enabled || !turn.required || turn.optedOut) return;
-    return {
-      message: {
-        customType: ENTRY_TYPE,
-        content: guidance(turn),
-        display: true,
-        details: { matchedSkills: turn.matchedSkills.map((skill) => skill.name) },
-      },
-    };
   });
 
-  pi.on("tool_call", (event) => {
+  pi.on("tool_call", (event, ctx) => {
     const value = event as ToolCallLike;
-    if (!enabled || !turn.required || value.toolName !== "fabric_exec" ||
-      typeof value.toolCallId !== "string") return;
-    pendingFabric.set(value.toolCallId, turn.ordinal);
+    if (!enabled || typeof value.toolName !== "string" || typeof value.toolCallId !== "string") return;
+    const directMutation = value.toolName === "edit" || value.toolName === "write" ||
+      (value.toolName === "bash" && isMutatingShellCommand(shellCommand(value.input)));
+    const fabricMutation = value.toolName === "fabric_exec" &&
+      (requestsFabricMutation(value.input) || requestsFabricShellMutation(value.input));
+    const fallbackReady = task.graphUnavailable && task.fallbackSourceSeen &&
+      task.fallbackVerificationSeen;
+    if ((directMutation || fabricMutation) && !task.graphReady && !task.graphWaived && !fallbackReady) {
+      return { block: true, reason: graphGateReason() };
+    }
+    if (directMutation) {
+      pendingDirect.set(value.toolCallId, {
+        ordinal: task.ordinal,
+        path: directMutationPath(value.input, (ctx as ContextLike).cwd ?? process.cwd()),
+      });
+    }
+    if (value.toolName === "fabric_exec") {
+      pendingFabric.set(value.toolCallId, {
+        ordinal: task.ordinal,
+        graphHealthAttempted: requestsGraphHealth(value.input),
+        mutationAttempted: fabricMutation,
+      });
+    }
   });
 
   pi.on("tool_result", (event, ctx) => {
     const value = event as ToolResultLike;
     if (typeof value.toolCallId !== "string") return;
-    const owner = pendingFabric.get(value.toolCallId);
+    const direct = pendingDirect.get(value.toolCallId);
+    pendingDirect.delete(value.toolCallId);
+    if (direct && direct.ordinal === task.ordinal) {
+      const observation: ActivityObservation = direct.path
+        ? { kind: "mutate", path: direct.path, sequence: 0 }
+        : { kind: "mutation-attempt", sequence: 0 };
+      applyTaskActivity(task, [observation]);
+      task.scope = classifyObservedScope(task.evidence);
+      return;
+    }
+    const pending = pendingFabric.get(value.toolCallId);
     pendingFabric.delete(value.toolCallId);
-    if (owner === undefined || owner !== turn.ordinal || value.isError === true) return;
-    const observations = extractFabricObservations(
+    if (pending === undefined || pending.ordinal !== task.ordinal) return;
+    if (value.isError === true) {
+      if (pending.graphHealthAttempted) {
+        task.graphUnavailable = true;
+        task.fallbackSourceSeen = false;
+        task.fallbackVerificationSeen = false;
+      }
+      if (pending.mutationAttempted) {
+        applyTaskActivity(task, [{ kind: "mutation-attempt", sequence: 0 }]);
+      }
+      return;
+    }
+    const observations = extractFabricActivity(
       value.details,
       (ctx as ContextLike).cwd ?? process.cwd(),
-      turn.matchedSkills,
     );
-    turn.evidence = applyObservations(turn.evidence, observations, turn.matchedSkills);
+    applyTaskActivity(task, observations);
+    applyFallbackActivity(task, observations);
+    task.graphReady = hasGraphEditReceipt(task.evidence);
+    task.scope = classifyObservedScope(task.evidence);
   });
 
   pi.on("agent_settled", (_event, ctx) => {
-    if (!enabled || !turn.required || turn.optedOut || turn.correction !== "eligible") return;
-    const compliance = evaluateCompliance(turn.required, turn.matchedSkills, turn.evidence);
-    if (compliance.compliant) return;
+    if (!enabled) return;
     const context = ctx as ContextLike;
-    if (!context.isIdle() || context.hasPendingMessages()) {
-      turn.correction = "skipped";
+    const completionMissing = task.evidence.mutationSeen && !task.completionWaived &&
+      (!task.evidence.verificationAfterMutation || !task.evidence.diffAfterMutation);
+    if (completionMissing) {
+      if (task.completionState === "dispatched" && task.completionFollowUpStarted) {
+        task.completionFollowUpStarted = false;
+        task.completionState = task.completionRounds < 2 ? "eligible" : "exhausted";
+      }
+      if (task.completionState === "exhausted") {
+        context.ui.notify(
+          "Knowledge completion gate unresolved after two correction rounds. " +
+            "Report the missing verification or diff proof as a blocker.",
+          "warning",
+        );
+        task.completionState = "reported";
+        return;
+      }
+      if (task.completionState === "eligible") {
+        if (context.hasPendingMessages() || !context.isIdle()) {
+          task.completionState = "skipped";
+          return;
+        }
+        task.completionState = "dispatched";
+        try {
+          pi.sendMessage(
+            {
+              customType: ENTRY_TYPE,
+              content: completionDirective(task),
+              display: true,
+              details: { taskOrdinal: task.ordinal, mode: "completion-gate" },
+            },
+            { deliverAs: "followUp", triggerTurn: true },
+          );
+          task.completionRounds++;
+          task.completionFollowUpStarted = false;
+        } catch {
+          task.completionState = "failed";
+        }
+      }
       return;
     }
-    turn.correction = "dispatched";
+    if (task.scope.mode === "none" || task.launchState !== "eligible") return;
+    if (context.hasPendingMessages() || !context.isIdle()) {
+      task.launchState = "skipped";
+      return;
+    }
+    task.launchState = "dispatched";
     try {
       pi.sendMessage(
         {
           customType: ENTRY_TYPE,
-          content: correctionMessage(turn, compliance.missing),
+          content: supervisorDirective(task),
           display: true,
-          details: { missing: compliance.missing },
+          details: {
+            taskOrdinal: task.ordinal,
+            mode: task.scope.mode,
+            reasons: task.scope.reasons,
+            model: MODEL,
+          },
         },
         { deliverAs: "followUp", triggerTurn: true },
       );
     } catch {
-      turn.correction = "failed";
+      task.launchState = "failed";
     }
   });
 
   pi.registerCommand("knowledge-status", {
-    description: "Show reference-grounding evidence for the current turn",
+    description: "Show graph, completion, and supervision readiness for the current task",
     handler: (_args, ctx) => {
+      if (!enabled) {
+        (ctx as ContextLike).ui.notify("knowledge disabled=untrusted-project", "warning");
+        return;
+      }
       (ctx as ContextLike).ui.notify(
-        `knowledge required=${turn.required} matched=${turn.matchedSkills.length} ` +
-          `skills-read=${turn.evidence.skillReads.length} exemplars=${turn.evidence.exemplarReads.length} ` +
-          `mutation=${turn.evidence.mutationSeen} correction=${turn.correction}`,
+        `knowledge mode=${task.scope.mode} reasons=${task.scope.reasons.join(",") || "none"} ` +
+          `inspected=${task.evidence.inspectedPaths.length} mutated=${task.evidence.mutatedPaths.length} ` +
+          `verified=${task.evidence.verificationCount} graph=${graphStatus(task)} ` +
+          `completion=${completionStatus(task)} launched=${task.launchState === "dispatched"}`,
         "info",
       );
     },

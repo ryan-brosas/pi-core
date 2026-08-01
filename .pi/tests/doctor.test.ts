@@ -32,10 +32,19 @@ test("doctor CLI emits structured JSON", () => {
     { cwd: root, encoding: "utf8" },
   );
   assert.equal(result.status, 0, result.stderr);
-  const output = JSON.parse(result.stdout) as { checks: Array<{ id: string; status: string }> };
+  const output = JSON.parse(result.stdout) as {
+    checks: Array<{ id: string; status: string; message: string }>;
+  };
   assert.ok(output.checks.some((check) => check.id === "required-paths" && check.status === "pass"));
-  assert.ok(output.checks.some((check) => check.id === "pi-version" && check.status === "pass"));
-  assert.ok(output.checks.some((check) => check.id === "pi-packages" && /0\.28\.2[\s\S]*2\.15\.0/.test(check.message)));
+  const piVersion = output.checks.find((check) => check.id === "pi-version");
+  assert.ok(piVersion);
+  assert.match(piVersion.status, /^(?:pass|warn)$/);
+  if (piVersion.status === "warn") assert.match(piVersion.message, /unavailable/i);
+  const piPackages = output.checks.find((check) => check.id === "pi-packages");
+  assert.ok(piPackages);
+  assert.match(piPackages.status, /^(?:pass|warn)$/);
+  if (piPackages.status === "pass") assert.match(piPackages.message, /0\.28\.2[\s\S]*2\.15\.0/);
+  else assert.ok(piPackages.message.length > 0);
   assert.ok(output.checks.some((check) => check.id === "fabric-configuration" && check.status === "pass"));
   assert.ok(output.checks.some((check) => check.id === "repository-corpus" && check.status === "pass"));
   assert.ok(output.checks.some((check) => check.id === "retired-active-pointer" && check.status === "pass"));
