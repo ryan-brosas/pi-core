@@ -1,58 +1,71 @@
 ---
-purpose: Project vision, goals, and success criteria (loaded into all AI contexts)
-updated: 2024-12-21
+purpose: Source-backed project purpose, architecture, and operating context
 ---
 
-# Project Vision
+# Project context
 
-## The Goal
+Every claim in this file should point to repository evidence, observed command output, or explicit user guidance. Label uncertain claims.
 
-<!-- One sentence: What does this project achieve? Outcome-shaped, not task-shaped. -->
-<!-- Good: "A real-time chat application with persistent message history" -->
-<!-- Bad: "Build chat components and API endpoints" -->
+## Purpose
 
-## Success Criteria
+- Project outcome: [what this project exists to achieve]
+- Current problem: [the need it addresses]
+- Non-goals: [explicit exclusions]
 
-<!-- How do we know the project is successful? List 3-7 observable outcomes. -->
-<!-- Each should be verifiable by using the application, not by checking code. -->
+## Users and success
 
-1. **[Criterion 1]** - [Specific, measurable outcome]
-2. **[Criterion 2]** - [Specific, measurable outcome]
-3. **[Criterion 3]** - [Specific, measurable outcome]
+- Primary users: [who and what they need]
+- Secondary users: [if verified]
+- Observable success criteria:
+  - [user-visible or operational outcome]
 
-## Target Users
+## Boundaries and invariants
 
-<!-- Who will use this? What do they need? -->
+- Trust boundary: [repository, service, or data boundary]
+- Compatibility contract: [runtime, API, data, or deployment constraint]
+- Generated and runtime-managed paths: [paths and owners]
+- Rules that must not change silently: [invariants]
 
-- **Primary:** [User type and their core need]
-- **Secondary:** [User type and their core need]
+## Architecture
 
-## Core Principles
+Describe the smallest useful map of components and their responsibilities.
 
-<!-- Non-negotiable principles that guide all decisions -->
+- Entry points: [path and role]
+- Core modules: [path and role]
+- Data or control flow: [source-backed path through the system]
+- External integrations: [service and boundary]
+- Configuration authority: [path]
 
-1. **[Principle 1]** - [Explanation]
-2. **[Principle 2]** - [Explanation]
-3. **[Principle 3]** - [Explanation]
+## CodeGraphContext links
 
-## Current Phase
+Record only graph findings verified in current source.
 
-<!-- Where are we in the project lifecycle? -->
+- Known symbol or path probe: [query and source path]
+- Callers or importers: [relationship and source proof]
+- Module dependencies: [relationship and source proof]
+- Test targets: [relationship and executable proof]
+- Graph limits or stale results: [fallback used]
 
-- **Status:** [Discovery / Planning / Implementation / Polish / Maintenance]
-- **Milestone:** [Current milestone name]
-- **Next Milestone:** [Next milestone name]
+## Source ownership
 
-## Key Links
+- Maintained source: [paths]
+- Tests: [paths]
+- Documentation: [paths]
+- Generated output: [paths and generator]
+- Runtime state: [paths]
 
-<!-- Important references -->
+## Verification and operations
 
-- **Repository:** [URL]
-- **Documentation:** [URL]
-- **Staging:** [URL]
-- **Production:** [URL]
+- Local checks: [commands and observed status]
+- Build or packaging: [command or none]
+- Deployment path: [verified process or unknown]
+- Live servers and flags: [verified names or unconfirmed]
+- Rollback boundary: [verified process or unknown]
 
----
+## Decisions, risks, and questions
 
-_Update this file when project direction or phase changes._
-_AI uses this to maintain context across sessions and make decisions aligned with project goals._
+- Current decisions: [source or user-backed]
+- Known risks: [risk and evidence]
+- Open questions: [what source cannot answer]
+
+Update this file when architecture, purpose, ownership, or operational boundaries change.

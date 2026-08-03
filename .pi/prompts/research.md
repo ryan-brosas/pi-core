@@ -17,17 +17,14 @@ const sourceDriven = await pi.read(
 
 ## Execute
 
-Use one `fabric_exec` program to combine relevant local source, official documentation, maintained upstream source/tests, and exact version evidence. Use known provider proxies directly; do not count `agents.run` as source evidence.
+Use one `fabric_exec` program and no child agents.
 
-Choose the topology from the question:
+- Local code: use `pi.*`; use CodeGraphContext only as a locator and verify hits in source.
+- Library docs: use Context7.
+- Web sources: use OmniRoute or Codex Search.
+- Repository documentation: use DeepWiki.
 
-- direct provider and `pi.*` calls for one bounded question;
-- one read-only child when isolated source analysis adds clear value;
-- `Promise.all` only for genuinely independent evidence angles.
-
-Prefer current local code and tests, then official versioned sources. Report contradictions instead of silently choosing. Stop when more retrieval would not change the implementation decision.
-
-Research returns in chat by default. Persist only when the user explicitly requests a destination.
+Choose one authoritative route. Add a second only for a material contradiction or high-consequence claim. Cite source URLs, stop when more retrieval cannot change the decision, and return in chat unless the user requests a file.
 
 ## Report
 

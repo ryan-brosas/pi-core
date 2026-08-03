@@ -138,15 +138,109 @@ test("advanced Fabric topologies remain explicit options while zero agents stays
   assert.match(readme, /\/skill:fabric-(?:guide|workflow)/i);
 });
 
-test("user authority can explicitly replace project gates without ceremonial reassertion", () => {
+test("policy files keep authority and safety concise", () => {
   for (const path of ["AGENTS.md", ".pi/templates/agents-policy.md"]) {
     const source = required(path);
-    assert.match(source, /user(?:'s)? latest explicit instruction[\s\S]*(?:override|replace)/i, path);
-    assert.match(source, /explicit(?:ly)?[\s\S]{0,160}(?:replace|waive)[\s\S]{0,160}(?:gate|policy|default)/i, path);
-    assert.match(source, /do not[\s\S]{0,160}(?:reassert|demand|repeat)[\s\S]{0,160}(?:replaced|waived)/i, path);
-    assert.match(source, /concurrent|unrelated work/i, path);
-    assert.match(source, /evidence before|verification/i, path);
+    const lines = source.split("\n");
+    const words = source.trim().split(/\s+/);
+    assert.match(source, /user(?:'s)? latest explicit instruction[\s\S]*(?:controls|replace)/i, path);
+    assert.match(source, /named (?:request|authorization)[\s\S]*(?:sufficient|authorization)/i, path);
+    assert.match(source, /preserve unrelated[\s\S]*(?:concurrent|work)/i, path);
+    assert.match(source, /verification|self-verif/i, path);
+    assert.ok(lines.length <= 90, `${path}: concise line budget`);
+    assert.ok(words.length <= 850, `${path}: concise word budget`);
+    assert.ok(Math.max(...lines.map((line) => line.length)) <= 240, `${path}: readable lines`);
   }
+});
+
+test("global policy retains runtime, source, and opt-in boundaries", () => {
+  const source = required(".pi/templates/agents-policy.md");
+  assert.match(source, /PI_CORE_WORKSPACE_POLICY_V1/);
+  assert.match(source, /primary checkout[\s\S]*main[\s\S]*(?:branch|worktree)/i);
+  assert.match(source, /do not narrate[^\n]*tool[\s\S]*echo[^\n]*file/i);
+  assert.match(source, /sources\/[\s\S]*clone[^\n]*(?:repository|source)/i);
+  assert.match(source, /fabric_exec[\s\S]*pi\.\*/i);
+  assert.match(source, /CodeGraphContext[\s\S]*(?:callers|importers|module dependencies)[\s\S]*verify every hit/i);
+  assert.match(source, /graph edge[^\n]*(?:locator|not authority)/i);
+  assert.match(source, /current project[\s\S]*reviewed project[\s\S]*inspo/i);
+  assert.match(source, /smallest coherent slice[\s\S]*working behavior[\s\S]*contract/i);
+  assert.match(source, /agents?[\s\S]*actors?[\s\S]*one-line user confirmation/i);
+  assert.match(source, /secrets?[\s\S]*(?:instructions|messages)[\s\S]*mesh/i);
+  assert.match(source, /operation[\s\S]*context[\s\S]*targets[\s\S]*rollback/i);
+});
+
+test("init is outcome-oriented and maintains the full context set", () => {
+  const source = required(".pi/prompts/init.md");
+  assert.match(source, /\$\{ARGUMENTS:-[^}]+\}/);
+  assert.match(source, /natural-language outcome[\s\S]*(?:not flags|not .*command grammar)/i);
+  assert.match(source, /choose the execution order[\s\S]*do not[^\n]*(?:fixed lifecycle|step chain)/i);
+  assert.match(source, /one `fabric_exec` program/i);
+  assert.match(source, /one-line user confirmation[\s\S]*advanced Fabric/i);
+  assert.doesNotMatch(source, /## Modes|Reject unknown flags|typescript mode/i);
+
+  for (const name of ["agents-policy", "user", "project", "roadmap", "tech-stack"]) {
+    assert.match(source, new RegExp(`\\.pi/templates/${name}\\.md`, "i"), name);
+  }
+  for (const path of ["AGENTS.md", ".pi/user.md", ".pi/project.md", ".pi/roadmap.md", ".pi/tech-stack.md"]) {
+    assert.ok(source.includes(path), path);
+  }
+
+  assert.match(source, /AGENTS\.md[\s\S]*concise[\s\S]*under 80 lines/i);
+  assert.match(source, /project\.md[\s\S]*(?:architecture|execution flows)[\s\S]*source paths/i);
+  assert.match(source, /roadmap\.md[\s\S]*confirmed commitments[\s\S]*proposed work[\s\S]*effort/i);
+  assert.match(source, /S`, `M`, or `L`[\s\S]*not a time promise/i);
+  assert.match(source, /list_indexed_repositories[\s\S]*find_code[\s\S]*analyze_code_relationships/i);
+  assert.match(source, /verify graph hits[\s\S]*current source/i);
+  assert.match(source, /hindsight_status[\s\S]*hindsight_scope[\s\S]*hindsight_config/i);
+  assert.match(source, /memory\.sessions[\s\S]*mcp\.servers/i);
+  assert.match(source, /do not change[\s\S]*(?:global MCP|dependencies|packages)[\s\S]*explicit authorization/i);
+  assert.match(source, /preview[\s\S]*preserve[\s\S]*unsupported claims/i);
+  assert.match(source, /\/reload|new session/i);
+  assert.ok(source.split("\n").length <= 95, "init prompt should remain scannable");
+});
+
+test("context templates demand detailed evidence without stale workflow jargon", () => {
+  const user = required(".pi/templates/user.md");
+  const project = required(".pi/templates/project.md");
+  const roadmap = required(".pi/templates/roadmap.md");
+  const tech = required(".pi/templates/tech-stack.md");
+
+  assert.match(user, /explicit user preferences[\s\S]*do not infer identity/i);
+  assert.match(user, /privacy and secrets[\s\S]*unknowns/i);
+  assert.match(project, /architecture[\s\S]*CodeGraphContext links[\s\S]*source proof/i);
+  assert.match(project, /verification and operations[\s\S]*live servers and flags/i);
+  assert.match(roadmap, /confirmed work[\s\S]*proposed work/i);
+  assert.match(roadmap, /effort scale[\s\S]*dependencies[\s\S]*acceptance/i);
+  assert.match(tech, /manifests and package management[\s\S]*verified commands[\s\S]*unverified commands/i);
+  for (const source of [user, project, roadmap, tech]) {
+    assert.doesNotMatch(source, /\bbeads?\b|opencode\.json|updated: 2024/i);
+  }
+});
+
+test("Pi Core keeps detailed context outside the concise AGENTS contract", () => {
+  const agents = required("AGENTS.md");
+  const user = required(".pi/user.md");
+  const project = required(".pi/project.md");
+  const roadmap = required(".pi/roadmap.md");
+  const tech = required(".pi/tech-stack.md");
+
+  assert.ok(agents.split("\n").length <= 80);
+  for (const path of [".pi/user.md", ".pi/project.md", ".pi/roadmap.md", ".pi/tech-stack.md"]) {
+    assert.ok(agents.includes(path), path);
+  }
+  assert.match(user, /priorities[\s\S]*communication[\s\S]*workflow[\s\S]*privacy|priorities[\s\S]*communication[\s\S]*workflow[\s\S]*secrets/i);
+  assert.match(project, /architecture[\s\S]*workspace enforcement[\s\S]*CodeGraphContext/i);
+  assert.match(roadmap, /effort scale[\s\S]*confirmed work[\s\S]*proposed work/i);
+  assert.match(tech, /observed verification[\s\S]*build, deployment, and live state/i);
+});
+
+test("global policy keeps precedent retrieval source-qualified", () => {
+  const source = required(".pi/templates/agents-policy.md");
+  assert.match(source, /target behavior[\s\S]*compatibility needs/i);
+  assert.match(source, /source, tests, imports, dependencies, and config/i);
+  assert.match(source, /graph edge[\s\S]*locator[\s\S]*not authority/i);
+  assert.match(source, /smallest coherent slice/i);
+  assert.match(source, /no candidate fits[\s\S]*target-native[\s\S]*no-match/i);
 });
 
 test("planning is an on-demand reasoning skill, not a persisted scheduler", () => {

@@ -1,93 +1,59 @@
 ---
-purpose: Project roadmap with phases, milestones, and bead organization
-updated: 2024-12-21
+purpose: Confirmed direction, proposed work, dependencies, and acceptance checks
 ---
 
 # Roadmap
 
-## Overview
+Do not convert guesses into commitments. Separate user-confirmed outcomes from proposed work and link every active item to evidence.
 
-<!-- High-level project breakdown -->
+## Current direction
 
-| Phase     | Goal                | Status        | Beads |
-| --------- | ------------------- | ------------- | ----- |
-| [Phase 1] | [One-sentence goal] | [Not Started] | [#]   |
-| [Phase 2] | [One-sentence goal] | [Not Started] | [#]   |
-| [Phase 3] | [One-sentence goal] | [Not Started] | [#]   |
+- Current outcome: [confirmed result]
+- Current milestone: [confirmed milestone or none]
+- Main constraint: [verified constraint]
 
-## Phase 1: [Name]
+## Effort scale
 
-**Goal:** [Outcome-shaped description]
+- `S`: one bounded cohort with narrow verification.
+- `M`: several coupled files or checks within one project.
+- `L`: cross-area, cross-repository, migration, deployment, or live coordination.
 
-**Success Criteria:**
+Effort is relative scope, not elapsed time. Add a short basis to each estimate.
 
-- [ ] [Criterion 1]
-- [ ] [Criterion 2]
-- [ ] [Criterion 3]
+## Confirmed work
 
-**Beads:**
-| ID | Title | Type | Status | Depends On |
-|----|-------|------|--------|------------|
-| br-xxx | [Title] | task | open | - |
-| br-xxx | [Title] | task | open | br-xxx |
+### [Outcome]
 
-**Out of Scope:**
+- Status: [not started, active, blocked, complete]
+- Effort: [S, M, or L] because [basis]
+- Evidence: [user request, issue, source, or observed failure]
+- Dependencies: [required predecessor or none]
+- Acceptance:
+  - [observable result]
+  - [verification command or live check]
+- Risks: [known risk]
+- Live confirmation: [server, flag, or none]
 
-- [What's explicitly deferred to later phases]
+## Proposed work
 
----
+### [Candidate outcome]
 
-## Phase 2: [Name]
+- Why it may matter: [evidence]
+- Effort: [S, M, or L] because [basis]
+- Decision needed: [user or architecture choice]
+- Dependencies: [known dependency]
+- Acceptance if approved: [observable result]
 
-**Goal:** [Outcome-shaped description]
+## Blockers and risks
 
-**Success Criteria:**
+- [blocker, owner, evidence, and resume condition]
 
-- [ ] [Criterion 1]
-- [ ] [Criterion 2]
+## Completed outcomes
 
-**Beads:**
-| ID | Title | Type | Status | Depends On |
-|----|-------|------|--------|------------|
-| br-xxx | [Title] | feature | open | Phase 1 |
+- [outcome, proof, and completion date if verified]
 
-**Dependencies:**
+## Deferred or out of scope
 
-- Requires Phase 1 completion
+- [item and reason]
 
----
-
-## Phase 3: [Name]
-
-**Goal:** [Outcome-shaped description]
-
-**Success Criteria:**
-
-- [ ] [Criterion 1]
-
-**Beads:**
-| ID | Title | Type | Status | Depends On |
-|----|-------|------|--------|------------|
-| br-xxx | [Title] | epic | open | Phase 2 |
-
----
-
-## Legend
-
-**Status:**
-
-- `Not Started` - No work begun
-- `In Progress` - Active development
-- `Complete` - All tasks closed
-
-**Type:**
-
-- `task` - Tactical, single-session work
-- `feature` - New capability, multi-session
-- `epic` - Cross-domain, significant scope
-- `bug` - Fix for broken behavior
-
----
-
-_Update this file when phases complete or roadmap changes._
-_Ask Pi to plan only when active work has unresolved sequencing, coupling, or handoff risk; planning remains an optional on-demand reasoning step._
+Update this file when direction, dependencies, effort, or completion evidence changes. Keep transient task chatter in the current session or issue tracker.

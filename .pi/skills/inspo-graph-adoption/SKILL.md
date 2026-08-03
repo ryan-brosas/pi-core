@@ -15,7 +15,7 @@ Find a qualified reference implementation, place it in the existing inspo organi
 
 Independently rewritten ideas and patterns require no license or provenance ceremony. Do not require source pins, hashes, notices, or legal review merely because an inspo repository informed the reasoning. When copying or distributing upstream files or substantial expressive material, identify the source, check applicable terms, retain required notices, and verify source or byte integrity.
 
-Do not use `.pi/corpus/` or create `.pi/inspo/`.
+Do not create an in-project inspiration catalog.
 
 ## Established Layout
 

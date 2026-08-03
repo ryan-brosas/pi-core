@@ -1,9 +1,8 @@
 import { existsSync, readFileSync } from "node:fs";
+import { homedir } from "node:os";
 import { isAbsolute, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { spawnSync } from "node:child_process";
-
-import { scanCorpus } from "./corpus.ts";
 
 export type DoctorStatus = "pass" | "warn" | "fail";
 
@@ -19,14 +18,11 @@ const REQUIRED_PATHS = [
   ".github/workflows/test.yml",
   ".pi/fabric.json",
   ".pi/hindsight.json",
-  ".pi/scripts/corpus.ts",
-  ".pi/corpus",
 ] as const;
 
 const REQUIRED_PACKAGES = [
-  { name: "pi-fabric", version: "0.28.2" },
-  { name: "pi-mcp-adapter", version: "2.15.0" },
-  { name: "@luxusai/pi-hindsight", version: "0.11.0" },
+  { name: "ultra-fabric", minimumVersion: "0.31.1-ultra.1" },
+  { name: "@luxusai/pi-hindsight", minimumVersion: "0.11.0" },
 ] as const;
 
 const FORBIDDEN_POLICY_TEXT = [
@@ -47,13 +43,56 @@ function readJson(path: string): unknown {
   return JSON.parse(readFileSync(path, "utf8"));
 }
 
-type ParsedVersion = { core: [number, number, number]; prerelease?: string };
+function expandedConfigPath(root: string, value: string): string {
+  if (value === "~") return homedir();
+  if (value.startsWith("~/")) return resolve(homedir(), value.slice(2));
+  return isAbsolute(value) ? value : resolve(root, value);
+}
+
+function fabricMcpConfigPath(path: string): string | undefined {
+  if (!existsSync(path)) return undefined;
+  const config = readJson(path);
+  const mcp = record(config) && record(config.mcp) ? config.mcp : undefined;
+  return typeof mcp?.configPath === "string" && mcp.configPath.trim()
+    ? mcp.configPath.trim()
+    : undefined;
+}
+
+export function effectiveMcpConfigPath(
+  root = process.cwd(),
+  agentDir = process.env.PI_CODING_AGENT_DIR || resolve(homedir(), ".pi/agent"),
+): string | undefined {
+  const absoluteRoot = resolve(root);
+  const projectOverride = fabricMcpConfigPath(resolve(absoluteRoot, ".pi/fabric.json"));
+  if (projectOverride) return expandedConfigPath(absoluteRoot, projectOverride);
+  const globalOverride = fabricMcpConfigPath(resolve(agentDir, "fabric.json"));
+  if (globalOverride) return expandedConfigPath(absoluteRoot, globalOverride);
+
+  const xdg = process.env.XDG_CONFIG_HOME && isAbsolute(process.env.XDG_CONFIG_HOME)
+    ? process.env.XDG_CONFIG_HOME
+    : resolve(homedir(), ".config");
+  return [
+    resolve(absoluteRoot, "config/mcporter.json"),
+    resolve(absoluteRoot, "config/mcporter.jsonc"),
+    resolve(xdg, "mcporter/mcporter.json"),
+    resolve(xdg, "mcporter/mcporter.jsonc"),
+    resolve(homedir(), ".mcporter/mcporter.json"),
+    resolve(homedir(), ".mcporter/mcporter.jsonc"),
+  ].find(existsSync);
+}
+
+type VersionIdentifier = number | string;
+type ParsedVersion = { core: [number, number, number]; prerelease?: VersionIdentifier[] };
 
 function parsedVersion(value: string): ParsedVersion | undefined {
   const match = /^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?(?:\+[0-9A-Za-z.-]+)?$/.exec(value.trim());
   return match ? {
     core: [Number(match[1]), Number(match[2]), Number(match[3])],
-    ...(match[4] ? { prerelease: match[4] } : {}),
+    ...(match[4] ? {
+      prerelease: match[4].split(".").map((identifier) =>
+        /^\d+$/.test(identifier) ? Number(identifier) : identifier
+      ),
+    } : {}),
   } : undefined;
 }
 
@@ -66,7 +105,21 @@ export function versionAtLeast(actual: string, minimum: string): boolean {
   }
   if (right.prerelease === undefined) return left.prerelease === undefined;
   if (left.prerelease === undefined) return true;
-  return left.prerelease === right.prerelease;
+  const identifiers = Math.max(left.prerelease.length, right.prerelease.length);
+  for (let index = 0; index < identifiers; index += 1) {
+    const leftIdentifier = left.prerelease[index];
+    const rightIdentifier = right.prerelease[index];
+    if (leftIdentifier === undefined) return false;
+    if (rightIdentifier === undefined) return true;
+    if (leftIdentifier === rightIdentifier) continue;
+    if (typeof leftIdentifier === "number" && typeof rightIdentifier === "number") {
+      return leftIdentifier > rightIdentifier;
+    }
+    if (typeof leftIdentifier === "number") return false;
+    if (typeof rightIdentifier === "number") return true;
+    return leftIdentifier > rightIdentifier;
+  }
+  return true;
 }
 
 export function listedPackagePath(output: string, packageName: string): string | undefined {
@@ -143,23 +196,30 @@ export function inspectRepository(root = process.cwd()): DoctorCheck[] {
   }
 
   try {
-    const corpus = scanCorpus(resolve(absoluteRoot, ".pi/corpus"));
-    const unvalidated = corpus.entries.filter((entry) => !entry.validated?.trim()).map((entry) => entry.slug);
-    const unpinned = corpus.entries.filter((entry) => !/@\s+[0-9a-f]{40}\b/i.test(entry.origin)).map((entry) => entry.slug);
-    const details = [
-      ...corpus.issues.map((item) => `${item.path}: ${item.code}`),
-      ...unvalidated.map((slug) => `${slug}: missing validated evidence`),
-      ...unpinned.map((slug) => `${slug}: origin lacks a full commit SHA`),
-    ];
+    const hindsight = readJson(resolve(absoluteRoot, ".pi/hindsight.json"));
+    const scope = record(hindsight) && record(hindsight.scope) ? hindsight.scope : undefined;
+    const banks = record(hindsight) && record(hindsight.banks) ? hindsight.banks : undefined;
+    const projectBank = record(banks?.project) ? banks.project : undefined;
+    const recall = record(hindsight) && record(hindsight.recall) ? hindsight.recall : undefined;
+    const retain = record(hindsight) && record(hindsight.retain) ? hindsight.retain : undefined;
+    const issues = [
+      !record(hindsight) || hindsight.setupComplete !== true ? "setupComplete must be true" : undefined,
+      scope?.mode !== "domain-tagged" ? "scope.mode must be domain-tagged" : undefined,
+      projectBank?.enabled !== true || typeof projectBank.bankId !== "string"
+        ? "a project bankId must be enabled"
+        : undefined,
+      recall?.enabled !== true ? "recall.enabled must be true" : undefined,
+      retain?.enabled !== true ? "retain.enabled must be true" : undefined,
+    ].filter((value): value is string => value !== undefined);
     checks.push({
-      id: "repository-corpus",
-      status: details.length === 0 ? "pass" : "fail",
-      message: details.length === 0
-        ? `${corpus.entries.length} checked-in corpus entries are valid and provenance-pinned`
-        : details.join("; "),
+      id: "hindsight-configuration",
+      status: issues.length === 0 ? "pass" : "fail",
+      message: issues.length === 0
+        ? `Hindsight project memory is configured for ${String(projectBank?.bankId)}`
+        : issues.join("; "),
     });
   } catch (error) {
-    checks.push({ id: "repository-corpus", status: "fail", message: `could not validate .pi/corpus: ${String(error)}` });
+    checks.push({ id: "hindsight-configuration", status: "fail", message: `invalid .pi/hindsight.json: ${String(error)}` });
   }
 
   const piVersion = command("pi", ["--version"], absoluteRoot);
@@ -208,17 +268,18 @@ export function inspectRepository(root = process.cwd()): DoctorCheck[] {
     for (const expected of REQUIRED_PACKAGES) {
       const packagePath = listedPackagePath(pi.stdout, expected.name);
       if (!packagePath) {
-        problems.push(`${expected.name}@${expected.version} is not installed`);
+        problems.push(`${expected.name}>=${expected.minimumVersion} is not installed`);
         continue;
       }
       try {
         const manifest = readJson(resolve(packagePath, "package.json"));
         const actualName = record(manifest) ? manifest.name : undefined;
         const actualVersion = record(manifest) ? manifest.version : undefined;
-        if (actualName !== expected.name || actualVersion !== expected.version) {
-          problems.push(`${expected.name}: expected ${expected.version}, found ${String(actualVersion)}`);
+        if (actualName !== expected.name || typeof actualVersion !== "string" ||
+          !versionAtLeast(actualVersion, expected.minimumVersion)) {
+          problems.push(`${expected.name}: expected >=${expected.minimumVersion}, found ${String(actualVersion)}`);
         } else {
-          installed.push(`${expected.name}@${expected.version}`);
+          installed.push(`${expected.name}@${actualVersion}`);
         }
       } catch (error) {
         problems.push(`${expected.name}: unreadable package metadata (${String(error)})`);
@@ -233,33 +294,50 @@ export function inspectRepository(root = process.cwd()): DoctorCheck[] {
     checks.push({ id: "pi-packages", status: "warn", message: "Pi is unavailable; package installation was not checked" });
   }
 
-  const hasProjectPackages = existsSync(resolve(absoluteRoot, ".pi/settings.json"));
-  checks.push({
-    id: "project-package-pins",
-    status: hasProjectPackages ? "pass" : "warn",
-    message: hasProjectPackages
-      ? "project package settings exist"
-      : "no .pi/settings.json; clean clones do not install the expected Pi packages",
-  });
-
-  const mcpPath = [".mcp.json", ".pi/mcp.json"].map((path) => resolve(absoluteRoot, path)).find(existsSync);
-  if (mcpPath === undefined) {
-    checks.push({
-      id: "mcp-configuration",
-      status: "warn",
-      message: "no active project MCP configuration; .mcp.example.json is documentation only",
-    });
-  } else {
-    try {
-      const config = readJson(mcpPath);
+  try {
+    const mcpPath = effectiveMcpConfigPath(absoluteRoot);
+    if (mcpPath === undefined) {
       checks.push({
         id: "mcp-configuration",
-        status: record(config) ? "pass" : "fail",
-        message: record(config) ? `project MCP configuration parses: ${mcpPath}` : `project MCP configuration must be an object: ${mcpPath}`,
+        status: "warn",
+        message: "no effective first-class Fabric MCP configuration was found",
       });
-    } catch (error) {
-      checks.push({ id: "mcp-configuration", status: "fail", message: `invalid project MCP configuration: ${String(error)}` });
+    } else if (!existsSync(mcpPath)) {
+      checks.push({
+        id: "mcp-configuration",
+        status: "fail",
+        message: `configured Fabric MCP path does not exist: ${mcpPath}`,
+      });
+    } else {
+      const config = readJson(mcpPath);
+      const servers = record(config) && record(config.mcpServers) ? config.mcpServers : undefined;
+      if (!servers) {
+        checks.push({
+          id: "mcp-configuration",
+          status: "fail",
+          message: `Fabric MCP configuration has no mcpServers object: ${mcpPath}`,
+        });
+      } else {
+        const names = new Set(Object.keys(servers));
+        const requiredGroups = [
+          ["codegraphcontext"],
+          ["context7"],
+          ["exa"],
+          ["deepwiki"],
+        ];
+        const missing = requiredGroups.filter((group) => !group.some((name) => names.has(name)))
+          .map((group) => group.join("|"));
+        checks.push({
+          id: "mcp-configuration",
+          status: missing.length === 0 ? "pass" : "warn",
+          message: missing.length === 0
+            ? `first-class Fabric MCP configuration parses: ${mcpPath}`
+            : `missing Fabric MCP servers (${missing.join(", ")}): ${mcpPath}`,
+        });
+      }
     }
+  } catch (error) {
+    checks.push({ id: "mcp-configuration", status: "fail", message: `invalid Fabric MCP configuration: ${String(error)}` });
   }
 
   return checks;

@@ -2,9 +2,10 @@
   "mcpServers": {
     "codegraphcontext": {
       "command": "codegraphcontext",
-      "args": ["mcp", "start"],
-      "lifecycle": "lazy",
-      "directTools": false
+      "args": [
+        "mcp",
+        "start"
+      ]
     }
   }
 }

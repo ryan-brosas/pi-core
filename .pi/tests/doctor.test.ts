@@ -1,18 +1,24 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import test from "node:test";
 
 import { inspectRepository, listedPackagePath, versionAtLeast } from "../scripts/doctor.ts";
 
 const root = process.cwd();
 
-test("doctor parses cross-platform package paths and stable version precedence", () => {
-  const windowsList = "User packages:\n  npm:pi-fabric\n    C:\\Users\\dev\\.pi\\npm\\pi-fabric\n";
-  assert.equal(listedPackagePath(windowsList, "pi-fabric"), "C:\\Users\\dev\\.pi\\npm\\pi-fabric");
+test("doctor parses cross-platform package paths and semantic version precedence", () => {
+  const windowsList = "User packages:\n  npm:ultra-fabric@0.31.1-ultra.1\n    C:\\Users\\dev\\.pi\\npm\\ultra-fabric\n";
+  assert.equal(listedPackagePath(windowsList, "ultra-fabric"), "C:\\Users\\dev\\.pi\\npm\\ultra-fabric");
   assert.equal(versionAtLeast("0.82.1", "0.82.1"), true);
   assert.equal(versionAtLeast("0.82.2-beta.1", "0.82.1"), true);
   assert.equal(versionAtLeast("0.82.1-beta.1", "0.82.1"), false);
+  assert.equal(versionAtLeast("0.31.1-ultra.1", "0.31.1-ultra.1"), true);
+  assert.equal(versionAtLeast("0.31.1-ultra.2", "0.31.1-ultra.1"), true);
+  assert.equal(versionAtLeast("0.31.1-ultra.0", "0.31.1-ultra.1"), false);
+  assert.equal(versionAtLeast("0.31.1", "0.31.1-ultra.1"), true);
 });
 
 test("doctor reports no failing repository contract checks", () => {
@@ -43,11 +49,15 @@ test("doctor CLI emits structured JSON", () => {
   const piPackages = output.checks.find((check) => check.id === "pi-packages");
   assert.ok(piPackages);
   assert.match(piPackages.status, /^(?:pass|warn)$/);
-  if (piPackages.status === "pass") assert.match(piPackages.message, /0\.28\.2[\s\S]*2\.15\.0/);
-  else assert.ok(piPackages.message.length > 0);
+  if (piPackages.status === "pass") {
+    assert.match(piPackages.message, /ultra-fabric@0\.31\.1-ultra\.1/);
+    assert.match(piPackages.message, /@luxusai\/pi-hindsight@0\.11\.0/);
+    assert.doesNotMatch(piPackages.message, /pi-mcp-adapter/);
+  } else assert.ok(piPackages.message.length > 0);
   assert.ok(output.checks.some((check) => check.id === "fabric-configuration" && check.status === "pass"));
-  assert.ok(output.checks.some((check) => check.id === "repository-corpus" && check.status === "pass"));
   assert.ok(output.checks.some((check) => check.id === "retired-active-pointer" && check.status === "pass"));
+  assert.ok(output.checks.some((check) => check.id === "hindsight-configuration" && check.status === "pass"));
+  assert.ok(output.checks.some((check) => check.id === "mcp-configuration" && check.status === "pass"));
   assert.ok(output.checks.some((check) => check.id === "tracked-runtime-state"));
 });
 
@@ -57,9 +67,28 @@ test("doctor strict mode fails when bootstrap warnings remain", () => {
     ["--experimental-strip-types", ".pi/scripts/doctor.ts", "--strict", "--json"],
     { cwd: root, encoding: "utf8" },
   );
-  assert.equal(result.status, 1, result.stderr);
+  assert.equal(result.status, 1, result.stderr + result.stdout);
   const output = JSON.parse(result.stdout) as { checks: Array<{ status: string }> };
   assert.ok(output.checks.some((check) => check.status === "warn"));
+});
+
+test("doctor resolves first-class Fabric MCP config precedence", async () => {
+  const module = await import("../scripts/doctor.ts") as Record<string, unknown>;
+  const effectiveMcpConfigPath = module.effectiveMcpConfigPath as ((root: string, agentDir: string) => string | undefined) | undefined;
+  assert.equal(typeof effectiveMcpConfigPath, "function");
+  const sandbox = mkdtempSync(path.join(tmpdir(), "pi-doctor-mcp-"));
+  const project = path.join(sandbox, "project");
+  const agent = path.join(sandbox, "agent");
+  mkdirSync(path.join(project, ".pi"), { recursive: true });
+  mkdirSync(agent, { recursive: true });
+  const globalMcp = path.join(sandbox, "global-mcp.json");
+  const projectMcp = path.join(project, "project-mcp.json");
+  writeFileSync(globalMcp, "{}\n");
+  writeFileSync(projectMcp, "{}\n");
+  writeFileSync(path.join(agent, "fabric.json"), JSON.stringify({ mcp: { configPath: globalMcp } }));
+  assert.equal(effectiveMcpConfigPath?.(project, agent), globalMcp);
+  writeFileSync(path.join(project, ".pi/fabric.json"), JSON.stringify({ mcp: { configPath: "project-mcp.json" } }));
+  assert.equal(effectiveMcpConfigPath?.(project, agent), projectMcp);
 });
 
 test("doctor rejects unknown flags instead of silently weakening strict mode", () => {

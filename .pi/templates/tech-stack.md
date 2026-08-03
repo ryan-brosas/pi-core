@@ -1,82 +1,70 @@
 ---
-purpose: Tech stack, constraints, and integrations for AI context injection
-updated: 2026-02-01
+purpose: Verified runtime, dependencies, integrations, and commands
 ---
 
-# Tech Stack
+# Tech stack
 
-This file is automatically injected into ALL AI prompts via `opencode.json` instructions[].
+Record detected facts and their evidence. Do not turn example commands into claims.
 
-## Framework & Language
+## Runtime and languages
 
-- **Framework:** [e.g., Next.js 15, React 19]
-- **Language:** TypeScript (strict mode)
-- **Runtime:** [e.g., Node.js 22, Bun 1.x]
+- Runtime: [name and version, with source]
+- Languages: [language and mode]
+- Platform constraints: [verified constraint]
 
-## Styling & UI
+## Manifests and package management
 
-- **CSS:** [e.g., Tailwind CSS v4]
-- **Components:** [e.g., shadcn/ui, Radix Primitives]
-- **Design System:** [e.g., Custom tokens in tailwind.config.ts]
+- Package manager: [name or none]
+- Manifests: [authoritative paths]
+- Lockfiles: [paths or none]
+- Dependency policy: [verified rule]
 
-## Data & State
+## Frameworks and libraries
 
-- **Database:** [e.g., PostgreSQL via Supabase]
-- **ORM:** [e.g., Drizzle, Prisma]
-- **State Management:** [e.g., Zustand, React Query]
-- **API Style:** [e.g., REST, tRPC, GraphQL]
+- Application framework: [name and version or none]
+- Test framework: [name and version]
+- Build and type tools: [tools or none]
+- Important libraries: [name, role, evidence]
 
-## Testing
+## Storage and integrations
 
-- **Unit Tests:** [e.g., Vitest]
-- **E2E Tests:** [e.g., Playwright]
-- **Coverage Target:** [e.g., 80%]
+- Data stores: [service and boundary]
+- External services: [service and purpose]
+- Authentication: [verified mechanism]
+- Observability: [verified mechanism]
 
-## Key Constraints
+## Repository layout
 
-- [Constraint 1: e.g., Must work offline]
-- [Constraint 2: e.g., WCAG 2.1 AA compliance required]
-- [Constraint 3: e.g., Bundle size < 500KB]
+- Maintained source: [paths]
+- Tests: [paths]
+- Configuration: [paths]
+- Generated output: [paths and generator]
+- Runtime-managed data: [paths]
 
-## Active Integrations
+## Verified commands
 
-- [Service 1: e.g., Stripe for payments]
-- [Service 2: e.g., Resend for email]
-- [Service 3: e.g., Sentry for error tracking]
+For each command, record cwd, observed exit status, and what it proves.
 
-## Context and Work-Shaping Guidelines
-
-Keep enough context available to inspect, change, and verify the current slice without compressing away its contract.
-
-**Risk signals:**
-
-- unresolved dependencies or boundary decisions;
-- high security, privacy, migration, or public-contract consequence;
-- work that must survive sessions or travel across collaborators;
-- unknown blast radius or rollback path;
-- evidence that cannot fit or remain trustworthy in one bounded pass.
-
-File and task counts trigger inspection only. They never automatically require a child plan, lifecycle mode, or extra agent. Split work when doing so isolates a real dependency, ownership boundary, or verification risk.
-
-## Verification Commands
-
-**Always run before claiming complete:**
-
-```bash
-# Type checking
-[typecheck command, e.g., npm run typecheck]
-
-# Linting
-[lint command, e.g., npm run lint]
-
-# Testing
-[test command, e.g., npm test]
-
-# Building
-[build command, e.g., npm run build]
+```text
+[command]  # observed: [status], proves: [claim]
 ```
 
----
+## Unverified commands
 
-_Update this file when tech stack or constraints change._
-_AI uses project Hindsight to recall and retain durable architecture, conventions, and gotchas; this file remains the authoritative tech-stack record._
+List plausible commands that were not run. Do not present them as working.
+
+- [command and reason it remains unverified]
+
+## Deployment and live checks
+
+- Build artifact: [verified output or none]
+- Deployment command: [verified command or unknown]
+- Live servers: [verified names or unconfirmed]
+- Feature flags: [verified names or unconfirmed]
+
+## Constraints and unknowns
+
+- [constraint with source]
+- [unknown that affects implementation]
+
+Update this file when the runtime, dependency graph, integrations, or verification commands change.

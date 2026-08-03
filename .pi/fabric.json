@@ -6,20 +6,21 @@
   },
   "agents": {
     "enabled": true,
-    "runner": "pi",
-    "extensions": true,
-    "retainRuns": false,
     "notifyOnComplete": false,
     "transport": "auto",
-    "maxConcurrent": 3,
-    "thinking": "max"
+    "maxConcurrent": 1,
+    "maxPerExecution": 1,
+    "thinking": "max",
+    "maxDepth": 1,
+    "budgetUsd": 25,
+    "maxTokensPerChild": 100000
   },
   "ui": {
     "widget": "hidden",
     "enabled": true
   },
   "compaction": {
-    "engine": "fabric",
+    "engine": "pi",
     "targetContextRatio": 0.7
   },
   "mesh": {
@@ -33,6 +34,7 @@
   },
   "prewalk": {
     "alwaysRearm": false,
+    "mode": "in-place",
     "model": ""
   }
 }
