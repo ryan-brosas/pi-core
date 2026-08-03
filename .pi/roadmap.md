@@ -1,113 +1,135 @@
 ---
 purpose: Confirmed direction, proposed work, dependencies, and acceptance checks
-verified-at: f33c4b9
+verified-at: 6d78d2e90a75
+verified-state: mixed working tree observed 2026-08-03
 ---
 
 # Roadmap
 
-This roadmap separates user-confirmed outcomes from proposed work. Effort describes relative scope, not elapsed time.
+This roadmap separates user-confirmed outcomes from proposed work. Effort is relative scope, not elapsed time.
+
+## Current direction
+
+Keep Pi Core lean enough to load globally, strict enough to prevent unsafe workspace changes, and detailed enough to understand a target project without inflating `AGENTS.md`. Prefer small cohorts and sensitive mechanical gates over more tests, more agents, or more abstractions.
 
 ## Effort scale
 
 - `S`: one bounded cohort with narrow verification.
 - `M`: several coupled files or checks within Pi Core.
-- `L`: cross-project, migration, deployment, or live coordination.
-
-## Current direction
-
-Keep Pi Core small enough to load globally, strict enough to prevent unsafe workspace changes, and detailed enough to understand a target project without inflating `AGENTS.md`.
+- `L`: cross-area, cross-repository, migration, deployment, or live coordination.
 
 ## Confirmed work
 
-### Concise policy and detailed initialization context
+### Maintain concise policy and trustworthy initialization context
 
-- Status: complete locally, not committed.
-- Effort: `M` because it changes global policy, project policy, `/init`, four templates, generated context, and contract tests.
-- Evidence: the user requested a shorter `AGENTS.md`, natural-language `/init`, and detailed `user.md`, `project.md`, and `roadmap.md` output.
-- Dependencies: existing Pi prompt discovery, global package registration, Hindsight, Fabric MCP, and CodeGraphContext.
+- Status: complete locally for this refresh and uncommitted.
+- Effort: `M` because the baseline reconciles four detailed documents against policy, source, runtime providers, graph evidence, and tests.
+- Evidence: the user invoked `/init`. `.pi/prompts/init.md` defines the five-file context contract.
+- Dependencies: installed policy, current source, Hindsight inspection, Fabric session memory, first-class MCP, CodeGraphContext, and local verification.
 - Acceptance:
-  - `AGENTS.md` remains under 80 lines and contains only durable rules and project invariants.
-  - `/init` treats its argument as natural-language guidance rather than flags or a lifecycle.
-  - `/init` reconciles `.pi/user.md`, `.pi/project.md`, `.pi/roadmap.md`, and `.pi/tech-stack.md`.
-  - Roadmap items carry status, relative effort, dependencies, acceptance checks, risks, and live confirmation.
-  - Focused policy, init, graph, and workspace tests pass.
-- Risks: detailed context can become stale if source changes without a later `/init` refresh.
-- Live confirmation: none. A reload is required for active Pi sessions.
-
-### Keep the runtime surface lean
-
-- Status: complete locally, not committed.
-- Effort: `L` because the cleanup crossed project files, global MCP configuration, and an external checkout.
-- Evidence: the user requested removal of unused workday, corpus, research-enforcement, and duplicate Project Intelligence machinery.
-- Dependencies: CodeGraphContext and direct research MCP routes must remain available.
-- Acceptance:
-  - `workspace-policy` is the only project extension.
-  - Research routes directly through Fabric providers without an enforcement extension.
-  - CodeGraphContext replaces Project Intelligence for structural lookup.
-  - Fabric child limits remain one concurrent child, depth one, and 100,000 tokens per child.
-- Risks: CodeGraphContext caller analysis and watcher behavior remain unreliable.
-- Live confirmation: `/reload` or a new session must confirm the reduced registry.
+  - `AGENTS.md` remains under 80 lines and contains durable rules plus exact checks.
+  - `.pi/user.md`, `.pi/project.md`, `.pi/roadmap.md`, and `.pi/tech-stack.md` preserve authored facts and mark uncertainty.
+  - Current graph, memory, MCP, Fabric, and test limits are recorded without health claims.
+  - Focused initialization contracts pass and the containing-suite result is reported accurately.
+- Risks: context becomes stale after configuration, graph, or ownership changes.
+- Live confirmation: `/reload` or a new session is required before changed context affects a live Pi prompt.
 
 ### Preserve global project isolation
 
 - Status: ongoing.
-- Effort: `M` because it spans global registration, policy linkage, project startup, and cross-directory smoke tests.
-- Evidence: `docs/global-development.md` defines Pi Core as the shared layer while target repositories own source, requirements, and local policy.
-- Dependencies: the global Pi settings entry, policy symlink, Hindsight project scope, and workspace-policy extension.
+- Effort: `M` because the contract spans global registration, policy linkage, target-project startup, memory scope, and workspace enforcement.
+- Evidence: `docs/global-development.md`, global settings, the policy symlink, and workspace-policy tests.
+- Dependencies: one Pi Core package registration, project-scoped Hindsight, the primary checkout, and target-local policy.
 - Acceptance:
   - Starting Pi in another project exposes Pi Core resources without copying this repository.
-  - The target project's policy and source remain authoritative.
-  - Hindsight and session memory do not cross project identity boundaries.
-- Risks: machine-global settings can drift from this checkout.
-- Live confirmation: run a smoke session from a non-Pi-Core repository.
+  - Target source and local policy remain authoritative.
+  - Hindsight tags and transcript discovery stay scoped to the target project.
+- Risks: machine-global settings can drift. A target-project smoke run can mutate local context.
+- Live confirmation: a separately authorized smoke session in a non-Pi-Core repository remains required.
+
+### Codify sensitive verification instead of test-count optimization
+
+- Status: implemented locally in untracked `.pi/skills/pass-rate-workflow/` and not committed.
+- Effort: `M` because the workflow joins cohort design, test ownership, broken and fixed proof, controlled failure, and project-native mechanization.
+- Evidence: the user asked to preserve the verification advice. `.pi/tests/pass-rate-workflow.test.ts` guards the resulting skill.
+- Dependencies: `test-driven-development`, `incremental-implementation`, `testing-anti-patterns`, and `verification-before-completion`.
+- Acceptance:
+  - Each owning gate fails on an unfixed or deliberately broken form and passes on the fixed form.
+  - Test count alone is not treated as evidence.
+  - Existing broad gates are extended before duplicate incident tests are added.
+  - The focused pass-rate workflow tests pass.
+- Risks: a static skill contract cannot prove every future task follows the method.
+- Live confirmation: none for the text itself. Future implementation cohorts must supply their own behavioral proof.
 
 ## Proposed work
 
+### Reconcile automatic Prewalk with the plain-language contract
+
+- Status: proposed and blocked on intended behavior.
+- Effort: `S` if either the config or one assertion is wrong. `M` if automatic rearming needs a new public contract.
+- Evidence: the full suite has one failure because `.pi/fabric.json` sets `prewalk.alwaysRearm: true` while `.pi/tests/skill-system.test.ts` rejects automatic handoff for ordinary prompts.
+- Dependencies: user decision on whether automatic Prewalk is desired.
+- Acceptance if approved:
+  - Config, README, policy, and test describe one behavior.
+  - The focused contract demonstrates the intended automatic or non-automatic boundary.
+  - The full local suite exits 0.
+- Risks: changing config affects the next session and may alter model handoff behavior.
+- Live confirmation: `/reload` or a new session must confirm the selected behavior.
+
 ### Smoke-test `/init` in a representative target project
 
-- Why it may matter: static contracts prove prompt text, not the quality of generated context in another repository.
-- Effort: `M` because the check needs a separate trusted project, generated-file review, graph evidence, and cleanup or explicit retention.
-- Decision needed: choose a safe target project and authorize its project-local context writes.
-- Dependencies: reload the new prompt and confirm the target's trust boundary.
-- Acceptance if approved: the target receives concise policy plus accurate detailed context without global config changes.
+- Status: proposed.
+- Effort: `M` because it needs a separate trusted Git root, project-local writes, context review, and cleanup or retention decisions.
+- Evidence: Pi Core's static tests prove prompt structure, not generated-context quality in another project.
+- Dependencies: a user-selected target and authorization for that project's context paths.
+- Acceptance if approved:
+  - The target receives concise local policy and accurate detailed context.
+  - Graph, memory, and MCP limits are source-checked.
+  - No Pi Core tree or target secrets are copied into context.
+- Risks: cross-repository scope and generated files can disturb another worktree.
+- Live confirmation: run and review one target-project session.
 
-### Resolve strict doctor package identity
+### Resolve the doctor package-identity warning
 
-- Why it may matter: the normal doctor passes with one warning, while the full suite's strict bootstrap test fails.
-- Effort: `S` if the expected package name only needs to accept the configured local Ultra Fabric checkout. `M` if package discovery must change.
-- Decision needed: define whether local source registration or only a package identity satisfies bootstrap.
-- Dependencies: inspect `pi list`, global settings resolution, and Ultra Fabric package metadata.
-- Acceptance if approved: `doctor --strict` exits zero without hiding a real missing runtime.
+- Status: proposed.
+- Effort: `S` if local source registration should satisfy the expected identity. `M` if package discovery must change.
+- Evidence: the normal doctor exits 0 but warns that `ultra-fabric>=0.31.1-ultra.1` is not reported by `pi list`. The current session still exposes Fabric.
+- Dependencies: inspect Pi package metadata and decide whether source registration or npm identity is authoritative.
+- Acceptance if approved:
+  - `doctor --strict` exits 0 without hiding a missing runtime.
+  - The documented requirement matches what `pi list` can prove.
+- Risks: weakening the check could mask a missing package. Package changes require explicit authorization.
+- Live confirmation: restart or open a new Pi session after any package change.
 
 ### Make graph refresh deterministic
 
-- Why it may matter: stale graph nodes can survive deletions, caller queries can fail in the backend, and `watch_directory` can hold the MCP request open.
-- Effort: `M` because the work crosses MCP behavior, index lifecycle, fallback policy, and verification.
-- Decision needed: choose a supported refresh path that does not delete graph data silently.
-- Dependencies: CodeGraphContext server behavior and exact repository ownership.
-- Acceptance if approved: a source edit or deletion becomes visible through a bounded refresh probe, with source fallback on failure.
-
-### Add drift synchronization only after evidence of drift
-
-- Why it may matter: global package registration, policy linkage, and Fabric defaults could diverge across machines.
-- Effort: `L` because a synchronizer would mutate machine-global configuration and need rollback and cross-machine tests.
-- Decision needed: wait for repeated drift before adding machinery.
-- Dependencies: observed drift from at least two real setups.
-- Acceptance if approved: an idempotent tool reports and repairs only authorized differences.
-
-## Completed outcomes
-
-- Removed the abandoned `/workday` prompt and test.
-- Removed corpus source, tests, doctor coupling, and its dedicated artifact.
-- Removed the research-enforcement extension, config, tests, and artifact.
-- Removed the duplicate Project Intelligence MCP registration, policy test, and checkout.
-- Reduced project extensions to `workspace-policy`.
-- Replaced procedural `/init` modes with natural-language guidance and source-backed context files.
-
-These outcomes exist only in the current worktree until committed. No deployment or publication occurred.
+- Status: proposed.
+- Effort: `M` because refresh affects MCP state, stale-node handling, relationship fallback, and verification.
+- Evidence: the exact index is healthy for `find_code`, no watcher is active, and relationship queries returned zero for source-proven edges.
+- Dependencies: supported CodeGraphContext watcher or reindex behavior and explicit authority for graph-state changes.
+- Acceptance if approved:
+  - A bounded source edit and deletion become visible through a documented refresh probe.
+  - Known call and import edges either resolve or trigger a clear source fallback.
+  - No broad ancestor index is duplicated or deleted silently.
+- Risks: watchers can hang and index mutation can affect other sessions.
+- Live confirmation: observe one bounded refresh against the exact repository index.
 
 ## Blockers and risks
 
-- Exact staged-tree suite: 75 tests, 72 pass, 0 fail, and 3 environment-dependent skips. The normal doctor still warns because Ultra Fabric is not reported under the expected package identity.
-- The worktree contains unrelated changes. Any future commit must remain path-scoped.
-- A live Pi process keeps old prompts and extensions until `/reload` or a new session.
+- Local full suite: 362 tests, 361 pass, one fail on automatic Prewalk contract drift.
+- The worktree contains many unrelated modified and untracked paths. Future commits must remain path-scoped.
+- The CodeGraphContext index has no watcher and relationship queries under-report source-proven edges.
+- MCP registration and Hindsight configuration do not prove live server health.
+
+## Completed outcomes
+
+- Natural-language `/init`, concise `AGENTS.md`, and the four detailed context files are present at HEAD.
+- The abandoned workday prompt and test, `.pi/corpus`, and the research-enforcement extension are absent.
+- The effective MCP registry has CodeGraphContext and no duplicate Project Intelligence server.
+- `workspace-policy` is the only maintained project extension.
+
+## Deferred or out of scope
+
+- Do not add a global drift synchronizer until repeated real drift justifies it.
+- Do not change Hindsight, MCP, global packages, graph watchers, dependencies, or remote services as part of initialization.
+- External inspiration-clone or graph cleanup belongs to a separately scoped, evidence-based operation. Nothing was deleted during this initialization.

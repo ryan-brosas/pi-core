@@ -1,6 +1,7 @@
 ---
 purpose: Explicit user preferences and working boundaries
 source: User instructions in Pi sessions
+verified-at: 2026-08-03
 ---
 
 # User context
@@ -14,6 +15,7 @@ This file records preferences the user stated directly. It does not record ident
 - Keep files small and split larger changes into coherent cohorts.
 - Avoid forcing one shared abstraction across workflows when reuse would add branching and complexity.
 - Remove unused machinery rather than keeping it for possible future use.
+- Treat test count and a passing suite as weak signals unless the gate catches the intended broken behavior.
 
 ## Communication
 
@@ -34,6 +36,13 @@ This file records preferences the user stated directly. It does not record ident
 - Implement the smallest working slice, test it, then expand only when evidence requires more.
 - Separate local verification from checks that still require named live servers or feature flags.
 
+## Testing and review
+
+- Keep verification inside each coherent cohort rather than treating it as a detached final phase.
+- A strong gate fails on the pre-fix or deliberately broken form and passes on the fixed form.
+- Extend the owning test for the broad defect class instead of adding duplicate incident-specific coverage.
+- Convert recurring manual catches into project-native tests or checks when the evidence justifies it.
+
 ## Agents and actors
 
 - Ordinary work stays on plain `fabric_exec`.
@@ -51,8 +60,8 @@ This file records preferences the user stated directly. It does not record ident
 
 ## Environment
 
-- Confirm the current working directory before shell commands.
-- The interactive shell is fish unless current evidence says otherwise.
+- Confirm the current working directory and shell before commands.
+- The current process reported `/usr/bin/bash` on Linux under WSL2 during the 2026-08-03 initialization.
 - A backup must replace the real extension. Use `mymod.bak`, not `mymod.jar.bak`.
 
 ## Writing
@@ -68,13 +77,14 @@ This file records preferences the user stated directly. It does not record ident
 - Before proposing a root cause, list the symptoms every valid theory must explain.
 - Run available diagnostics after code changes and fix introduced errors.
 
-## Memory
+## Privacy and memory
 
 - Treat injected memory indexes as retrieval hints, not full memory.
 - Read only task-relevant memories.
-- Update existing durable memory instead of creating duplicates.
+- Update an existing deterministic durable document instead of creating duplicate memories.
 - Keep cross-project preferences global and repository facts project-scoped.
 - Do not save facts already represented by source, documentation, or Git history.
+- Do not retain credentials, secrets, or private data without an explicit boundary from the user.
 
 ## Unknowns
 
